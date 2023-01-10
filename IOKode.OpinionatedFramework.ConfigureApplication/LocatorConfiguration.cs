@@ -15,5 +15,7 @@ public static class LocatorConfiguration
         var resolverFunctionsDict = (Dictionary<Type, Func<object>>)field!.GetValue(null)!;
         object objectResolverFunction() => resolverFunction()!;
         resolverFunctionsDict.Add(typeof(TService), objectResolverFunction);
+        
+        // todo Store a global reference for dictionary to avoid reflection on every registration.
     }
 }

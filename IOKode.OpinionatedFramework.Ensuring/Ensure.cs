@@ -5,27 +5,36 @@ namespace IOKode.OpinionatedFramework.Ensuring;
 
 public static class Ensure
 {
-    public static ArgumentEnsuringHold Argument() => new ArgumentEnsuringHold();
-    public static EnsurerHold Operation(string message) => new EnsurerHold();
-    public static EnsurerHold Generic() => new EnsurerHold();
-    public static EnsurerHold Exception(Exception ex) => new EnsurerHold();
+    public static ArgumentEnsuringHold Argument(string paramName) => new ArgumentEnsuringHold();
+    public static EnsurerHold Operation(string message) => new EnsurerHold(new InvalidOperationException(message));
+    public static EnsurerHold Generic() => new EnsurerHold(new Exception());
+    public static EnsurerHold Exception(Exception ex) => new EnsurerHold(ex);
 }
 
 public class EnsurerHold
 {
-    public StringEnsurer String => new StringEnsurer();
-    public TypeEnsurer Type => new TypeEnsurer();
-    public StreamEnsurer Stream => new StreamEnsurer();
-    public CollectionEnsurer Collection => new CollectionEnsurer();
-    public ObjectEnsurer Object => new ObjectEnsurer();
-    public NumberEnsurer Number => new NumberEnsurer();
-    public AssertionEnsurer Assert => new AssertionEnsurer();
+    private readonly Exception _exception;
+
+    public EnsurerHold(Exception exception)
+    {
+        _exception = exception;
+    }
+    
+    public GeneratedCollectionEnsurer Collection => new GeneratedCollectionEnsurer(_exception);
 }
 
 public class ArgumentEnsuringHold : EnsurerHold
 {
-    public bool NotNull(object? o)
+    public ArgumentEnsuringHold() : base(new ArgumentException())
     {
-        return o != null;
+        
+    }
+    
+    public void NotNull(object? o)
+    {
+        if (o == null)
+        {
+            throw new ArgumentNullException();
+        }
     }
 }

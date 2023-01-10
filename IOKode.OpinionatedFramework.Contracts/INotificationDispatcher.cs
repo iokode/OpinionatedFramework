@@ -5,7 +5,7 @@ using IOKode.OpinionatedFramework.Foundation.Notifications;
 
 namespace IOKode.OpinionatedFramework.Contracts;
 
-[Contract]
+[AddToFacade("Notification")]
 public interface INotificationDispatcher
 {
     public Task DispatchAsync(INotifiable notifiable, Notification notification, CancellationToken cancellationToken);

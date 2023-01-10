@@ -5,8 +5,8 @@ public class TypeEnsurer
 {
     public bool IsAssignableTo(System.Type value, System.Type expectedType)
     {
-        Ensure.Argument().NotNull(value);
-        Ensure.Argument().NotNull(expectedType);
+        Ensure.Argument(nameof(value)).NotNull(value);
+        Ensure.Argument(nameof(value)).NotNull(expectedType);
 
         return value.IsAssignableTo(expectedType);
     }

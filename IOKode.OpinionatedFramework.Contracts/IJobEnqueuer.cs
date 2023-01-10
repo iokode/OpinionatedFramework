@@ -6,7 +6,7 @@ using IOKode.OpinionatedFramework.Foundation.Jobs;
 
 namespace IOKode.OpinionatedFramework.Contracts;
 
-[Contract]
+[AddToFacade("Job")]
 public interface IJobEnqueuer
 {
     public Task EnqueueAsync(string queue, IJob job, CancellationToken cancellationToken);

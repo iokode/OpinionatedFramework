@@ -3,28 +3,18 @@ namespace IOKode.OpinionatedFramework.Ensuring.Ensurers;
 [Ensurer]
 public class StringEnsurer
 {
-    public bool NotEmpty(string value, bool ignoreWhitespaces = false)
+    public bool NotEmpty(string value)
     {
-        if (ignoreWhitespaces && string.IsNullOrEmpty(value))
-        {
-            return false;
-        }
+        return !string.IsNullOrEmpty(value);
+    }
 
-        if (!ignoreWhitespaces && string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        return true;
+    public bool NotWhiteSpace(string value)
+    {
+        return !string.IsNullOrWhiteSpace(value);
     }
 
     public bool MaxLength(string value, int maxLength)
     {
-        if (value.Length > maxLength)
-        {
-            return false;
-        }
-
-        return true;
+        return value.Length <= maxLength;
     }
 }

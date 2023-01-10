@@ -13,7 +13,7 @@ public record EmailAddress
         /// <exception cref="FormatException">Email address is not valid.</exception>
         public static EmailAddress Parse(string value)
         {
-            Ensure.Argument().String.NotEmpty(value);
+            Ensure.Argument(nameof(value)).String.NotWhiteSpace(value);
 
             if (!new EmailAddressAttribute().IsValid(value))
             {

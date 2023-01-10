@@ -6,7 +6,7 @@ using IOKode.OpinionatedFramework.Foundation.Jobs;
 
 namespace IOKode.OpinionatedFramework.Contracts;
 
-[Contract]
+[AddToFacade("Job")]
 public interface IJobScheduler
 {
     public Task ScheduleAsync(IJob job, CronExpression interval, CancellationToken cancellationToken);

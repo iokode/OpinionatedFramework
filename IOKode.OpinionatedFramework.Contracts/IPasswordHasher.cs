@@ -1,6 +1,6 @@
 namespace IOKode.OpinionatedFramework.Contracts;
 
-[Contract]
+[AddToFacade("Password")]
 public interface IPasswordHasher
 {
     public string Hash(string plainText);

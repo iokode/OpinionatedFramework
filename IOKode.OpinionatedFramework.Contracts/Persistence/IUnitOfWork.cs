@@ -35,6 +35,6 @@ public interface IUnitOfWork
 
     protected void EnsureTypeIsRepository(Type attemptedRepositoryType)
     {
-        Ensure.Argument().Type.IsAssignableTo(attemptedRepositoryType, typeof(IRepository));
+        Ensure.Argument(nameof(attemptedRepositoryType)).Type.IsAssignableTo(attemptedRepositoryType, typeof(IRepository));
     }
 }

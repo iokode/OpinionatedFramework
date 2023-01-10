@@ -7,7 +7,7 @@ public class StreamEnsurer
 {
     public bool CanRead(Stream stream)
     {
-        Ensure.Argument().NotNull(stream);
+        Ensure.Argument(nameof(stream)).NotNull(stream);
 
         if (!stream.CanRead)
         {
@@ -19,7 +19,7 @@ public class StreamEnsurer
 
     public bool CanWrite(Stream stream)
     {
-        Ensure.Argument().NotNull(stream);
+        Ensure.Argument(nameof(stream)).NotNull(stream);
 
         if (!stream.CanWrite)
         {
@@ -31,7 +31,7 @@ public class StreamEnsurer
 
     public bool CanSeek(Stream stream)
     {
-        Ensure.Argument().NotNull(stream);
+        Ensure.Argument(nameof(stream)).NotNull(stream);
 
         if (!stream.CanSeek)
         {

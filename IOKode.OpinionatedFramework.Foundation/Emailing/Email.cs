@@ -15,8 +15,8 @@ public partial record Email
         get => _to;
         init
         {
-            Ensure.Argument().NotNull(value);
-            Ensure.Argument().Collection.NotEmpty(value);
+            Ensure.Argument(nameof(value)).NotNull(value);
+            Ensure.Argument(nameof(value)).Collection.NotEmpty(value);
             _to = value;
         }
     }

@@ -1,6 +1,6 @@
 namespace IOKode.OpinionatedFramework.Contracts;
 
-[Contract]
+[AddToFacade("Encrypt")]
 public interface IEncrypter
 {
     public string Encrypt(string value);
