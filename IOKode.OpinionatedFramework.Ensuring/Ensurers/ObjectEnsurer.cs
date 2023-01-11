@@ -1,9 +1,9 @@
 namespace IOKode.OpinionatedFramework.Ensuring.Ensurers;
 
 [Ensurer]
-public class ObjectEnsurer
+public static class ObjectEnsurer
 {
-    public bool NotNull(object? value)
+    public static bool NotNull(object? value)
     {
         return value != null;
     }

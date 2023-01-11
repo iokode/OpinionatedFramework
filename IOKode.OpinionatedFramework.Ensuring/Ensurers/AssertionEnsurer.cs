@@ -1,9 +1,9 @@
 namespace IOKode.OpinionatedFramework.Ensuring.Ensurers;
 
 [Ensurer]
-public class AssertionEnsurer
+public static class AssertionEnsurer
 {
-    public bool Assert(bool condition)
+    public static bool Assert(bool condition)
     {
         return condition;
     }
