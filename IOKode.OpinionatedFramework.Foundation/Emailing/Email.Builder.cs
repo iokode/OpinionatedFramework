@@ -88,7 +88,7 @@ public partial record Email
         {
             Ensure.Generic().Collection.NotEmpty(_to);
             Ensure.Generic().Object.NotNull(_from);
-            Ensure.Generic().String.NotEmpty(_subject, ignoreWhitespaces: true);
+            Ensure.Generic().String.NotWhiteSpace(_subject);
         }
     }
 }

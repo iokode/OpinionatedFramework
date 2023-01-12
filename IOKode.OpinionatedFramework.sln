@@ -12,8 +12,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IOKode.OpinionatedFramework
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IOKode.OpinionatedFramework.Generators", "IOKode.OpinionatedFramework.Generators\IOKode.OpinionatedFramework.Generators.csproj", "{A3F2B5B2-E755-4119-82D8-E9D159DC7275}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IOKode.OpinionatedFramework.Helpers", "IOKode.OpinionatedFramework.Helpers\IOKode.OpinionatedFramework.Helpers.csproj", "{6D9FABFC-6A07-42B9-A7B1-CDBD991A7238}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,10 +42,6 @@ Global
 		{A3F2B5B2-E755-4119-82D8-E9D159DC7275}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A3F2B5B2-E755-4119-82D8-E9D159DC7275}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A3F2B5B2-E755-4119-82D8-E9D159DC7275}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6D9FABFC-6A07-42B9-A7B1-CDBD991A7238}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6D9FABFC-6A07-42B9-A7B1-CDBD991A7238}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6D9FABFC-6A07-42B9-A7B1-CDBD991A7238}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6D9FABFC-6A07-42B9-A7B1-CDBD991A7238}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection

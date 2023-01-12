@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -13,10 +12,10 @@ namespace IOKode.OpinionatedFramework.Generators
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-#if DEBUG
-            if (!Debugger.IsAttached)
+#if SHOULD_ATTACH_DEBUGGER
+            if (!System.Diagnostics.Debugger.IsAttached)
             {
-                Debugger.Launch();
+                System.Diagnostics.Debugger.Launch();
             }
 #endif
             var throwerDeclarations = context.SyntaxProvider

@@ -1,5 +1,4 @@
 using System;
-using IOKode.OpinionatedFramework.Ensuring.Throwers;
 
 namespace IOKode.OpinionatedFramework.Ensuring;
 
@@ -15,7 +14,6 @@ public class ArgumentEnsuringHold : ThrowerHolder
 {
     public ArgumentEnsuringHold() : base(new ArgumentException())
     {
-        
     }
     
     public void NotNull(object? o)
