@@ -1,9 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +19,7 @@ namespace IOKode.OpinionatedFramework.Generators
                 Debugger.Launch();
             }
 #endif
-            var ensurersDeclarations = context.SyntaxProvider
+            var throwerDeclarations = context.SyntaxProvider
                 .CreateSyntaxProvider
                 (
                     static (syntaxNode, _) => _IsSyntaxTargetForGeneration(syntaxNode),
@@ -31,7 +29,7 @@ namespace IOKode.OpinionatedFramework.Generators
 
             IncrementalValueProvider<(Compilation Compilation, ImmutableArray<ClassDeclarationSyntax> Declarations)>
                 compilationAndClasses =
-                    context.CompilationProvider.Combine(ensurersDeclarations.Collect());
+                    context.CompilationProvider.Combine(throwerDeclarations.Collect());
 
             context.RegisterSourceOutput(compilationAndClasses,
                 static (sourceProductionContext, source) =>
@@ -53,16 +51,18 @@ namespace IOKode.OpinionatedFramework.Generators
             var throwers = _GetThrowers(compilation, distinctClasses, context.CancellationToken)
                 .ToList();
 
-            if (throwers.Count > 0)
+            if (throwers.Count <= 0)
             {
-                foreach (var thrower in throwers)
-                {
-                    string ensurerClass = _GenerateThrowerClass(thrower);
-                    context.AddSource($"{thrower.ClassName}.g.cs", SourceText.From(ensurerClass, Encoding.UTF8));
-                }
+                return;
+            }
 
-                // string ensurerHoldClass = _GenerateEnsurerHoldClass(throwers);
-                // context.AddSource("ThrowerHolder.g.cs", SourceText.From(ensurerHoldClass, Encoding.UTF8));
+            string ensurerHoldClass = _GenerateThrowerHolderClass(throwers);
+            context.AddSource("ThrowerHolder.g.cs", SourceText.From(ensurerHoldClass, Encoding.UTF8));
+
+            foreach (var thrower in throwers)
+            {
+                string ensurerClass = _GenerateThrowerClass(thrower);
+                context.AddSource($"{thrower.ClassName}.g.cs", SourceText.From(ensurerClass, Encoding.UTF8));
             }
         }
 

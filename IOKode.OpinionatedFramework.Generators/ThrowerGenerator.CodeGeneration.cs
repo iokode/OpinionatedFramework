@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,7 +19,7 @@ internal partial class ThrowerGenerator
         public string EnsurerClassNamespace { get; set; }
         public _ThrowerMethod[] Methods { get; set; }
 
-        public string ClassName
+        public string Name
         {
             get
             {
@@ -31,16 +29,18 @@ internal partial class ThrowerGenerator
                     ensurerClassNameBuilder.Length -= "Ensurer".Length;
                 }
 
-                ensurerClassNameBuilder.Append("Thrower");
                 return ensurerClassNameBuilder.ToString();
             }
         }
+
+        public string ClassName => $"{Name}Thrower";
     }
 
     private record _ThrowerMethod
     {
         public string Name { get; set; }
         public IEnumerable<_ThrowerMethodParameter> Parameters { get; set; }
+        public string DocComment { get; set; }
     }
 
     private record _ThrowerMethodParameter
@@ -49,32 +49,15 @@ internal partial class ThrowerGenerator
         public string Type { get; set; }
     }
 
-    // private record _QueryCommandToGenerate
-    // {
-    //     public string QueryInterfaceName { get; set; }
-    //     public string QueryInterfaceNamespace { get; set; }
-    //     public IEnumerable<string> PermissionAttributes { get; set; }
-    //     public string DisplayEventName { get; set; }
-    //     public string QueryInterfaceType => $"{QueryInterfaceNamespace}.{QueryInterfaceName}";
-    //     public string QueryName => Regex.Replace(QueryInterfaceName, _EnsurerNameRegex, "$1");
-    //     public string QueryCommandName => $"{QueryName}QueryCommand";
-    //     public string QueryCommandNamespace => Regex.Replace(QueryInterfaceNamespace, "[^.]+$", "QueryCommands");
-    //     public string QueryCommandEventName => $"{QueryName}Queried";
-    //     public string QueryCommandEventNamespace => Regex.Replace(QueryInterfaceNamespace, "[^.]+$", "Events");
-    //     public string QueryCommandEventType => $"{QueryCommandEventNamespace}.{QueryCommandEventName}";
-    //     public bool HasPermissionAttributes => PermissionAttributes is not null;
-    // }
-
     private static readonly string _EnsurerAttribute = "IOKode.OpinionatedFramework.Ensuring.EnsurerAttribute";
-    private static readonly string _EnsurerNameRegex = "^(.*)(Ensurer)?$"; // todo review regex
     
     /// <summary>
-    /// Get the relevant information of each interface for code generation.
+    /// Get the relevant information of each class for code generation.
     /// </summary>
     private static IEnumerable<_Thrower> _GetThrowers(Compilation compilation, IEnumerable<ClassDeclarationSyntax> classes,
         CancellationToken cancellationToken)
     {
-        foreach (ClassDeclarationSyntax classDeclarationSyntax in classes)
+        foreach (var classDeclarationSyntax in classes)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -82,38 +65,40 @@ internal partial class ThrowerGenerator
             var ensurerClassNamespace = SourceGenerationHelper.GetNamespace(classDeclarationSyntax);
 
             var semanticModel = compilation.GetSemanticModel(classDeclarationSyntax.SyntaxTree);
-
             var methods = classDeclarationSyntax.Members
                 .OfType<MethodDeclarationSyntax>()
-                .Select(syntax => getMethodInfo(syntax, semanticModel))
-                .Where(methodInfo => methodInfo is not null)
+                .Select(syntax => getThrowerMethod(syntax, semanticModel))
+                .Where(method => method is not null)
                 .ToArray();
 
-            var throwersToGenerate = new _Thrower
+            var thrower = new _Thrower
             {
                 EnsurerClassName = ensurerClassName,
                 EnsurerClassNamespace = ensurerClassNamespace,
                 Methods = methods
             };
-
-            yield return throwersToGenerate;
+            yield return thrower;
         }
 
-        _ThrowerMethod getMethodInfo(MethodDeclarationSyntax methodDeclarationSyntax, SemanticModel semanticModel)
+        _ThrowerMethod getThrowerMethod(MethodDeclarationSyntax methodDeclarationSyntax, SemanticModel semanticModel)
         {
-            
             var methodSymbol = (IMethodSymbol) ModelExtensions.GetDeclaredSymbol(semanticModel, methodDeclarationSyntax)!;
-
             if (methodSymbol.DeclaredAccessibility != Accessibility.Public)
             {
                 return null;
             }
 
-            var boolTypeSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(bool).FullName!); // todo should be typeSymbol?
+            var boolTypeSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(bool).FullName!);
             if (!SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType, boolTypeSymbol))
             {
                 return null;
             }
+
+            var docComment = methodSymbol.GetDocumentationCommentXml(); // todo wip
+            // var singleLineDocComments = methodDeclarationSyntax.DescendantTrivia()
+            //     .Where(syntaxTrivia => syntaxTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+            //     .Select(syntaxTrivia => syntaxTrivia.ToString());
+            // var docComment = string.Join("", singleLineDocComments);
 
             var methodName = methodDeclarationSyntax.Identifier.Text;
             var methodParameters = methodDeclarationSyntax.ParameterList.Parameters
@@ -128,7 +113,8 @@ internal partial class ThrowerGenerator
             var method = new _ThrowerMethod
             {
                 Name = methodName,
-                Parameters = methodParameters
+                Parameters = methodParameters,
+                DocComment = docComment
             };
             return method;
         }
@@ -136,10 +122,10 @@ internal partial class ThrowerGenerator
 
     private static string _GenerateThrowerClass(_Thrower thrower)
     {
-        return Template.Parse(_GeneratedThrowerClassTemplate).Render(thrower, member => member.Name);
+        return Template.Parse(_ThrowerClassTemplate).Render(thrower, member => member.Name);
     }
 
-    private static string _GenerateEnsurerHoldClass(IEnumerable<_Thrower> throwers)
+    private static string _GenerateThrowerHolderClass(IEnumerable<_Thrower> throwers)
     {
         var script = new ScriptObject {{ "Throwers", throwers }};
         var templateContext = new TemplateContext(script)
@@ -149,7 +135,7 @@ internal partial class ThrowerGenerator
         return Template.Parse(_ThrowerHolderClassTemplate).Render(templateContext);
     }
 
-    private static readonly string _GeneratedThrowerClassTemplate = 
+    private static readonly string _ThrowerClassTemplate = 
         """
         // This class was auto-generated by a source generator
 
@@ -158,16 +144,20 @@ internal partial class ThrowerGenerator
 
         namespace IOKode.OpinionatedFramework.Ensuring.Throwers;
 
-        public class {{ ThrowerName }}
+        public class {{ ClassName }}
         {
             private readonly Exception _exception;
 
-            public {{ ThrowerName }}(Exception exception)
+            public {{ ClassName }}(Exception exception)
             {
                 _exception = exception;
             }
 
             {{~ for method in Methods ~}}
+            {{~ if method.DocComment ~}}
+            {{ method.DocComment }}
+            {{~ end ~}}
+            /// <exception cref="Exception">Thrown an exception when is not valid.</exception>
             public void {{ method.Name }}({{ for parameter in method.Parameters }}{{ parameter.Type }} {{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }})
             {
                 bool isValid = {{ EnsurerClassName }}.{{ method.Name }}({{ for parameter in method.Parameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }});
@@ -177,14 +167,16 @@ internal partial class ThrowerGenerator
                     throw _exception;
                 }
             }
+            {{~ if !for.last ~}}
 
+            {{~ end ~}}
             {{~ end ~}}
         }
         """;
 
     private static readonly string _ThrowerHolderClassTemplate =
         """
-        // This class was auto-generated by query command source generator
+        // This class was auto-generated by a source generator
 
         using System;
         using IOKode.OpinionatedFramework.Ensuring.Throwers;
@@ -201,7 +193,7 @@ internal partial class ThrowerGenerator
             }
 
             {{~ for thrower in Throwers ~}}
-            public {{ thrower.Name }}Thrower {{ thrower.Name }} => new (_exception);
+            public {{ thrower.ClassName }} {{ thrower.Name }} => new (_exception);
             {{~ end ~}}
         }
         """;
