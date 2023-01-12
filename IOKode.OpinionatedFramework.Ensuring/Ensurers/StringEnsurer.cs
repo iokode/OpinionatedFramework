@@ -1,19 +1,19 @@
 namespace IOKode.OpinionatedFramework.Ensuring.Ensurers;
 
 [Ensurer]
-public class StringEnsurer
+public static class StringEnsurer
 {
-    public bool NotEmpty(string value)
+    public static bool NotEmpty(string value)
     {
         return !string.IsNullOrEmpty(value);
     }
 
-    public bool NotWhiteSpace(string value)
+    public static bool NotWhiteSpace(string value)
     {
         return !string.IsNullOrWhiteSpace(value);
     }
 
-    public bool MaxLength(string value, int maxLength)
+    public static bool MaxLength(string value, int maxLength)
     {
         return value.Length <= maxLength;
     }

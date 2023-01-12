@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,36 +19,5 @@ public static class CollectionEnsurer
     public static bool Empty(IEnumerable<object> value)
     {
         return !value.Any();
-    }
-}
-
-public class GeneratedCollectionEnsurer
-{
-    // todo Remove this class
-    private readonly Exception _exception;
-
-    public GeneratedCollectionEnsurer(Exception exception)
-    {
-        _exception = exception;
-    }
-
-    public void NotEmpty(IEnumerable<object> value)
-    {
-        bool ok = CollectionEnsurer.NotEmpty(value);
-
-        if (!ok)
-        {
-            throw _exception;
-        }
-    }
-
-    public void Empty(IEnumerable<object> value)
-    {
-        bool ok = CollectionEnsurer.Empty(value);
-
-        if (!ok)
-        {
-            throw _exception;
-        }
     }
 }

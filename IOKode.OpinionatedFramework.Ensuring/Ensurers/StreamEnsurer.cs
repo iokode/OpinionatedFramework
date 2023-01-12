@@ -3,9 +3,9 @@ using System.IO;
 namespace IOKode.OpinionatedFramework.Ensuring.Ensurers;
 
 [Ensurer]
-public class StreamEnsurer
+public static class StreamEnsurer
 {
-    public bool CanRead(Stream stream)
+    public static bool CanRead(Stream stream)
     {
         Ensure.Argument(nameof(stream)).NotNull(stream);
 
@@ -17,7 +17,7 @@ public class StreamEnsurer
         return true;
     }
 
-    public bool CanWrite(Stream stream)
+    public static bool CanWrite(Stream stream)
     {
         Ensure.Argument(nameof(stream)).NotNull(stream);
 
@@ -29,7 +29,7 @@ public class StreamEnsurer
         return true;
     }
 
-    public bool CanSeek(Stream stream)
+    public static bool CanSeek(Stream stream)
     {
         Ensure.Argument(nameof(stream)).NotNull(stream);
 

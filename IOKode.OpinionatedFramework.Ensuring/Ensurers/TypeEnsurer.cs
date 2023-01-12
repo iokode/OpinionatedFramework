@@ -1,9 +1,9 @@
 namespace IOKode.OpinionatedFramework.Ensuring.Ensurers;
 
 [Ensurer]
-public class TypeEnsurer
+public static class TypeEnsurer
 {
-    public bool IsAssignableTo(System.Type value, System.Type expectedType)
+    public static bool IsAssignableTo(System.Type value, System.Type expectedType)
     {
         Ensure.Argument(nameof(value)).NotNull(value);
         Ensure.Argument(nameof(value)).NotNull(expectedType);
