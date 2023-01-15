@@ -1,19 +1,18 @@
 namespace IOKode.OpinionatedFramework.Ensuring.Ensurers;
 
-[Ensurer]
-public static class NumberEnsurer
+public static partial class NumberEnsurer
 {
-    public static bool Min(int value, int min)
+    public static bool Min(byte value, byte min)
     {
         return value >= min;
     }
 
-    public static bool Max(int value, int max)
+    public static bool Max(byte value, byte max)
     {
         return value <= max;
     }
-    
-    public static bool Between(int value, int min, int max)
+
+    public static bool Between(byte value, byte min, byte max)
     {
         return Min(value, min) && Max(value, max);
     }
