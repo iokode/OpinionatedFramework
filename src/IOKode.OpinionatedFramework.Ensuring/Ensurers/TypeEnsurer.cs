@@ -10,4 +10,16 @@ public static class TypeEnsurer
 
         return value.IsAssignableTo(expectedType);
     }
+
+    public static bool IsReferenceType(System.Type value)
+    {
+        return !IsValueType(value);
+    }
+
+    public static bool IsValueType(System.Type value)
+    {
+        Ensure.Argument(nameof(value)).NotNull(value);
+
+        return value.IsValueType;
+    }
 }
