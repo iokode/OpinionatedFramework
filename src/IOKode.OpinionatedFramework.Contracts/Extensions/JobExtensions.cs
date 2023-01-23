@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
-using IOKode.OpinionatedFramework.Foundation;
+using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Foundation.Jobs;
 
 namespace IOKode.OpinionatedFramework.Contracts.Extensions;
