@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,7 +9,7 @@ using Scriban.Runtime;
 
 namespace IOKode.OpinionatedFramework.Generators;
 
-internal partial class ThrowerGenerator
+internal partial class EnsuringGenerator
 {
     private class _Thrower
     {
@@ -93,32 +92,8 @@ internal partial class ThrowerGenerator
                 return null;
             }
 
-            var docComment = methodSymbol.GetDocumentationCommentXml();
-            if (!string.IsNullOrEmpty(docComment))
-            {
-                var strBuilder = new StringBuilder();
-                var linesReader = new StringReader(docComment);
-                linesReader.ReadLine();
-                while (linesReader.ReadLine() is { } line)
-                {
-                    if (linesReader.Peek() < 0)
-                    {
-                        continue;
-                    }
-
-                    if (strBuilder.Length > 0)
-                    {
-                        strBuilder.AppendLine();
-                    }
-
-                    strBuilder.Append("///");
-                    strBuilder.Append(line);
-                }
-
-                docComment = strBuilder.ToString();
-            }
-
             var methodName = methodDeclarationSyntax.Identifier.Text;
+            var docComment = SourceGenerationHelper.GetMethodDocComment(methodSymbol);
             var methodParameters = methodDeclarationSyntax.ParameterList.Parameters
                 .Select(parameterSyntax => (IParameterSymbol) semanticModel.GetDeclaredSymbol(parameterSyntax))
                 .Where(parameterSymbol => parameterSymbol is not null)

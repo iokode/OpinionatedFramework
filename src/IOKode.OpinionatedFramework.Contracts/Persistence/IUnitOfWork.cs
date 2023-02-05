@@ -2,8 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Ensuring;
+using IOKode.OpinionatedFramework.Persistence;
 
-namespace IOKode.OpinionatedFramework.Contracts.Persistence;
+namespace IOKode.OpinionatedFramework.Contracts;
 
 public interface IUnitOfWork
 {

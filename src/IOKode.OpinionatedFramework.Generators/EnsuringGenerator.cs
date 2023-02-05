@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace IOKode.OpinionatedFramework.Generators
 {
     [Generator]
-    internal partial class ThrowerGenerator : IIncrementalGenerator
+    internal partial class EnsuringGenerator : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {

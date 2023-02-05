@@ -2,7 +2,8 @@ using System;
 using IOKode.OpinionatedFramework.Foundation;
 using Microsoft.Extensions.Logging;
 
-namespace IOKode.OpinionatedFramework.Contracts.Facades;
+// ReSharper disable once CheckNamespace
+namespace IOKode.OpinionatedFramework.Facades;
 
 public static class Log<TCategory>
 {

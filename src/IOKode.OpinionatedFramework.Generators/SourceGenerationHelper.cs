@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -8,6 +10,36 @@ namespace IOKode.OpinionatedFramework.Generators;
 
 internal static class SourceGenerationHelper
 {
+    public static string GetMethodDocComment(IMethodSymbol methodSymbol)
+    {
+        var docComment = methodSymbol.GetDocumentationCommentXml();
+        if (!string.IsNullOrEmpty(docComment))
+        {
+            var strBuilder = new StringBuilder();
+            var linesReader = new StringReader(docComment);
+            linesReader.ReadLine();
+            while (linesReader.ReadLine() is { } line)
+            {
+                if (linesReader.Peek() < 0)
+                {
+                    continue;
+                }
+
+                if (strBuilder.Length > 0)
+                {
+                    strBuilder.AppendLine();
+                }
+
+                strBuilder.Append("///");
+                strBuilder.Append(line);
+            }
+
+            docComment = strBuilder.ToString();
+        }
+
+        return docComment;
+    }
+
     public static readonly NamespacesComparerClass NamespacesComparer = new();
 
     public static string GetNamespace(BaseTypeDeclarationSyntax syntax)
