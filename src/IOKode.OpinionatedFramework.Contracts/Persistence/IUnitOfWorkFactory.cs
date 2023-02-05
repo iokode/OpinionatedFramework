@@ -1,4 +1,4 @@
-namespace IOKode.OpinionatedFramework.Contracts.Persistence;
+namespace IOKode.OpinionatedFramework.Contracts;
 
 public interface IUnitOfWorkFactory
 {

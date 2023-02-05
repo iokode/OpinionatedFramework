@@ -1,4 +1,6 @@
-namespace IOKode.OpinionatedFramework.Contracts.Persistence;
+using IOKode.OpinionatedFramework.Contracts;
+
+namespace IOKode.OpinionatedFramework.Persistence;
 
 /// <summary>
 /// Marker interface for repositories.
