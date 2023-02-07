@@ -17,7 +17,7 @@ public static class Ensure
 #pragma warning restore CS1591
 
 /// <summary>
-/// A thrower specified for arguments.
+/// A specified thrower for arguments.
 /// It has a special validation that throws <see cref="ArgumentNullException"/> when object is null.
 /// In all others validation, it throws <see cref="ArgumentException"/>.
 /// </summary>
