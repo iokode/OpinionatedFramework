@@ -4,16 +4,20 @@ namespace IOKode.OpinionatedFramework.Ensuring.Ensurers;
 public static class AssertionEnsurer
 {
     /// <summary>
-    /// Ensure the condition is true.
+    /// Asserts that the specified condition is true.
     /// </summary>
+    /// <param name="condition">The condition to evaluate.</param>
+    /// <returns>true if the specified condition is true; otherwise, false.</returns>
     public static bool AssertTrue(bool condition)
     {
         return condition;
     }
 
     /// <summary>
-    /// Ensure the condition is false.
+    /// Asserts that the specified condition is false.
     /// </summary>
+    /// <param name="condition">The condition to evaluate.</param>
+    /// <returns>true if the specified condition is false; otherwise, false.</returns>
     public static bool AssertFalse(bool condition)
     {
         return !condition;
