@@ -1,6 +1,6 @@
 namespace IOKode.OpinionatedFramework.Contracts;
 
-[AddToFacade("Text")]
+[AddToFacade("i18n")]
 public interface ITextTranslator
 {
     public string Translate(string key);
