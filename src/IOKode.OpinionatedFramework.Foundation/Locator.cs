@@ -5,19 +5,30 @@ namespace IOKode.OpinionatedFramework.Foundation;
 
 public static class Locator
 {
-    // ReSharper disable once CollectionNeverUpdated.Local
-    private static readonly Dictionary<Type, Func<object>> _resolverFunctions = new();
+#pragma warning disable CS0649
+    private static IServiceProvider? _serviceProvider;
+#pragma warning restore CS0649
 
     /// <summary>
     /// Resolve a service based on type.
     /// </summary>
     /// <param name="serviceType">The type.</param>
     /// <returns>The resolved service.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when trying to resolver a non-registered service.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when trying to resolver a non-registered service or the container is not initialized.</exception>
     public static object Resolve(Type serviceType)
     {
-        var resolverFunction = _getResolverFunctionForType(serviceType);
-        var service = resolverFunction();
+        if (_serviceProvider == null)
+        {
+            throw new InvalidOperationException("The container is not initialized. Call Container.Initialize().");
+        }
+
+        var service = _serviceProvider.GetService(serviceType);
+
+        if (service == null)
+        {
+            throw new InvalidOperationException($"No service of type '{serviceType.FullName}' has been registered.");
+        }
+
         return service;
     }
 
@@ -26,22 +37,10 @@ public static class Locator
     /// </summary>
     /// <typeparam name="TService">The type.</typeparam>
     /// <returns>The resolved service.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when trying to resolver a non-registered service.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when trying to resolver a non-registered service or the container is not initialized.</exception>
     public static TService Resolve<TService>()
     {
         var service = (TService)Resolve(typeof(TService));
         return service;
-    }
-
-    /// <exception cref="InvalidOperationException">Thrown when trying to resolver a non-registered service.</exception>
-    private static Func<object> _getResolverFunctionForType(Type type)
-    {
-        bool isResolved = _resolverFunctions.TryGetValue(type, out var resolverFunction);
-        if (!isResolved)
-        {
-            throw new InvalidOperationException("Trying to resolve a non-registered service.");
-        }
-
-        return resolverFunction!;
     }
 }
