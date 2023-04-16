@@ -1,13 +1,33 @@
+#pragma warning disable CS0649
+
 using System;
-using System.Collections.Generic;
 
 namespace IOKode.OpinionatedFramework.Foundation;
 
+/// <summary>
+/// Provides a static service locator for resolving services registered in the Container class.
+/// </summary>
+/// <remarks>
+/// The Locator class is designed to provide an easy way to access services registered
+/// in the Container class. It uses a static service provider to resolve services based on their types.
+/// Before using the Locator, make sure to initialize it by calling the Container.Initialize() method.
+/// </remarks>
 public static class Locator
 {
-#pragma warning disable CS0649
     private static IServiceProvider? _serviceProvider;
-#pragma warning restore CS0649
+
+    /// <summary>
+    /// Gets the current instance of the service provider used by the locator.
+    /// </summary>
+    /// <value>
+    /// The service provider instance or null if it has not been initialized.
+    /// </value>
+    /// <remarks>
+    /// The service provider is set by the Container class during the initialization process.
+    /// It is used to resolve services registered in the Container. Do not modify the service
+    /// provider directly; instead, use the Container class to manage services.
+    /// </remarks>
+    public static IServiceProvider? ServiceProvider => _serviceProvider;
 
     /// <summary>
     /// Resolve a service based on type.
