@@ -71,7 +71,33 @@ public class ContainerTests : IDisposable
         Container.Initialize();
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(Locator.Resolve<ITestService>);
+        Assert.Throws<InvalidOperationException>(() => { Locator.Resolve<ITestService>(); });
+    }
+
+    [Fact]
+    public void ThrowsExceptionWhenContainerIsNotInitialized()
+    {
+        // Arrange
+        Container.Services.AddTransient<ITestService, TestService>();
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            Locator.Resolve<ITestService>();
+        });
+    }
+
+    [Fact]
+    public void ThrowsExceptionWhenRegisteringServicesOnInitializedContainer()
+    {
+        // Arrange
+        Container.Initialize();
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            Container.Services.AddTransient<ITestService, TestService>();
+        });
     }
 
     public void Dispose()
