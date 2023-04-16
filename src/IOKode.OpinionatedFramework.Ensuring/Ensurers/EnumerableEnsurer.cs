@@ -44,7 +44,7 @@ public static class EnumerableEnsurer
     /// <param name="value">The <see cref="IEnumerable{T}"/> to check.</param>
     /// <param name="minCount">The minimum number of elements.</param>
     /// <returns>true if the number of elements is greater than or equal to <paramref name="minCount"/>; otherwise, false.</returns>
-    public static bool MinCount(IEnumerable<object> value, int minCount)
+    public static bool AtLeastNItems(IEnumerable<object> value, int minCount)
     {
         return value.Count() >= minCount;
     }
@@ -55,7 +55,7 @@ public static class EnumerableEnsurer
     /// <param name="value">The collection to check.</param>
     /// <param name="maxCount">The maximum allowed count of elements in the collection.</param>
     /// <returns>true if the number of elements in the collection is less than or equal to the maximum count; otherwise, false.</returns>
-    public static bool MaxCount(IEnumerable<object> value, int maxCount)
+    public static bool UpToNItems(IEnumerable<object> value, int maxCount)
     {
         return value.Count() <= maxCount;
     }
@@ -70,7 +70,7 @@ public static class EnumerableEnsurer
     public static bool CountBetween(IEnumerable<object> value, int minCount, int maxCount)
     {
         // ReSharper disable PossibleMultipleEnumeration
-        return MinCount(value, minCount) && MaxCount(value, maxCount);
+        return AtLeastNItems(value, minCount) && UpToNItems(value, maxCount);
         // ReSharper restore PossibleMultipleEnumeration
     }
 
