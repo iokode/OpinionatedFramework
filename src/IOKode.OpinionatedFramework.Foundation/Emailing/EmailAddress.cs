@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using IOKode.OpinionatedFramework.Ensuring;
 
 namespace IOKode.OpinionatedFramework.Foundation.Emailing;
@@ -14,11 +13,7 @@ public record EmailAddress
     public static EmailAddress Parse(string value)
     {
         Ensure.Argument(nameof(value)).String.NotWhiteSpace(value);
-
-        if (!new EmailAddressAttribute().IsValid(value))
-        {
-            throw new FormatException("Email address is not valid.");
-        }
+        Ensure.Exception(new FormatException("Email address is not valid.")).String.Email(value);
 
         string[] parts = value.Split('@');
         var username = parts[0];
