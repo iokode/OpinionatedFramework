@@ -71,7 +71,11 @@ public class ContainerTests : IDisposable
         Container.Initialize();
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => { Locator.Resolve<ITestService>(); });
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+        {
+            Locator.Resolve<ITestService>();
+        });
+        Assert.Equal("No service of type 'IOKode.OpinionatedFramework.Tests.Foundation.ITestService' has been registered.", exception.Message);
     }
 
     [Fact]
@@ -81,10 +85,11 @@ public class ContainerTests : IDisposable
         Container.Services.AddTransient<ITestService, TestService>();
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() =>
+        var exception = Assert.Throws<InvalidOperationException>(() =>
         {
             Locator.Resolve<ITestService>();
         });
+        Assert.Equal("The container is not initialized. Call Container.Initialize().", exception.Message);
     }
 
     [Fact]
@@ -94,10 +99,25 @@ public class ContainerTests : IDisposable
         Container.Initialize();
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() =>
+        var exception = Assert.Throws<InvalidOperationException>(() =>
         {
             Container.Services.AddTransient<ITestService, TestService>();
         });
+        Assert.Equal("The service collection cannot be modified because it is read-only.", exception.Message);
+    }
+
+    [Fact]
+    public void ThrowsExceptionWhenTryingToInitializeContainerMultipleTimes()
+    {
+        // Arrange
+        Container.Initialize();
+        
+        // Act & Assert
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+        {
+            Container.Initialize();
+        });
+        Assert.Equal("The container has already been initialized. It can only be initialized once.", exception.Message);
     }
 
     public void Dispose()
