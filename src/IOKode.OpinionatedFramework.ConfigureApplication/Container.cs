@@ -1,5 +1,5 @@
-using System;
 using System.Reflection;
+using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Foundation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -37,11 +37,8 @@ public static class Container
     /// </remarks>
     public static void Initialize()
     {
-        if (IsInitialized)
-        {
-            throw new InvalidOperationException(
-                "The container has already been initialized. It can only be initialized once.");
-        }
+        Ensure.InvalidOperation("The container has already been initialized. It can only be initialized once.")
+            .Boolean.IsFalse(IsInitialized);
 
         _serviceCollection.MakeReadOnly();
         _serviceProvider = _serviceCollection.BuildServiceProvider();

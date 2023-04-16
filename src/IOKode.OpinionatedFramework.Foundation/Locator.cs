@@ -1,6 +1,7 @@
 #pragma warning disable CS0649
 
 using System;
+using IOKode.OpinionatedFramework.Ensuring;
 
 namespace IOKode.OpinionatedFramework.Foundation;
 
@@ -37,19 +38,15 @@ public static class Locator
     /// <exception cref="InvalidOperationException">Thrown when trying to resolver a non-registered service or the container is not initialized.</exception>
     public static object Resolve(Type serviceType)
     {
-        if (_serviceProvider == null)
-        {
-            throw new InvalidOperationException("The container is not initialized. Call Container.Initialize().");
-        }
+        Ensure.InvalidOperation("The container is not initialized. Call Container.Initialize().")
+            .Object.NotNull(_serviceProvider);
 
-        var service = _serviceProvider.GetService(serviceType);
+        var service = _serviceProvider!.GetService(serviceType);
 
-        if (service == null)
-        {
-            throw new InvalidOperationException($"No service of type '{serviceType.FullName}' has been registered.");
-        }
+        Ensure.InvalidOperation($"No service of type '{serviceType.FullName}' has been registered.")
+            .Object.NotNull(service);
 
-        return service;
+        return service!;
     }
 
     /// <summary>
