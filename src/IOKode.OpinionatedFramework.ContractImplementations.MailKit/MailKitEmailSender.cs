@@ -3,25 +3,25 @@ using IOKode.OpinionatedFramework.Foundation.Emailing;
 using MailKit.Net.Smtp;
 using MimeKit;
 
-public class EmailSender : IEmailSender
-{
-    private readonly SmtpClient _client;
-    private readonly string _username;
-    private readonly string _password;
+namespace IOKode.OpinionatedFramework.ContractImplementations.MailKit;
 
-    public EmailSender(string smtpHost, int smtpPort, string username, string password)
+internal class MailKitEmailSender : IEmailSender, IDisposable
+{
+    private readonly MailKitOptions _options;
+    private readonly SmtpClient _client;
+
+    public MailKitEmailSender(MailKitOptions options)
     {
+        _options = options;
         _client = new SmtpClient();
-        _client.Connect(smtpHost, smtpPort);
-        _username = username;
-        _password = password;
     }
 
     public async Task SendAsync(Email email, CancellationToken cancellationToken)
     {
         try
         {
-            await _client.AuthenticateAsync(_username, _password, cancellationToken);
+            await _connectAsync(cancellationToken);
+            await _client.AuthenticateAsync(_options.Username, _options.Password, cancellationToken);
 
             var message = new MimeMessage();
             var bodyBuilder = new BodyBuilder();
@@ -63,5 +63,19 @@ public class EmailSender : IEmailSender
         {
             await _client.DisconnectAsync(true, cancellationToken);
         }
+    }
+
+    public void Dispose()
+    {
+        _client.Dispose();
+    }
+
+    private async Task _connectAsync(CancellationToken cancellationToken)
+    {
+        if (_client.IsConnected)
+        {
+            return;
+        }
+        await _client.ConnectAsync(_options.Host, _options.Port, _options.Secure, cancellationToken);
     }
 }
