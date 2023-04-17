@@ -1,51 +1,35 @@
 using System;
+using System.Collections.Generic;
+using System.Text;
+using IOKode.OpinionatedFramework.Foundation.Emailing.Elements;
 
 namespace IOKode.OpinionatedFramework.Foundation.Emailing;
 
 public class EmailContentBuilder
 {
-    public EmailContentBuilder Image(Uri logoUri)
-    {
-        throw new NotImplementedException();
-    }
+    private readonly List<EmailElement> _contentElements = new();
 
-    public EmailContentBuilder Image(object image)
+    public EmailContentBuilder AddElement(EmailElement element)
     {
-        throw new NotImplementedException();
-    }
-
-    public EmailContentBuilder Header(string text)
-    {
-        throw new NotImplementedException();
-    }
-
-    public EmailContentBuilder Paragraph(string text)
-    {
-        throw new NotImplementedException();
-    }
-
-    public EmailContentBuilder Button(string text, Uri action)
-    {
-        throw new NotImplementedException();
-    }
-
-    public EmailContentBuilder TableWithTitleColumn(string[] titleRow, string[][] rows)
-    {
-        throw new NotImplementedException();
-    }
-
-    public EmailContentBuilder Table(string[][] rows)
-    {
-        throw new NotImplementedException();
+        _contentElements.Add(element);
+        return this;
     }
 
     public string ToText()
     {
-        throw new NotImplementedException();
+        var sb = new StringBuilder();
+
+        foreach (var element in _contentElements)
+        {
+            sb.Append(element.ToText());
+        }
+
+        return sb.ToString();
     }
 
     public string ToHtml()
     {
+        // Implement HTML rendering logic based on _contentElements and Stylesheet
         throw new NotImplementedException();
     }
 
