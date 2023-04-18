@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace IOKode.OpinionatedFramework.Foundation.Emailing.Elements;
 
@@ -43,6 +44,18 @@ public static class ElementExtensions
     public static EmailContentBuilder Button(this EmailContentBuilder builder, string text, Uri actionUri)
     {
         builder.AddElement(new ButtonElement(text, actionUri));
+        return builder;
+    }
+
+    public static EmailContentBuilder OrderedList(this EmailContentBuilder builder, IEnumerable<string> items)
+    {
+        builder.AddElement(new OrderedListElement(items));
+        return builder;
+    }
+
+    public static EmailContentBuilder UnorderedList(this EmailContentBuilder builder, IEnumerable<string> items)
+    {
+        builder.AddElement(new UnorderedListElement(items));
         return builder;
     }
 }
