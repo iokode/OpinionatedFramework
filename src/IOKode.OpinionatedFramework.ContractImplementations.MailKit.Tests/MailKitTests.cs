@@ -1,8 +1,8 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Flurl.Http;
-using IOKode.OpinionatedFramework.Foundation;
 using IOKode.OpinionatedFramework.Foundation.Emailing;
+using IOKode.OpinionatedFramework.Foundation.Utilities;
 using MailKit.Security;
 using Xunit;
 using Xunit.Abstractions;
@@ -32,7 +32,7 @@ public class MailKitTests : IAsyncLifetime
     {
         async Task waitUntilMailHogServerIsReady()
         {
-            bool mailServerIsReady = await Poll.UntilReturnsTrueAsync(async () =>
+            bool mailServerIsReady = await PollingUtility.WaitUntilTrueAsync(async () =>
             {
                 var containerInspect = await _docker.Containers.InspectContainerAsync(_containerId);
                 bool containerIsReady = containerInspect.State.Running;
@@ -114,7 +114,7 @@ public class MailKitTests : IAsyncLifetime
 
         await sender.SendAsync(email, default);
 
-        bool didEmailReachTheServer = await Poll.UntilReturnsTrueAsync(async () =>
+        bool didEmailReachTheServer = await PollingUtility.WaitUntilTrueAsync(async () =>
         {
             var receivedEmails = await "http://localhost:8025/api/v2/messages".GetJsonAsync<MailHogEmailResponse>();
             return receivedEmails.Count > 0;
