@@ -21,7 +21,11 @@ internal class MailKitEmailSender : IEmailSender, IDisposable
         try
         {
             await _connectAsync(cancellationToken);
-            await _client.AuthenticateAsync(_options.Username, _options.Password, cancellationToken);
+
+            if (_options.Authenticate)
+            {
+                await _client.AuthenticateAsync(_options.Username, _options.Password, cancellationToken);
+            }
 
             var message = new MimeMessage();
             var bodyBuilder = new BodyBuilder();
