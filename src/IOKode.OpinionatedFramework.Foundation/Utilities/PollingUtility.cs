@@ -19,7 +19,7 @@ public static class PollingUtility
     /// <param name="function">The synchronous function to poll.</param>
     /// <param name="timeout">The duration after which the polling will stop if the function does not return true.</param>
     /// <param name="pollingInterval">The duration to wait between polling attempts.</param>
-    /// <returns>A ValueTask that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
     public static async ValueTask<bool> WaitUntilTrueAsync(Func<bool> function, TimeSpan timeout,
         TimeSpan pollingInterval)
     {
@@ -44,7 +44,7 @@ public static class PollingUtility
     /// <param name="function">The asynchronous function to poll.</param>
     /// <param name="timeout">The duration after which the polling will stop if the function does not return true.</param>
     /// <param name="pollingInterval">The duration to wait between polling attempts.</param>
-    /// <returns>A ValueTask that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
     public static async ValueTask<bool> WaitUntilTrueAsync(Func<Task<bool>> function, TimeSpan timeout,
         TimeSpan pollingInterval)
     {
@@ -69,7 +69,7 @@ public static class PollingUtility
     /// <param name="function">The asynchronous function to poll.</param>
     /// <param name="timeout">The duration in milliseconds after which the polling will stop if the function does not return true.</param>
     /// <param name="pollingInterval">The duration in milliseconds to wait between polling attempts.</param>
-    /// <returns>A ValueTask that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
     public static async ValueTask<bool> WaitUntilTrueAsync(Func<Task<bool>> function, int timeout,
         int pollingInterval)
     {
@@ -83,7 +83,7 @@ public static class PollingUtility
     /// <param name="function">The synchronous function to poll.</param>
     /// <param name="timeout">The duration in milliseconds after which the polling will stop if the function does not return true.</param>
     /// <param name="pollingInterval">The duration in milliseconds to wait between polling attempts.</param>
-    /// <returns>A ValueTask that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
     public static async ValueTask<bool> WaitUntilTrueAsync(Func<bool> function, int timeout,
         int pollingInterval)
     {
