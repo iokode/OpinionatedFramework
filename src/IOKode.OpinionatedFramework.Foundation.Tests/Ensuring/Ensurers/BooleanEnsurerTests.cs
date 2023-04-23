@@ -1,6 +1,6 @@
 using IOKode.OpinionatedFramework.Ensuring.Ensurers;
 
-namespace IOKode.OpinionatedFramework.Tests.Ensuring.Ensurers;
+namespace IOKode.OpinionatedFramework.Foundation.Tests.Ensuring.Ensurers;
 
 public class BooleanEnsurerTests
 {

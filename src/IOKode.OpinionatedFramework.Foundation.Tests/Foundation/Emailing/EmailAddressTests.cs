@@ -1,7 +1,7 @@
 using System;
 using IOKode.OpinionatedFramework.Foundation.Emailing;
 
-namespace IOKode.OpinionatedFramework.Tests.Foundation.Emailing;
+namespace IOKode.OpinionatedFramework.Foundation.Tests.Foundation.Emailing;
 
 public class EmailAddressTests
 {

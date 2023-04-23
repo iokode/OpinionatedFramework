@@ -1,9 +1,8 @@
 using System;
 using IOKode.OpinionatedFramework.ConfigureApplication;
-using IOKode.OpinionatedFramework.Foundation;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IOKode.OpinionatedFramework.Tests.Foundation;
+namespace IOKode.OpinionatedFramework.Foundation.Tests.Foundation;
 
 public interface ITestService
 {
@@ -75,7 +74,7 @@ public class ContainerTests : IDisposable
         {
             Locator.Resolve<ITestService>();
         });
-        Assert.Equal("No service of type 'IOKode.OpinionatedFramework.Tests.Foundation.ITestService' has been registered.", exception.Message);
+        Assert.Equal("No service of type 'IOKode.OpinionatedFramework.Foundation.Tests.Foundation.ITestService' has been registered.", exception.Message);
     }
 
     [Fact]

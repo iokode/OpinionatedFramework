@@ -10,13 +10,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IOKode.OpinionatedFramework
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IOKode.OpinionatedFramework.Generators", "IOKode.OpinionatedFramework.Generators\IOKode.OpinionatedFramework.Generators.csproj", "{A3F2B5B2-E755-4119-82D8-E9D159DC7275}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IOKode.OpinionatedFramework.Tests", "IOKode.OpinionatedFramework.Tests\IOKode.OpinionatedFramework.Tests.csproj", "{04FBC930-AC83-447C-8133-B371EB63EE73}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IOKode.OpinionatedFramework.Foundation.Tests", "IOKode.OpinionatedFramework.Foundation.Tests\IOKode.OpinionatedFramework.Foundation.Tests.csproj", "{04FBC930-AC83-447C-8133-B371EB63EE73}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ContractsImplementations", "ContractsImplementations", "{C33ED8EA-76EF-4985-9055-12D9B668E210}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IOKode.OpinionatedFramework.ContractImplementations.MailKit", "IOKode.OpinionatedFramework.ContractImplementations.MailKit\IOKode.OpinionatedFramework.ContractImplementations.MailKit.csproj", "{3FD64445-84EB-4C23-84E2-72FFBACE1337}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IOKode.OpinionatedFramework.ContractImplementations.MailKit.Tests", "IOKode.OpinionatedFramework.ContractImplementations.MailKit.Tests\IOKode.OpinionatedFramework.ContractImplementations.MailKit.Tests.csproj", "{5DA49E07-DCB9-4991-81BC-1AA907FDC8D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor", "IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor\IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor.csproj", "{9BA0877A-B8E7-4333-AAAA-49D44CE1DB72}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,9 +60,15 @@ Global
 		{5DA49E07-DCB9-4991-81BC-1AA907FDC8D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DA49E07-DCB9-4991-81BC-1AA907FDC8D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DA49E07-DCB9-4991-81BC-1AA907FDC8D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BA0877A-B8E7-4333-AAAA-49D44CE1DB72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BA0877A-B8E7-4333-AAAA-49D44CE1DB72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BA0877A-B8E7-4333-AAAA-49D44CE1DB72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BA0877A-B8E7-4333-AAAA-49D44CE1DB72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{3FD64445-84EB-4C23-84E2-72FFBACE1337} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
-		{5DA49E07-DCB9-4991-81BC-1AA907FDC8D2} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
+		{9BA0877A-B8E7-4333-AAAA-49D44CE1DB72} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
+		{5DA49E07-DCB9-4991-81BC-1AA907FDC8D2} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
+		{04FBC930-AC83-447C-8133-B371EB63EE73} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
 	EndGlobalSection
 EndGlobal
