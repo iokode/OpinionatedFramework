@@ -16,6 +16,7 @@ namespace IOKode.OpinionatedFramework.Foundation;
 public static class Locator
 {
     private static IServiceProvider? _serviceProvider;
+    private static IServiceProvider? _scopedServiceProvider;
 
     /// <summary>
     /// Gets the current instance of the service provider used by the locator.
@@ -28,7 +29,7 @@ public static class Locator
     /// It is used to resolve services registered in the Container. Do not modify the service
     /// provider directly; instead, use the Container class to manage services.
     /// </remarks>
-    public static IServiceProvider? ServiceProvider => _serviceProvider;
+    public static IServiceProvider? ServiceProvider => _scopedServiceProvider ?? _serviceProvider;
 
     /// <summary>
     /// Resolve a service based on type.
@@ -39,9 +40,9 @@ public static class Locator
     public static object Resolve(Type serviceType)
     {
         Ensure.InvalidOperation("The container is not initialized. Call Container.Initialize().")
-            .Object.NotNull(_serviceProvider);
+            .Object.NotNull(ServiceProvider);
 
-        var service = _serviceProvider!.GetService(serviceType);
+        var service = ServiceProvider!.GetService(serviceType);
 
         Ensure.InvalidOperation($"No service of type '{serviceType.FullName}' has been registered.")
             .Object.NotNull(service);
