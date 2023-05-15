@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Foundation.Notifications;
+using IOKode.OpinionatedFramework.Notifications;
 
 namespace IOKode.OpinionatedFramework.Contracts;
 

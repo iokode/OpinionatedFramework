@@ -1,7 +1,7 @@
 using System;
 using IOKode.OpinionatedFramework.Ensuring;
 
-namespace IOKode.OpinionatedFramework.Foundation.Emailing;
+namespace IOKode.OpinionatedFramework.Emailing;
 
 public record EmailAddress
 {

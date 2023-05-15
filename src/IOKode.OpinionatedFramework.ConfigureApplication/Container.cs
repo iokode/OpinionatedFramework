@@ -1,6 +1,5 @@
 using System.Reflection;
 using IOKode.OpinionatedFramework.Ensuring;
-using IOKode.OpinionatedFramework.Foundation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IOKode.OpinionatedFramework.ConfigureApplication;

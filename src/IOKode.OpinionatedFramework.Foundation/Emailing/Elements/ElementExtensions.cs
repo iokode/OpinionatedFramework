@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace IOKode.OpinionatedFramework.Foundation.Emailing.Elements;
+namespace IOKode.OpinionatedFramework.Emailing.Elements;
 
 public static class ElementExtensions
 {

@@ -1,7 +1,7 @@
 using System;
 using IOKode.OpinionatedFramework.Ensuring;
 
-namespace IOKode.OpinionatedFramework.Foundation.Emailing;
+namespace IOKode.OpinionatedFramework.Emailing;
 
 /// <summary>
 /// Represents an email Message-ID in a format compliant with RFC 5322.

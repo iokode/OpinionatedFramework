@@ -1,4 +1,4 @@
-namespace IOKode.OpinionatedFramework.Foundation.Notifications;
+namespace IOKode.OpinionatedFramework.Notifications;
 
 public interface INotifiable
 {

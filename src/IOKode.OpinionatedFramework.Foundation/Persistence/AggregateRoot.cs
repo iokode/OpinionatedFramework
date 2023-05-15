@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using IOKode.OpinionatedFramework.Foundation.Events;
+using IOKode.OpinionatedFramework.Events;
 
-namespace IOKode.OpinionatedFramework.Foundation.Persistence;
+namespace IOKode.OpinionatedFramework.Persistence;
 
 public abstract class AggregateRoot
 {

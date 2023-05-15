@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Foundation.Events;
+using IOKode.OpinionatedFramework.Events;
 
 namespace IOKode.OpinionatedFramework.Contracts;
 

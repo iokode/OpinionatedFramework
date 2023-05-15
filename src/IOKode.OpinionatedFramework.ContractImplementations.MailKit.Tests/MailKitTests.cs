@@ -1,8 +1,8 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Flurl.Http;
-using IOKode.OpinionatedFramework.Foundation.Emailing;
-using IOKode.OpinionatedFramework.Foundation.Utilities;
+using IOKode.OpinionatedFramework.Emailing;
+using IOKode.OpinionatedFramework.Utilities;
 using MailKit.Security;
 using Xunit;
 using Xunit.Abstractions;

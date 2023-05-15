@@ -7,7 +7,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\IOKode.OpinionatedFramework.Foundation\IOKode.OpinionatedFramework.Foundation.csproj" />
-      <ProjectReference Include="..\IOKode.OpinionatedFramework.Contracts\IOKode.OpinionatedFramework.Contracts.csproj" />
     </ItemGroup>
 
     <ItemGroup>

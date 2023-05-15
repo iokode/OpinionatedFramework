@@ -7,11 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\IOKode.OpinionatedFramework.Contracts\IOKode.OpinionatedFramework.Contracts.csproj" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+      <ProjectReference Include="..\IOKode.OpinionatedFramework.Foundation\IOKode.OpinionatedFramework.Foundation.csproj" />
     </ItemGroup>
 
 </Project>

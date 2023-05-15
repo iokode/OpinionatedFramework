@@ -1,8 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
-using IOKode.OpinionatedFramework.Foundation;
-using IOKode.OpinionatedFramework.Foundation.Jobs;
+using IOKode.OpinionatedFramework.Jobs;
 
 namespace IOKode.OpinionatedFramework.Contracts;
 

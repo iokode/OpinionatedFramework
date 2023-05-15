@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace IOKode.OpinionatedFramework.Foundation.Emailing.Elements;
+namespace IOKode.OpinionatedFramework.Emailing.Elements;
 
 public class TableWithHeaderRowElement : EmailElement
 {

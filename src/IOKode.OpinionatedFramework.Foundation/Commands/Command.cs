@@ -1,13 +1,14 @@
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace IOKode.OpinionatedFramework.Foundation.Commands;
+namespace IOKode.OpinionatedFramework.Commands;
 
 public abstract class Command
 {
-    public abstract Task ExecuteAsync();
+    protected abstract Task ExecuteAsync(CancellationToken cancellationToken);
 }
 
 public abstract class Command<TResult>
 {
-    public abstract Task<TResult> ExecuteAsync();
+    protected abstract Task<TResult> ExecuteAsync(CancellationToken cancellationToken);
 }

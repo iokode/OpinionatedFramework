@@ -1,55 +1,42 @@
 using System.Reflection;
+using IOKode.OpinionatedFramework.Commands;
 using IOKode.OpinionatedFramework.Contracts;
-using IOKode.OpinionatedFramework.Foundation;
-using IOKode.OpinionatedFramework.Foundation.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 
 public class CommandExecutor : ICommandExecutor
 {
-    public Task InvokeAsync<TCommand>(TCommand command) where TCommand : Command
+    private void _setScope(IServiceScope scope)
     {
-        return InvokeCommandAsync(command, async cmd =>
-        {
-            await cmd.ExecuteAsync();
-            return Task.CompletedTask;
-        });
+        var scopedServiceProviderField =
+            typeof(Locator).GetField("_scopedServiceProvider", BindingFlags.NonPublic | BindingFlags.Static)!;
+
+        ((AsyncLocal<IServiceProvider?>)scopedServiceProviderField.GetValue(null)!).Value = scope.ServiceProvider;
     }
 
-    public Task<TResult> InvokeAsync<TCommand, TResult>(TCommand command) where TCommand : Command<TResult>
+    private MethodInfo _getExecuteMethod<TCommand>()
     {
-        return InvokeCommandAsync(command, async cmd => await cmd.ExecuteAsync());
+        var executeMethod = typeof(TCommand).GetMethod("ExecuteAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        return executeMethod;
     }
 
-    private async Task<TResult> InvokeCommandAsync<TCommand, TResult>(TCommand command,
-        Func<TCommand, Task<TResult>> commandFunc)
+    public async Task InvokeAsync<TCommand>(TCommand command, CancellationToken cancellationToken)
+        where TCommand : Command
     {
-        using var scope = Locator.ServiceProvider!.CreateScope();
+        using var scope = Locator.ServiceProvider.CreateScope();
+        _setScope(scope);
 
-        var originalExecutionContext = ExecutionContext.Capture();
-        var newExecutionContext = originalExecutionContext!.CreateCopy();
+        await (Task)_getExecuteMethod<TCommand>().Invoke(command, new object?[] { cancellationToken })!;
+    }
 
-        TResult? result = default;
+    public async Task<TResult> InvokeAsync<TCommand, TResult>(TCommand command, CancellationToken cancellationToken)
+        where TCommand : Command<TResult>
+    {
+        using var scope = Locator.ServiceProvider.CreateScope();
+        _setScope(scope);
 
-        ExecutionContext.Run(newExecutionContext, async _ =>
-        {
-            var scopedServiceProviderField =
-                typeof(Locator).GetField("_scopedServiceProvider", BindingFlags.NonPublic | BindingFlags.Static)!;
-
-            scopedServiceProviderField.SetValue(null, scope.ServiceProvider);
-
-            try
-            {
-                result = await commandFunc(command);
-            }
-            finally
-            {
-                // Reset scoped ServiceProvider for the current ExecutionContext
-                scopedServiceProviderField.SetValue(null, null);
-            }
-        }, null);
-
-        return result!;
+        var commandResult = await (Task<TResult>)_getExecuteMethod<TCommand>().Invoke(command, new object?[] { cancellationToken })!;
+        return commandResult;
     }
 }

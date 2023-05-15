@@ -5,19 +5,15 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-    
-    <ItemGroup>
-        <InternalsVisibleTo Include="IOKode.OpinionatedFramework.ContractImplementations.MailKit.Tests" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\IOKode.OpinionatedFramework.Contracts\IOKode.OpinionatedFramework.Contracts.csproj" />
-    </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="MailKit" Version="4.0.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.0" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\IOKode.OpinionatedFramework.Foundation\IOKode.OpinionatedFramework.Foundation.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 using System.IO;
 using System.Net.Mime;
 
-namespace IOKode.OpinionatedFramework.Foundation.Emailing;
+namespace IOKode.OpinionatedFramework.Emailing;
 
 /// <summary>
 /// Represents an email attachment to be sent with an email message.

@@ -1,9 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Foundation;
-using IOKode.OpinionatedFramework.Foundation.Events;
+using IOKode.OpinionatedFramework.Contracts;
+using IOKode.OpinionatedFramework.Events;
 
-namespace IOKode.OpinionatedFramework.Contracts.Extensions;
+namespace IOKode.OpinionatedFramework.Extensions;
 
 public static class EventExtensions
 {

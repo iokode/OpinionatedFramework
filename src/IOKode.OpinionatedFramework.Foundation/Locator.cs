@@ -1,9 +1,10 @@
 #pragma warning disable CS0649
 
 using System;
+using System.Threading;
 using IOKode.OpinionatedFramework.Ensuring;
 
-namespace IOKode.OpinionatedFramework.Foundation;
+namespace IOKode.OpinionatedFramework;
 
 /// <summary>
 /// Provides a static service locator for resolving services registered in the Container class.
@@ -16,7 +17,7 @@ namespace IOKode.OpinionatedFramework.Foundation;
 public static class Locator
 {
     private static IServiceProvider? _serviceProvider;
-    private static IServiceProvider? _scopedServiceProvider;
+    private static readonly AsyncLocal<IServiceProvider?> _scopedServiceProvider = new();
 
     /// <summary>
     /// Gets the current instance of the service provider used by the locator.
@@ -29,7 +30,7 @@ public static class Locator
     /// It is used to resolve services registered in the Container. Do not modify the service
     /// provider directly; instead, use the Container class to manage services.
     /// </remarks>
-    public static IServiceProvider? ServiceProvider => _scopedServiceProvider ?? _serviceProvider;
+    public static IServiceProvider ServiceProvider => _scopedServiceProvider.Value ?? _serviceProvider;
 
     /// <summary>
     /// Resolve a service based on type.
