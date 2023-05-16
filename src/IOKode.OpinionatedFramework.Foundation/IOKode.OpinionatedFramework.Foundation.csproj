@@ -8,13 +8,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Cronos" Version="0.7.1"/>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0"/>
+        <PackageReference Include="Cronos" Version="0.7.1" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\IOKode.OpinionatedFramework.Ensuring\IOKode.OpinionatedFramework.Ensuring.csproj"/>
-        <ProjectReference Include="..\IOKode.OpinionatedFramework.Generators\IOKode.OpinionatedFramework.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\IOKode.OpinionatedFramework.Ensuring\IOKode.OpinionatedFramework.Ensuring.csproj" />
+        <ProjectReference Include="..\IOKode.OpinionatedFramework.Generators\IOKode.OpinionatedFramework.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>

@@ -317,7 +317,7 @@ public static class Log<TCategory>
 
     #endregion
 
-    public static ILogger<TCategory> _getLogger()
+    private static ILogger<TCategory> _getLogger()
     {
         var logger = Locator.Resolve<ILogger<TCategory>>();
         return logger;
