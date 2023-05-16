@@ -1,6 +1,6 @@
 using System;
 
-namespace IOKode.OpinionatedFramework.Foundation.Emailing;
+namespace IOKode.OpinionatedFramework.Emailing;
 
 public class EmailException : Exception
 {

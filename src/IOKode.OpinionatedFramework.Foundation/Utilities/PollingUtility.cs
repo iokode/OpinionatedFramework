@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace IOKode.OpinionatedFramework.Foundation.Utilities;
+namespace IOKode.OpinionatedFramework.Utilities;
 
 /// <summary>
 /// Provides a set of static methods for polling a function until a specific condition is met or a timeout occurs.

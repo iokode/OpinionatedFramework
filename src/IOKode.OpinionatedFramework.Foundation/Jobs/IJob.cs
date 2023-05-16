@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IOKode.OpinionatedFramework.Foundation.Jobs;
+namespace IOKode.OpinionatedFramework.Jobs;
 
 public interface IJob
 {

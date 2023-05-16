@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using IOKode.OpinionatedFramework.Foundation.Emailing.Elements;
+using IOKode.OpinionatedFramework.Emailing.Elements;
 
-namespace IOKode.OpinionatedFramework.Foundation.Emailing;
+namespace IOKode.OpinionatedFramework.Emailing;
 
 public class EmailContentBuilder
 {

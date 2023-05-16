@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Foundation.Emailing;
+using IOKode.OpinionatedFramework.Emailing;
 
 namespace IOKode.OpinionatedFramework.Contracts;
 

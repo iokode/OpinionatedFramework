@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using IOKode.OpinionatedFramework.Ensuring;
 
-namespace IOKode.OpinionatedFramework.Foundation.Emailing;
+namespace IOKode.OpinionatedFramework.Emailing;
 
 /// <summary>
 /// Represents an email message that may be sent or not. This class is designed to be used with

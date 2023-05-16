@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Net.Mime;
-using IOKode.OpinionatedFramework.Foundation.Emailing;
+using IOKode.OpinionatedFramework.Emailing;
 
 namespace IOKode.OpinionatedFramework.Foundation.Tests.Foundation.Emailing;
 

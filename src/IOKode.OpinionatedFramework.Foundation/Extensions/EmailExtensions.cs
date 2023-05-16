@@ -1,10 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Foundation;
-using IOKode.OpinionatedFramework.Foundation.Emailing;
-using IOKode.OpinionatedFramework.Foundation.Jobs;
+using IOKode.OpinionatedFramework.Contracts;
+using IOKode.OpinionatedFramework.Emailing;
+using IOKode.OpinionatedFramework.Jobs;
 
-namespace IOKode.OpinionatedFramework.Contracts.Extensions;
+namespace IOKode.OpinionatedFramework.Extensions;
 
 public static class EmailExtensions
 {

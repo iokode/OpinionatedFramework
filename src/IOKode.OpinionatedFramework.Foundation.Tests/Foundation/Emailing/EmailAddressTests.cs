@@ -1,5 +1,5 @@
 using System;
-using IOKode.OpinionatedFramework.Foundation.Emailing;
+using IOKode.OpinionatedFramework.Emailing;
 
 namespace IOKode.OpinionatedFramework.Foundation.Tests.Foundation.Emailing;
 

@@ -1,6 +1,6 @@
 using System;
 
-namespace IOKode.OpinionatedFramework.Foundation.Events;
+namespace IOKode.OpinionatedFramework.Events;
 
 public abstract record Event
 {

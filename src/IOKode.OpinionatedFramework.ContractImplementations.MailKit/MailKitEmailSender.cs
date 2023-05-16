@@ -1,11 +1,11 @@
 using IOKode.OpinionatedFramework.Contracts;
-using IOKode.OpinionatedFramework.Foundation.Emailing;
+using IOKode.OpinionatedFramework.Emailing;
 using MailKit.Net.Smtp;
 using MimeKit;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.MailKit;
 
-internal class MailKitEmailSender : IEmailSender, IDisposable
+public class MailKitEmailSender : IEmailSender, IDisposable
 {
     private readonly MailKitOptions _options;
     private readonly SmtpClient _client;

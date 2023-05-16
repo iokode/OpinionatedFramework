@@ -1,6 +1,6 @@
 using System;
 
-namespace IOKode.OpinionatedFramework.Foundation.Emailing.Elements;
+namespace IOKode.OpinionatedFramework.Emailing.Elements;
 
 public class ParagraphElement : EmailElement
 {
