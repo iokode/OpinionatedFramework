@@ -24,22 +24,22 @@ With OpinionatedFramework, you aren't actually coupled to the infrastructure. Yo
 Starting a new project often means creating foundational interfaces like EmailSender or UnitOfWork in the application layer and implementing them in the infrastructure layer. With OpinionatedFramework, you no longer need to do this. We provide these interfaces out of the box, reducing boilerplate and getting you up and running faster.
 
 ### Not coupled to the infrastructure
-Our default implementations are conveniently placed in a separate package. This means your application layer won't be forced to depend on it. Your infrastructure layer can choose to use these default implementations or easily substitute its own, giving you both flexibility and control over your project's architecture.
+Our default implementations are conveniently placed in a separate package. This means your application layer won't be forced to depend on it. Your infrastructure layer can choose to use these default implementations or easily substitute its own, giving you both flexibility and control over your project's infrastructure.
 
 OpinionatedFramework simplifies the entire development process. It streamlines your project setup, facilitates architectural decisions, and significantly reduces the time you spend on repetitive tasks, allowing you to focus on building what really matters: your application's unique features.
 
 ## Features
 OpinionatedFramework comes bundled with a myriad of features:
 
-- **Command**: Implement use-cases with middleware support.
-- **Persistence**: Incorporate the Unit of Work pattern, with NHibernate and MongoDB implementations available.
+- **Command**: Implement use-cases with middleware support and scoped services.
+- **Persistence**: Incorporate the Unit of Work pattern. NHibernate and MongoDB implementations will be available.
 - **Emailing**: Send emails easily, with a default MailKit implementation.
 - **Encryption**: Safeguard sensitive data with our encrypter.
 - **Events**: Handle domain events effectively.
 - **Job** Queue: Manage background tasks efficiently.
 - **Job** Scheduling: Plan and schedule tasks effortlessly.
 - **Notifications**: Notify users via different channels like email, SMS, Slack, Teams, etc.
-- **Text** translations: Localize your applications easily.
+- **Text translations**: Localize your applications easily.
 - **Validation**: Validate data with the Ensurer.
 - **Service Container**: Implement a service container without dependency injection, using a static locator with scope in a command execution.
 - **Facades**: Gain easy, static access to contracts.
