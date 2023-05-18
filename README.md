@@ -63,7 +63,7 @@ Our core interfaces each have a default implementation, but can also be customiz
 ## How to use
 Detailed documentation on how to use each feature will be available in our [wiki](https://github.com/iokode/OpinionatedFramework/wiki). Stay tuned!
 
-## Who Is Using OpinionatedFramework
+## Who is using OpinionatedFramework
 
 Nobody yet. Wait to the first release.
 
