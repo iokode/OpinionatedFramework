@@ -36,8 +36,8 @@ OpinionatedFramework comes bundled with a myriad of features:
 - **Emailing**: Send emails easily, with a default MailKit implementation.
 - **Encryption**: Safeguard sensitive data with our encrypter.
 - **Events**: Handle domain events effectively.
-- **Job** Queue: Manage background tasks efficiently.
-- **Job** Scheduling: Plan and schedule tasks effortlessly.
+- **Job Queue**: Manage background tasks efficiently.
+- **Job Scheduling**: Plan and schedule tasks effortlessly.
 - **Notifications**: Notify users via different channels like email, SMS, Slack, Teams, etc.
 - **Text translations**: Localize your applications easily.
 - **Validation**: Validate data with the Ensurer.
