@@ -30,7 +30,7 @@ public static class Locator
     /// It is used to resolve services registered in the Container. Do not modify the service
     /// provider directly; instead, use the Container class to manage services.
     /// </remarks>
-    public static IServiceProvider ServiceProvider => _scopedServiceProvider.Value ?? _serviceProvider;
+    public static IServiceProvider? ServiceProvider => _scopedServiceProvider.Value ?? _serviceProvider;
 
     /// <summary>
     /// Resolve a service based on type.
