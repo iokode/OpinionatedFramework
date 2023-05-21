@@ -15,7 +15,7 @@ As we are in the active development stage, some features such as the Unit of Wor
 Additionally, please note that we have not released any NuGet packages yet. We're aiming to make our first release as comprehensive and robust as possible. We appreciate your patience and understanding.
 
 ## Why use OpinionatedFramework?
-While the usual practice is to keep the application layer independent of the infrastructure, OpinionatedFramework is an exception to the rule. Here's why:
+While the usual practice is to keep the application layer independent of the framework, OpinionatedFramework is an exception to the rule. Here's why:
 
 ### Minimal infrastructure coupling
 With OpinionatedFramework, you aren't actually coupled to the infrastructure. Your application layer can remain neutral, giving you the freedom to use your app in a web, mobile, or desktop context without traditional framework dependencies. Need to send emails? You can either use a straightforward SMTP approach or switch to something more custom like MailChimp by simply providing custom implementations of the contracts.
