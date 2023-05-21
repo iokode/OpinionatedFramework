@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 
@@ -13,82 +14,113 @@ public interface IEncrypter
     /// Encrypts the given plain data.
     /// </summary>
     /// <param name="plainData">The plain data to encrypt.</param>
-    /// <returns>A Stream containing the encrypted data.</returns>
-    public Stream Encrypt(Stream plainData);
+    /// <returns>The encrypted data.</returns>
+    public ReadOnlySpan<byte> Encrypt(ReadOnlySpan<byte> plainData);
 
     /// <summary>
     /// Decrypts the given payload.
     /// </summary>
     /// <param name="payload">The payload to decrypt.</param>
-    /// <returns>A Stream containing the decrypted data.</returns>
-    public Stream Decrypt(Stream payload);
+    /// <returns>The decrypted data.</returns>
+    public ReadOnlySpan<byte> Decrypt(ReadOnlySpan<byte> payload);
 
     /// <summary>
     /// Encrypts the given plain data.
     /// </summary>
+    /// <remarks>
+    /// This is a default implementation which creates an span from the byte array and then calls <see cref="Encrypt(System.ReadOnlySpan{byte})"/>.
+    /// </remarks>
     /// <param name="plainData">The plain data to encrypt.</param>
-    /// <returns>A Stream containing the encrypted data.</returns>
-    public Stream Encrypt(byte[] plainData)
+    /// <returns>The encrypted data.</returns>
+    public ReadOnlySpan<byte> Encrypt(byte[] plainData)
     {
-        using var plainDataStream = new MemoryStream(plainData);
-        return Encrypt(plainDataStream);
+        return Encrypt((ReadOnlySpan<byte>)plainData);
     }
 
     /// <summary>
-    /// Encrypts the given plain text using the UTF-8 encoding.
+    /// Encrypts the given plain data from the specified stream.
     /// </summary>
+    /// <remarks>
+    /// This is a default implementation which copies the data from the stream into a byte array and then calls <see cref="Encrypt(byte[])"/>.
+    /// </remarks>
+    /// <param name="plainData">The stream containing the plain data to encrypt.</param>
+    /// <returns>The encrypted data.</returns>
+    public ReadOnlySpan<byte> Encrypt(Stream plainData)
+    {
+        using var ms = new MemoryStream();
+        plainData.CopyTo(ms);
+        return Encrypt(ms.ToArray());
+    }
+
+    /// <summary>
+    /// Encrypts the specified plain text using UTF-8 encoding.
+    /// </summary>
+    /// <remarks>
+    /// This is a default implementation which calls <see cref="Encrypt(string, Encoding)"/> with UTF-8 as the encoding.
+    /// </remarks>
     /// <param name="plainText">The plain text to encrypt.</param>
-    /// <returns>A Stream containing the encrypted data.</returns>
-    public Stream Encrypt(string plainText)
+    /// <returns>The encrypted data.</returns>
+    public ReadOnlySpan<byte> Encrypt(string plainText)
     {
         return Encrypt(plainText, Encoding.UTF8);
     }
 
     /// <summary>
-    /// Encrypts the given plain text using the specified encoding.
+    /// Encrypts the specified plain text, using the specified encoding to convert the string to a byte array.
     /// </summary>
+    /// <remarks>
+    /// This is a default implementation which encodes the string into byte array and then calls <see cref="Encrypt(byte[])"/>.
+    /// </remarks>
     /// <param name="plainText">The plain text to encrypt.</param>
     /// <param name="encoding">The encoding to use.</param>
-    /// <returns>A Stream containing the encrypted data.</returns>
-    public Stream Encrypt(string plainText, Encoding encoding)
+    /// <returns>The encrypted data.</returns>
+    public ReadOnlySpan<byte> Encrypt(string plainText, Encoding encoding)
     {
         byte[] plainData = encoding.GetBytes(plainText);
         return Encrypt(plainData);
     }
 
     /// <summary>
-    /// Decrypts the given payload into a byte array.
+    /// Decrypts the specified payload into a string, using UTF-8 encoding.
     /// </summary>
+    /// <remarks>
+    /// This is a default implementation which calls <see cref="DecryptString(ReadOnlySpan{byte}, Encoding)"/> with UTF-8 as the encoding.
+    /// </remarks>
     /// <param name="payload">The payload to decrypt.</param>
-    /// <returns>A byte array containing the decrypted data.</returns>
-    public byte[] DecryptByteArray(Stream payload)
-    {
-        using var decryptedStream = Decrypt(payload);
-        using var memoryStream = new MemoryStream();
-        decryptedStream.CopyTo(memoryStream);
-        return memoryStream.ToArray();
-    }
-
-    /// <summary>
-    /// Decrypts the given payload into a string using UTF-8 encoding.
-    /// </summary>
-    /// <param name="payload">The payload to decrypt.</param>
-    /// <returns>A string containing the decrypted data.</returns>
-    public string DecryptString(Stream payload)
+    /// <returns>The decrypted string.</returns>
+    public string DecryptString(ReadOnlySpan<byte> payload)
     {
         return DecryptString(payload, Encoding.UTF8);
     }
+    
+    /// <summary>
+    /// Decrypts the specified payload into a string, using the specified encoding.
+    /// </summary>
+    /// <remarks>
+    /// This is a default implementation which decodes the string into byte array and then calls <see cref="Decrypt(ReadOnlySpan{byte})"/>.
+    /// </remarks>
+    /// <param name="payload">The payload to decrypt.</param>
+    /// <param name="encoding">The encoding to use when converting the decrypted bytes to a string.</param>
+    /// <returns>The decrypted string.</returns>
+    public string DecryptString(ReadOnlySpan<byte> payload, Encoding encoding)
+    {
+        var decryptedPayload = Decrypt(payload);
+        string decryptedString = encoding.GetString(decryptedPayload);
+        return decryptedString;
+    }
 
     /// <summary>
-    /// Decrypts the given payload into a string using the specified encoding.
+    /// Decrypts the specified payload into a Stream.
     /// </summary>
+    /// <remarks>
+    /// This is a default implementation which copies the decrypted data into a <see cref="MemoryStream"/>.
+    /// </remarks>
     /// <param name="payload">The payload to decrypt.</param>
-    /// <param name="encoding">The encoding to use.</param>
-    /// <returns>A string containing the decrypted data.</returns>
-    public string DecryptString(Stream payload, Encoding encoding)
+    /// <returns>The decrypted data in a stream.</returns>
+    public Stream DecryptStream(ReadOnlySpan<byte> payload)
     {
-        using var decryptedStream = Decrypt(payload);
-        using var reader = new StreamReader(decryptedStream, encoding);
-        return reader.ReadToEnd();
+        var decryptedPayload = Decrypt(payload);
+        var ms = new MemoryStream(decryptedPayload.ToArray());
+        return ms;
     }
 }
