@@ -52,13 +52,13 @@ Our core interfaces each have a default implementation, but can also be customiz
 | [`ICommandExecutor`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/ICommandExecutor.cs)     | [`CommandExecutor`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor/CommandExecutor.cs) |
 | [`IEmailSender`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IEmailSender.cs)         | [`MailKitEmailSender`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.ContractImplementations.MailKit/MailKitEmailSender.cs) |
 | [`IEncrypter`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IEncrypter.cs)           | [`Aes256GcmModeEncrypter`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter/Aes256Hmac512Encrypter.cs) |
-| [`IEventDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IEventDispatcher.cs)     | [`EventDispatcher`](#) |
-| [`IJobEnqueuer`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IJobEnqueuer.cs)         | [`JobEnqueuer`](#) |
-| [`IJobScheduler`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IJobScheduler.cs)       | [`JobScheduler`](#) |
-| [`INotificationDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/INotificationDispatcher.cs) | [`NotificationDispatcher`](#) |
-| [`IPasswordHasher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IPasswordHasher.cs)      | [`PasswordHasher`](#) |
-| [`ITextTranslator`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/ITextTranslator.cs)      | [`TextTranslator`](#) |
-| [`IUnitOfWorkFactory`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IUnitOfWorkFactory.cs)   | [`UnitOfWorkFactory`](#) |
+| [`IEventDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IEventDispatcher.cs)     | [`EventDispatcher`] |
+| [`IJobEnqueuer`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IJobEnqueuer.cs)         | [`JobEnqueuer`] |
+| [`IJobScheduler`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IJobScheduler.cs)       | [`JobScheduler`] |
+| [`INotificationDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/INotificationDispatcher.cs) | [`NotificationDispatcher`] |
+| [`IPasswordHasher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IPasswordHasher.cs)      | [`PasswordHasher`] |
+| [`ITextTranslator`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/ITextTranslator.cs)      | [`TextTranslator`] |
+| [`IUnitOfWorkFactory`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IUnitOfWorkFactory.cs)   | [`UnitOfWorkFactory`] |
 
 ## How to use
 Detailed documentation on how to use each feature will be available in our [wiki](https://github.com/iokode/OpinionatedFramework/wiki). Stay tuned!
