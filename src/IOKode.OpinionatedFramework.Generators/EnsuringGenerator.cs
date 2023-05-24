@@ -47,21 +47,21 @@ namespace IOKode.OpinionatedFramework.Generators
             }
 
             var distinctClasses = classes.Distinct();
-            var throwers = _GetThrowers(compilation, distinctClasses, context.CancellationToken)
+            var ensurers = _GetEnsurers(compilation, distinctClasses, context.CancellationToken)
                 .ToList();
 
-            if (throwers.Count <= 0)
+            if (ensurers.Count <= 0)
             {
                 return;
             }
 
-            string ensurerHoldClass = _GenerateThrowerHolderClass(throwers);
-            context.AddSource("ThrowerHolder.g.cs", SourceText.From(ensurerHoldClass, Encoding.UTF8));
+            string ensureClass = _GenerateEnsureClass(ensurers);
+            context.AddSource("Ensure.g.cs", SourceText.From(ensureClass, Encoding.UTF8));
 
-            foreach (var thrower in throwers)
+            foreach (var ensurer in ensurers)
             {
-                string ensurerClass = _GenerateThrowerClass(thrower);
-                context.AddSource($"{thrower.ClassName}.g.cs", SourceText.From(ensurerClass, Encoding.UTF8));
+                string ensurerThrowerClass = _GenerateEnsurerThrowerClass(ensurer);
+                context.AddSource($"{ensurer.EnsurerThrowerClassName}.g.cs", SourceText.From(ensurerThrowerClass, Encoding.UTF8));
             }
         }
 

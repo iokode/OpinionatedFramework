@@ -11,11 +11,11 @@ namespace IOKode.OpinionatedFramework.Generators;
 
 internal partial class EnsuringGenerator
 {
-    private class _Thrower
+    private class _Ensurer
     {
         public string EnsurerClassName { get; set; }
         public string EnsurerClassNamespace { get; set; }
-        public _ThrowerMethod[] Methods { get; set; }
+        public _EnsurerMethod[] Methods { get; set; }
 
         public string Name
         {
@@ -31,17 +31,17 @@ internal partial class EnsuringGenerator
             }
         }
 
-        public string ClassName => $"{Name}Thrower";
+        public string EnsurerThrowerClassName => $"{Name}EnsurerThrower";
     }
 
-    private class _ThrowerMethod
+    private class _EnsurerMethod
     {
         public string Name { get; set; }
-        public IEnumerable<_ThrowerMethodParameter> Parameters { get; set; }
+        public IEnumerable<_EnsurerMethodParameter> Parameters { get; set; }
         public string DocComment { get; set; }
     }
 
-    private class _ThrowerMethodParameter
+    private class _EnsurerMethodParameter
     {
         public string Name { get; set; }
         public string Type { get; set; }
@@ -52,7 +52,7 @@ internal partial class EnsuringGenerator
     /// <summary>
     /// Get the relevant information of each class for code generation.
     /// </summary>
-    private static IEnumerable<_Thrower> _GetThrowers(Compilation compilation, IEnumerable<ClassDeclarationSyntax> classes,
+    private static IEnumerable<_Ensurer> _GetEnsurers(Compilation compilation, IEnumerable<ClassDeclarationSyntax> classes,
         CancellationToken cancellationToken)
     {
         foreach (var classDeclarationSyntax in classes)
@@ -65,20 +65,20 @@ internal partial class EnsuringGenerator
             var semanticModel = compilation.GetSemanticModel(classDeclarationSyntax.SyntaxTree);
             var methods = classDeclarationSyntax.Members
                 .OfType<MethodDeclarationSyntax>()
-                .Select(syntax => getThrowerMethod(syntax, semanticModel))
+                .Select(syntax => getEnsurerMethod(syntax, semanticModel))
                 .Where(method => method is not null)
                 .ToArray();
 
-            var thrower = new _Thrower
+            var ensurer = new _Ensurer
             {
                 EnsurerClassName = ensurerClassName,
                 EnsurerClassNamespace = ensurerClassNamespace,
                 Methods = methods
             };
-            yield return thrower;
+            yield return ensurer;
         }
 
-        _ThrowerMethod getThrowerMethod(MethodDeclarationSyntax methodDeclarationSyntax, SemanticModel semanticModel)
+        _EnsurerMethod getEnsurerMethod(MethodDeclarationSyntax methodDeclarationSyntax, SemanticModel semanticModel)
         {
             var methodSymbol = (IMethodSymbol) semanticModel.GetDeclaredSymbol(methodDeclarationSyntax)!;
             if (methodSymbol.DeclaredAccessibility != Accessibility.Public)
@@ -97,13 +97,13 @@ internal partial class EnsuringGenerator
             var methodParameters = methodDeclarationSyntax.ParameterList.Parameters
                 .Select(parameterSyntax => (IParameterSymbol) semanticModel.GetDeclaredSymbol(parameterSyntax))
                 .Where(parameterSymbol => parameterSymbol is not null)
-                .Select(parameterSymbol => new _ThrowerMethodParameter
+                .Select(parameterSymbol => new _EnsurerMethodParameter
                 {
                     Name = parameterSymbol.Name,
                     Type = parameterSymbol.Type.ToString()
                 });
 
-            var method = new _ThrowerMethod
+            var method = new _EnsurerMethod
             {
                 Name = methodName,
                 Parameters = methodParameters,
@@ -113,52 +113,40 @@ internal partial class EnsuringGenerator
         }
     }
 
-    private static string _GenerateThrowerClass(_Thrower thrower)
+    private static string _GenerateEnsurerThrowerClass(_Ensurer ensurer)
     {
-        return Template.Parse(_ThrowerClassTemplate).Render(thrower, member => member.Name);
+        return Template.Parse(_EnsurerThrowerClassTemplate).Render(ensurer, member => member.Name);
     }
 
-    private static string _GenerateThrowerHolderClass(IEnumerable<_Thrower> throwers)
+    private static string _GenerateEnsureClass(IEnumerable<_Ensurer> ensurers)
     {
-        var script = new ScriptObject {{ "Throwers", throwers }};
+        var script = new ScriptObject {{ "Ensurers", ensurers }};
         var templateContext = new TemplateContext(script)
         {
             MemberRenamer = member => member.Name
         };
-        return Template.Parse(_ThrowerHolderClassTemplate).Render(templateContext);
+        return Template.Parse(_EnsureClassTemplate).Render(templateContext);
     }
 
-    private static readonly string _ThrowerClassTemplate = 
+    private static readonly string _EnsurerThrowerClassTemplate = 
         """
         // This file was auto-generated by a source generator
 
         using System;
         using {{ EnsurerClassNamespace }};
 
-        namespace IOKode.OpinionatedFramework.Ensuring.Throwers;
+        namespace IOKode.OpinionatedFramework.Ensuring;
 
-        public class {{ ClassName }}
+        public class {{ EnsurerThrowerClassName }}
         {
-            private readonly Exception _exception;
-
-            public {{ ClassName }}(Exception exception)
-            {
-                _exception = exception;
-            }
-
             {{~ for method in Methods ~}}
             {{~ if method.DocComment ~}}
             {{ method.DocComment }}
             {{~ end ~}}
-            /// <exception cref="Exception">Thrown an exception when the validation no passes.</exception>
-            public void {{ method.Name }}({{ for parameter in method.Parameters }}{{ parameter.Type }} {{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }})
+            public Thrower {{ method.Name }}({{ for parameter in method.Parameters }}{{ parameter.Type }} {{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }})
             {
                 bool isValid = {{ EnsurerClassName }}.{{ method.Name }}({{ for parameter in method.Parameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }});
-
-                if (!isValid)
-                {
-                    throw _exception;
-                }
+                return new(isValid);
             }
             {{~ if !for.last ~}}
 
@@ -167,18 +155,16 @@ internal partial class EnsuringGenerator
         }
         """;
 
-    private static readonly string _ThrowerHolderClassTemplate =
+    private static readonly string _EnsureClassTemplate =
         """
         // This file was auto-generated by a source generator
 
-        using IOKode.OpinionatedFramework.Ensuring.Throwers;
-
         namespace IOKode.OpinionatedFramework.Ensuring;
 
-        public partial class ThrowerHolder
+        public static partial class Ensure
         {
-            {{~ for thrower in Throwers ~}}
-            public {{ thrower.ClassName }} {{ thrower.Name }} => new (_exception);
+            {{~ for ensurer in Ensurers ~}}
+            public static {{ ensurer.EnsurerThrowerClassName }} {{ ensurer.Name }} => new {{ ensurer.EnsurerThrowerClassName }}();
             {{~ end ~}}
         }
         """;

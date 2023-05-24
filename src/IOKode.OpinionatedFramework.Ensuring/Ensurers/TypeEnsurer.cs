@@ -1,24 +1,26 @@
+using System;
+
 namespace IOKode.OpinionatedFramework.Ensuring.Ensurers;
 
 [Ensurer]
 public static class TypeEnsurer
 {
-    public static bool IsAssignableTo(System.Type value, System.Type expectedType)
+    public static bool IsAssignableTo(Type value, Type expectedType)
     {
-        Ensure.Argument(nameof(value)).NotNull(value);
-        Ensure.Argument(nameof(value)).NotNull(expectedType);
+        Ensure.ArgumentNotNull(value);
+        Ensure.ArgumentNotNull(expectedType);
 
         return value.IsAssignableTo(expectedType);
     }
 
-    public static bool IsReferenceType(System.Type value)
+    public static bool IsReferenceType(Type value)
     {
         return !IsValueType(value);
     }
 
-    public static bool IsValueType(System.Type value)
+    public static bool IsValueType(Type value)
     {
-        Ensure.Argument(nameof(value)).NotNull(value);
+        Ensure.ArgumentNotNull(value);
 
         return value.IsValueType;
     }

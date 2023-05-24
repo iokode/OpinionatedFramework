@@ -40,13 +40,13 @@ public static class Locator
     /// <exception cref="InvalidOperationException">Thrown when trying to resolver a non-registered service or the container is not initialized.</exception>
     public static object Resolve(Type serviceType)
     {
-        Ensure.InvalidOperation("The container is not initialized. Call Container.Initialize().")
-            .Object.NotNull(ServiceProvider);
+        Ensure.Object.NotNull(ServiceProvider)
+            .ElseThrowsInvalidOperation("The container is not initialized. Call Container.Initialize().");
 
         var service = ServiceProvider!.GetService(serviceType);
 
-        Ensure.InvalidOperation($"No service of type '{serviceType.FullName}' has been registered.")
-            .Object.NotNull(service);
+        Ensure.Object.NotNull(service)
+            .ElseThrowsInvalidOperation($"No service of type '{serviceType.FullName}' has been registered.");
 
         return service!;
     }
@@ -59,7 +59,7 @@ public static class Locator
     /// <exception cref="InvalidOperationException">Thrown when trying to resolver a non-registered service or the container is not initialized.</exception>
     public static TService Resolve<TService>()
     {
-        var service = (TService)Resolve(typeof(TService));
+        var service = (TService) Resolve(typeof(TService));
         return service;
     }
 }

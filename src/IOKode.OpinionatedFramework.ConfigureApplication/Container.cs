@@ -36,8 +36,8 @@ public static class Container
     /// </remarks>
     public static void Initialize()
     {
-        Ensure.InvalidOperation("The container has already been initialized. It can only be initialized once.")
-            .Boolean.IsFalse(IsInitialized);
+        Ensure.Boolean.IsFalse(IsInitialized)
+            .ElseThrowsInvalidOperation("The container has already been initialized. It can only be initialized once.");
 
         _serviceCollection.MakeReadOnly();
         _serviceProvider = _serviceCollection.BuildServiceProvider();
