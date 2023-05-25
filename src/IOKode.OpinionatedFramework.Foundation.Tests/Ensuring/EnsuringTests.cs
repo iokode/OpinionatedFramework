@@ -10,14 +10,11 @@ public class EnsuringTests
     {
         Ensure.Boolean.IsTrue(true).ElseThrows(new _CustomException());
     }
-    
+
     [Fact]
     public void ThrowsWhenValidationNotPasses()
     {
-        Assert.Throws<_CustomException>(() =>
-        {
-            Ensure.Boolean.IsTrue(false).ElseThrows(new _CustomException());
-        });
+        Assert.Throws<_CustomException>(() => { Ensure.Boolean.IsTrue(false).ElseThrows(new _CustomException()); });
     }
 
     [Fact]
@@ -28,12 +25,11 @@ public class EnsuringTests
             string? obj = null;
             Ensure.ArgumentNotNull(obj);
         });
-        
+
         Assert.Equal("obj", exception.ParamName);
     }
 
     private class _CustomException : Exception
     {
-        
     }
 }
