@@ -1,6 +1,7 @@
 using System;
 using System.Security.Cryptography;
 using IOKode.OpinionatedFramework.Contracts;
+using IOKode.OpinionatedFramework.Ensuring;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter;
 
@@ -10,10 +11,8 @@ public class Aes256GcmModeEncrypter : IEncrypter
 
     public Aes256GcmModeEncrypter(byte[] key)
     {
-        if (key.Length != 32)
-        {
-            throw new ArgumentException("The key must be exactly 256 bits in length.", nameof(key));
-        }
+        Ensure.Boolean.IsTrue(key.Length == 32)
+            .ElseThrowsIllegalArgument("The key must be exactly 256 bits in length", nameof(key));
 
         _key = key;
     }
