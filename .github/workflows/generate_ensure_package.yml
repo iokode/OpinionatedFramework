@@ -30,7 +30,7 @@ jobs:
       run: dotnet build src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj --no-restore
 
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj --no-build --verbosity normal
 
     - name: Pack
       run: dotnet pack src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj --no-build --configuration Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
