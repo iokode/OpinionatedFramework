@@ -27,7 +27,7 @@ jobs:
       run: dotnet restore src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj
 
     - name: Build
-      run: dotnet build src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj -c Release --no-restore
+      run: dotnet build src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
 
     - name: Test
       run: dotnet test src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj --no-build --verbosity normal
