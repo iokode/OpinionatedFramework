@@ -15,6 +15,6 @@ public static partial class Ensure
     /// <param name="argumentName">The name of the argument that is checked for nullity. This is automatically captured from the call site.</param>
     /// <exception cref="ArgumentNullException">Thrown when the 'obj' argument is null.</exception>
     public static void
-        ArgumentNotNull(object obj, [CallerArgumentExpression(nameof(obj))] string? argumentName = null) =>
+        ArgumentNotNull(object? obj, [CallerArgumentExpression(nameof(obj))] string? argumentName = null) =>
         Object.NotNull(obj).ElseThrowsNullArgument(argumentName!);
 }
