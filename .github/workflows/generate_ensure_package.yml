@@ -27,13 +27,13 @@ jobs:
       run: dotnet restore src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj
 
     - name: Build
-      run: dotnet build src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj --no-restore
+      run: dotnet build src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj -c Release --no-restore
 
     - name: Test
       run: dotnet test src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj --no-build --verbosity normal
 
     - name: Pack
-      run: dotnet pack src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj --no-build --configuration Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
+      run: dotnet pack src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
 
     - name: Push
       run: dotnet nuget push "./nupkgs/IOKode.OpinionatedFramework.Ensuring.${{ github.event.inputs.version }}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
