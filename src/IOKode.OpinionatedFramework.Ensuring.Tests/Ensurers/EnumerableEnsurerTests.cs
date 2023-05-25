@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using IOKode.OpinionatedFramework.Ensuring.Ensurers;
 
-namespace IOKode.OpinionatedFramework.Foundation.Tests.Ensuring.Ensurers;
+namespace IOKode.OpinionatedFramework.Ensuring.Tests.Ensurers;
 
 public class EnumerableEnsurerTests
 {

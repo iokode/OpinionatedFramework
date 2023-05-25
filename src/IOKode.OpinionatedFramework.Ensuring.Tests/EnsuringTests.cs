@@ -1,7 +1,4 @@
-using System;
-using IOKode.OpinionatedFramework.Ensuring;
-
-namespace IOKode.OpinionatedFramework.Foundation.Tests.Ensuring;
+namespace IOKode.OpinionatedFramework.Ensuring.Tests;
 
 public class EnsuringTests
 {

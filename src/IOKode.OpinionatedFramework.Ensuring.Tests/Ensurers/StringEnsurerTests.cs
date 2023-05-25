@@ -1,9 +1,8 @@
-using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using IOKode.OpinionatedFramework.Ensuring.Ensurers;
 
-namespace IOKode.OpinionatedFramework.Foundation.Tests.Ensuring.Ensurers;
+namespace IOKode.OpinionatedFramework.Ensuring.Tests.Ensurers;
 
 public partial class StringEnsurerTests
 {
