@@ -211,8 +211,8 @@ public partial record Email
         /// </exception>
         public Email ToEmail()
         {
-            Ensure.InvalidOperation("Cannot build an email because there aren't any \"to\".").Enumerable.NotEmpty(_to);
-            Ensure.InvalidOperation("Cannot build an email because there aren't any \"from\".").Object.NotNull(_from);
+            Ensure.Enumerable.NotEmpty(_to).ElseThrowsInvalidOperation("Cannot build an email because there aren't any \"to\".");
+            Ensure.Object.NotNull(_from).ElseThrowsInvalidOperation("Cannot build an email because there aren't any \"from\".");
 
             _messageId ??= Emailing.MessageId.GenerateMessageId(_from!.Host);
 

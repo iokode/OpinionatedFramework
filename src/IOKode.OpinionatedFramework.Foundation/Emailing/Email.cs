@@ -38,8 +38,8 @@ public partial record Email
         get => _to;
         init
         {
-            Ensure.Argument(nameof(value)).NotNull(value);
-            Ensure.Argument(nameof(value)).Enumerable.NotEmpty(value);
+            Ensure.ArgumentNotNull(value);
+            Ensure.Enumerable.NotEmpty(value).ElseThrowsIllegalArgument("The set cannot be empty.", nameof(value));
             _to = value;
         }
     }

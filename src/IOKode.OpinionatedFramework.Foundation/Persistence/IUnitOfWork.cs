@@ -14,7 +14,7 @@ public interface IUnitOfWork
     /// <exception cref="UnitOfWorkException"/>
     public TRepository GetRepository<TRepository>() where TRepository : IRepository
     {
-        var repository = (TRepository)GetRepository(typeof(TRepository));
+        var repository = (TRepository) GetRepository(typeof(TRepository));
         return repository;
     }
 
@@ -33,8 +33,15 @@ public interface IUnitOfWork
     /// <exception cref="UnitOfWorkException"/>
     public Task SaveChangesAsync(CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Verifies that the provided type implements <see cref="IRepository"/>.
+    /// </summary>
+    /// <param name="attemptedRepositoryType">The type to check for <see cref="IRepository"/> implementation.</param>
+    /// <exception cref="ArgumentException">Thrown when the provided '<paramref name="attemptedRepositoryType"/>' does not implement <see cref="IRepository"/>.</exception>
     protected void EnsureTypeIsRepository(Type attemptedRepositoryType)
     {
-        Ensure.Argument(nameof(attemptedRepositoryType)).Type.IsAssignableTo(attemptedRepositoryType, typeof(IRepository));
+        Ensure.Type.IsAssignableTo(attemptedRepositoryType, typeof(IRepository))
+            .ElseThrowsIllegalArgument($"The provided type must be a type that implements {nameof(IRepository)}.",
+                nameof(attemptedRepositoryType));
     }
 }

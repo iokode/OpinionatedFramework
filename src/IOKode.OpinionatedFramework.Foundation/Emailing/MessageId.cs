@@ -20,7 +20,7 @@ public record MessageId
     /// <exception cref="ArgumentException">Thrown when the provided value is not a valid Message-ID format.</exception>
     public MessageId(string value)
     {
-        Ensure.Argument(nameof(value), "Invalid Message-ID format.").Boolean.IsTrue(IsValidMessageId(value));
+        Ensure.Boolean.IsTrue(IsValidMessageId(value)).ElseThrowsIllegalArgument("Invalid Message-ID format.", nameof(value));
 
         Value = value;
     }

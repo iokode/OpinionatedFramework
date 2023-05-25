@@ -34,7 +34,7 @@ public record EmailAddress
     /// <returns>An EmailAddress object with the parsed email address and optional display name.</returns>
     public static EmailAddress Parse(string value)
     {
-        Ensure.Exception(new ArgumentNullException(nameof(value))).String.NotWhiteSpace(value);
+        Ensure.String.NotWhiteSpace(value).ElseThrowsNullArgument(nameof(value));
 
         string? displayName = null;
         string emailValue;
@@ -57,7 +57,7 @@ public record EmailAddress
             emailValue = value;
         }
 
-        Ensure.Exception(new FormatException("Email address is not valid.")).String.Email(emailValue);
+        Ensure.String.Email(emailValue).ElseThrows(new FormatException("Email address is not valid."));
 
         string[] parts = emailValue.Split('@');
         var username = parts[0];

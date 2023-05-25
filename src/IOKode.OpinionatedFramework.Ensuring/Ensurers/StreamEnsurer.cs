@@ -14,7 +14,7 @@ public static class StreamEnsurer
     /// <exception cref="ArgumentNullException">Thrown when the input stream is null.</exception>
     public static bool CanRead(Stream stream)
     {
-        Ensure.Argument(nameof(stream)).NotNull(stream);
+        Ensure.ArgumentNotNull(stream);
         return stream.CanRead;
     }
 
@@ -26,7 +26,7 @@ public static class StreamEnsurer
     /// <exception cref="ArgumentNullException">Thrown when the input stream is null.</exception>
     public static bool CanWrite(Stream stream)
     {
-        Ensure.Argument(nameof(stream)).NotNull(stream);
+        Ensure.ArgumentNotNull(stream);
         return stream.CanWrite;
     }
 
@@ -38,7 +38,7 @@ public static class StreamEnsurer
     /// <exception cref="ArgumentNullException">Thrown when the input stream is null.</exception>
     public static bool CanSeek(Stream stream)
     {
-        Ensure.Argument(nameof(stream)).NotNull(stream);
+        Ensure.ArgumentNotNull(stream);
         return stream.CanSeek;
     }
 }
