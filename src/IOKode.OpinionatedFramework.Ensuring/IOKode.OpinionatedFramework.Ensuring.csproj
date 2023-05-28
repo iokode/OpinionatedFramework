@@ -15,7 +15,7 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <None Include="..\..\docs\Ensure\README.md" Pack="true" PackagePath="" />
+        <None Include="..\..\docs\ensure\README.md" Pack="true" PackagePath="" />
         <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
     </ItemGroup>
 
