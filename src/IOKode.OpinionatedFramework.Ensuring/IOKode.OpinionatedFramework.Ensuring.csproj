@@ -7,11 +7,17 @@
         <IsPackable>true</IsPackable>
         <Authors>IOKode, Ivan Montilla</Authors>
         <Description>This library, part of the OpinionatedFramework, offers a set of robust tools for enforcing preconditions, postconditions, and invariants in your .NET code. It's designed to boost code reliability and maintainability by offering a fluent, readable way to handle validation tasks.</Description>
-        <PackageLicenseUrl>https://github.com/iokode/OpinionatedFramework/blob/main/LICENSE</PackageLicenseUrl>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/iokode/OpinionatedFramework</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>ensuring validation preconditions postconditions contract-design assertions</PackageTags>
     </PropertyGroup>
+    
+    <ItemGroup>
+        <None Include="..\..\docs\Ensure\README.md" Pack="true" PackagePath="" />
+        <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+    </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\IOKode.OpinionatedFramework.Generators\IOKode.OpinionatedFramework.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
