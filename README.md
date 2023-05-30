@@ -8,6 +8,10 @@ OpinionatedFramework is a robust, comprehensive .NET 7+ framework designed to st
 **The heart of OpinionatedFramework is our opinionated approach.** We provide a suite of tools that guide and structure the way you develop your application, making design decisions with experience and best practices in mind. This does not limit flexibility, as our core interfaces have default implementations but allow for custom ones.
 
 ## Status
+### Ensure API 1.0.0 is now launched!
+While the rest of the framework remains in active development and is not launched, the Ensure API is now launched. See [documentation](https://github.com/iokode/OpinionatedFramework/tree/main/docs/ensure) and [NuGet page](https://www.nuget.org/packages/IOKode.OpinionatedFramework.Ensuring).
+
+### Active development – Not launched yet
 OpinionatedFramework is currently in active development and has not been officially launched yet.
 
 As we are in the active development stage, some features such as the Unit of Work implementations may not be currently available. These features are on our development roadmap and we're diligently working to implement them in upcoming releases.
@@ -40,7 +44,7 @@ OpinionatedFramework comes bundled with a myriad of features:
 - **Job Scheduling**: Plan and schedule tasks effortlessly.
 - **Notifications**: Notify users via different channels like email, SMS, Slack, Teams, etc.
 - **Text translations**: Localize your applications easily.
-- **Validation**: Validate data with the Ensurer.
+- **Validation**: Validate preconditions, postconditions and invariants.
 - **Service Container**: Implement a service container without dependency injection, using a static locator with scope in a command execution.
 - **Facades**: Gain easy, static access to contracts.
 
