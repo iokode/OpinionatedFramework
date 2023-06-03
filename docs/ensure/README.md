@@ -42,7 +42,7 @@ Extending the Ensure API with custom validations is straightforward. First, you 
 ```xml
 <ItemGroup>
     <PackageReference Include="IOKode.OpinionatedFramework.Ensuring" Version="1.0.1" />
-    <PackageReference Include="IOKode.OpinionatedFramework.Generators.Ensuring" Version="1.0.1" PrivateAssets="all" />
+    <PackageReference Include="IOKode.OpinionatedFramework.Generators.Ensuring" Version="1.0.1" />
 </ItemGroup>
 ```
 
