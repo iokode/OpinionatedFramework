@@ -5,6 +5,7 @@
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <LangVersion>11</LangVersion>
         <PackageScribanIncludeSource>true</PackageScribanIncludeSource>
+        <TargetName>IOKode.OpinionatedFramework.Generators.Ensuring</TargetName>
         <RootNamespace>IOKode.OpinionatedFramework.Generators.Ensuring</RootNamespace>
     </PropertyGroup>
 

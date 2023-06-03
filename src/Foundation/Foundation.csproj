@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <LangVersion>11</LangVersion>
+        <TargetName>IOKode.OpinionatedFramework.Foundation</TargetName>
         <RootNamespace>IOKode.OpinionatedFramework</RootNamespace>
     </PropertyGroup>
 

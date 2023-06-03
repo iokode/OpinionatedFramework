@@ -6,6 +6,7 @@
         <LangVersion>11</LangVersion>
         <IsPackable>true</IsPackable>
         <PackageScribanIncludeSource>true</PackageScribanIncludeSource>
+        <TargetName>IOKode.OpinionatedFramework.Generators.Facades</TargetName>
         <RootNamespace>IOKode.OpinionatedFramework.Generators.Facades</RootNamespace>
     </PropertyGroup>
 

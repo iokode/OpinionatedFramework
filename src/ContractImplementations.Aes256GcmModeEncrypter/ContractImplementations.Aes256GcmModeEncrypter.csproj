@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
         <RootNamespace>IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter</RootNamespace>
+        <TargetName>IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter</TargetName>
     </PropertyGroup>
 
     <ItemGroup>
