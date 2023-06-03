@@ -1,7 +1,7 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: Generate Ensure API package and push it to NuGet Gallery.
+name: Generate Ensure API packages and push it to NuGet Gallery.
 
 on:
   workflow_dispatch:
@@ -25,24 +25,24 @@ jobs:
 
     - name: Restore dependencies
       run: |
-        dotnet restore src/Ensuring/Ensuring.csproj
-        dotnet restore src/Generators.Ensuring/Generators.Ensuring.csproj
-        dotnet restore src/Tests.Ensuring/Tests.Ensuring.csproj
+        dotnet restore src/Ensuring/
+        dotnet restore src/Generators.Ensuring/
+        dotnet restore src/Tests.Ensuring/
 
     - name: Build
       run: |
-        dotnet build src/Ensuring/Ensuring.csproj -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
-        dotnet build src/Generators.Ensuring/Generators.Ensuring.csproj -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
-        dotnet build src/Tests.Ensuring/Tests.Ensuring.csproj -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+        dotnet build src/Ensuring/ -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+        dotnet build src/Generators.Ensuring/ -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+        dotnet build src/Tests.Ensuring/ -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
 
     - name: Test
       run: |
-        dotnet test src/Tests.Ensuring/Tests.Ensuring.csproj -c Release --no-build --verbosity normal
+        dotnet test src/Tests.Ensuring/ -c Release --no-build --verbosity normal
 
     - name: Pack
       run: |
-        dotnet pack src/Ensuring/Ensuring.csproj --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
-        dotnet pack src/Generators.Ensuring/Generators.Ensuring.csproj --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
+        dotnet pack src/Ensuring/ --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
+        dotnet pack src/Generators.Ensuring/ --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
 
     - name: Push
       run: |
