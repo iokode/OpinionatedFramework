@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Scriban;
 using Scriban.Runtime;
 
-namespace IOKode.OpinionatedFramework.Generators;
+namespace IOKode.OpinionatedFramework.Generators.Facades;
 
 public partial class FacadesGenerator
 {

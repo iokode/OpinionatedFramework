@@ -14,7 +14,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\IOKode.OpinionatedFramework.Ensuring\IOKode.OpinionatedFramework.Ensuring.csproj" />
-        <ProjectReference Include="..\IOKode.OpinionatedFramework.Generators\IOKode.OpinionatedFramework.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\IOKode.OpinionatedFramework.Generators.Facades\IOKode.OpinionatedFramework.Generators.Facades.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>

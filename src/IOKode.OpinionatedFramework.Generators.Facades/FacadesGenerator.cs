@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace IOKode.OpinionatedFramework.Generators;
+namespace IOKode.OpinionatedFramework.Generators.Facades;
 
 [Generator]
 public partial class FacadesGenerator : IIncrementalGenerator

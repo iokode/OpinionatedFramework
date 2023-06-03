@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <LangVersion>11</LangVersion>
+        <PackageScribanIncludeSource>true</PackageScribanIncludeSource>
     </PropertyGroup>
-    
+
     <PropertyGroup Label="Package">
         <IsPackable>true</IsPackable>
         <Copyright>Copyright (c) 2023, IOKode OÜ</Copyright>
@@ -18,7 +19,7 @@
         <PackageTags>ensuring validation preconditions postconditions contract-design assertions</PackageTags>
         <PackageIcon>package_icon.png</PackageIcon>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <None Include="..\..\docs\ensure\README.md" Pack="true" PackagePath="" />
         <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
@@ -26,7 +27,19 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\IOKode.OpinionatedFramework.Generators.Ensuring\IOKode.OpinionatedFramework.Generators.Ensuring.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <!-- Standard source generator references -->
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+        <!-- Scriban embedding source -->
+        <PackageReference Include="Microsoft.CSharp" Version="4.7.0" PrivateAssets="all" />
+        <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" PrivateAssets="all" />
+        <PackageReference Include="Scriban" Version="5.4.6" Pack="true" IncludeAssets="Build" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Pack the generator dll in the analyzers/dotnet/cs path -->
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <Compile Include="..\SourceGenerationHelper.cs" />
     </ItemGroup>
 
 </Project>

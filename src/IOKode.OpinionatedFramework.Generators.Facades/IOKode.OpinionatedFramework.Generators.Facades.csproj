@@ -21,6 +21,7 @@
     <ItemGroup>
         <!-- Pack the generator dll in the analyzers/dotnet/cs path -->
         <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <Compile Include="..\SourceGenerationHelper.cs" />
     </ItemGroup>
 
 </Project>
