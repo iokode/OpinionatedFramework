@@ -37,7 +37,7 @@ jobs:
 
     - name: Test
       run: |
-        dotnet test src/Tests.Ensuring/Tests.Ensuring.csproj --no-build --verbosity normal
+        dotnet test src/Tests.Ensuring/Tests.Ensuring.csproj -c Release --no-build --verbosity normal
 
     - name: Pack
       run: |
