@@ -24,16 +24,27 @@ jobs:
         dotnet-version: 7.0.x
 
     - name: Restore dependencies
-      run: dotnet restore src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj
+      run: |
+        dotnet restore src/Ensuring/Ensuring.csproj
+        dotnet restore src/Generators.Ensuring/Generators.Ensuring.csproj
+        dotnet restore src/Tests.Ensuring/Tests.Ensuring.csproj
 
     - name: Build
-      run: dotnet build src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+      run: |
+        dotnet build src/Ensuring/Ensuring.csproj -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+        dotnet build src/Generators.Ensuring/Generators.Ensuring.csproj -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+        dotnet build src/Tests.Ensuring/Tests.Ensuring.csproj -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
 
     - name: Test
-      run: dotnet test src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj --no-build --verbosity normal
+      run: |
+        dotnet test src/Tests.Ensuring/Tests.Ensuring.csproj --no-build --verbosity normal
 
     - name: Pack
-      run: dotnet pack src/IOKode.OpinionatedFramework.Ensuring/IOKode.OpinionatedFramework.Ensuring.csproj --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
+      run: |
+        dotnet pack src/Ensuring/Ensuring.csproj --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
+        dotnet pack src/Generators.Ensuring/Generators.Ensuring.csproj --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
 
     - name: Push
-      run: dotnet nuget push "./nupkgs/IOKode.OpinionatedFramework.Ensuring.${{ github.event.inputs.version }}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: |
+        dotnet nuget push "./nupkgs/IOKode.OpinionatedFramework.Ensuring.${{ github.event.inputs.version }}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        dotnet nuget push "./nupkgs/IOKode.OpinionatedFramework.Generators.Ensuring.${{ github.event.inputs.version }}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
