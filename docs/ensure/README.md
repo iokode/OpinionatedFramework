@@ -37,7 +37,16 @@ There are seven built-in ensurers available. Take a look in the [source code](ht
 - `Type`
 
 ## Adding custom ensurers
-Extending the Ensure API with custom validations is straightforward. All you need to do is create a static class with public static methods that return a boolean value and decorate the class with the [Ensurer] attribute. The class name should end with `Ensurer`. A set of source-generators take care of generating the `Ensure` class and other needed stuff.
+Extending the Ensure API with custom validations is straightforward. First, you need to reference the [`IOKode.OpinionatedFramework.Generators.Ensuring`](https://www.nuget.org/packages/IOKode.OpinionatedFramework.Generators.Ensuring) package:
+
+```xml
+<ItemGroup>
+    <PackageReference Include="IOKode.OpinionatedFramework.Ensuring" Version="1.0.1" />
+    <PackageReference Include="IOKode.OpinionatedFramework.Generators.Ensuring" Version="1.0.1" PrivateAssets="all" />
+</ItemGroup>
+```
+
+Next, you should create a static class with public static methods that return a boolean value and decorate the class with the `[Ensurer]` attribute. The class name should end with `Ensurer`. A set of source-generators take care of generating the `Ensure` class and other needed stuff.
 
 Here's an example of a custom ensurer for the `Person` class.
 
