@@ -82,7 +82,7 @@ public class CommandExecutor : ICommandExecutor
     public async Task InvokeAsync<TCommand>(TCommand command, CancellationToken cancellationToken)
         where TCommand : Command
     {
-        using var scope = Locator.ServiceProvider.CreateScope();
+        using var scope = Locator.ServiceProvider!.CreateScope();
         _setScope(scope);
 
         var context = _createContext(command.GetType(), cancellationToken);
@@ -92,7 +92,7 @@ public class CommandExecutor : ICommandExecutor
     public async Task<TResult> InvokeAsync<TCommand, TResult>(TCommand command, CancellationToken cancellationToken)
         where TCommand : Command<TResult>
     {
-        using var scope = Locator.ServiceProvider.CreateScope();
+        using var scope = Locator.ServiceProvider!.CreateScope();
         _setScope(scope);
 
         var context = _createContext(command.GetType(), cancellationToken);
