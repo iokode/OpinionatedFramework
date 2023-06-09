@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Jobs;
 
 namespace IOKode.OpinionatedFramework.Contracts;

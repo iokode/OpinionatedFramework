@@ -1,3 +1,5 @@
+using IOKode.OpinionatedFramework.Facades;
+
 namespace IOKode.OpinionatedFramework.Contracts;
 
 [AddToFacade("i18n")]

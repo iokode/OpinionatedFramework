@@ -1,6 +1,6 @@
 using System;
 
-namespace IOKode.OpinionatedFramework.Contracts;
+namespace IOKode.OpinionatedFramework.Facades;
 
 [AttributeUsage(AttributeTargets.Interface)]
 public sealed class AddToFacadeAttribute : Attribute

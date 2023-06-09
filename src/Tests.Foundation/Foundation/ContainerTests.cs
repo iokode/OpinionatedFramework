@@ -74,7 +74,7 @@ public class ContainerTests : IDisposable
         {
             Locator.Resolve<ITestService>();
         });
-        Assert.Equal("No service of type 'IOKode.OpinionatedFramework.Foundation.Tests.Foundation.ITestService' has been registered.", exception.Message);
+        Assert.Equal("No service of type 'IOKode.OpinionatedFramework.Tests.Foundation.Foundation.ITestService' has been registered.", exception.Message);
     }
 
     [Fact]

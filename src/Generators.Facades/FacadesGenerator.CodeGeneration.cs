@@ -43,7 +43,7 @@ public partial class FacadesGenerator
         public bool HasConstraints => Constraints.Length > 0;
     }
 
-    private static readonly string _AddToFacadeAttribute = "IOKode.OpinionatedFramework.Contracts.AddToFacadeAttribute";
+    private static readonly string _AddToFacadeAttribute = "IOKode.OpinionatedFramework.Facades.AddToFacadeAttribute";
 
     /// <summary>
     /// Get the relevant information of each class for code generation.
