@@ -33,14 +33,14 @@ public class LocalFileSystemTests : IDisposable
         const string filename = "filename.txt";
         File.Delete(Path.Combine(Path.GetTempPath(), filename));
 
-        // Initial assert
-        Assert.False(await FS.GetDisk(_diskname).ExistsFileAsync(filename));
+        // Assert (file not exists and throws exception when trying to get it)
+        Assert.False(File.Exists(Path.Combine(Path.GetTempPath(), filename)));
         await Assert.ThrowsAsync<FileNotFoundException>(async () =>
         {
             await FS.GetDisk(_diskname).GetFileAsync(filename);
         });
 
-        // Act
+        // Act (put file)
         {
             await using var file = new MemoryStream();
             await using var writer = new StreamWriter(file);
@@ -50,18 +50,24 @@ public class LocalFileSystemTests : IDisposable
             await FS.GetDisk(_diskname).PutFileAsync(filename, file);
         }
 
-        // Assert
+        // Assert (put file exists)
+        Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), filename)));
+
         {
-            Assert.True(await FS.GetDisk(_diskname).ExistsFileAsync(filename));
+            // Act (read file)
             await using var file = await FS.GetDisk(_diskname).GetFileAsync(filename);
             using var reader = new StreamReader(file);
             string content = await reader.ReadToEndAsync();
+
+            // Assert (read file)
             Assert.Equal("Text content.", content);
-            await Assert.ThrowsAsync<FileAlreadyExistsException>(async () =>
-            {
-                await FS.GetDisk(_diskname).PutFileAsync(filename, new MemoryStream());
-            });
         }
+
+        // Act & Assert (put file when exists)
+        await Assert.ThrowsAsync<FileAlreadyExistsException>(async () =>
+        {
+            await FS.GetDisk(_diskname).PutFileAsync(filename, new MemoryStream());
+        });
     }
 
     [Fact]
@@ -147,25 +153,25 @@ public class LocalFileSystemTests : IDisposable
 
         // Assert (first file content)
         {
-            var file = File.OpenText(Path.Combine(Path.GetTempPath(), filename));
-            string fileContent = await file.ReadToEndAsync();
-            Assert.Equal("Initial file content.", fileContent);
+            var fileReader = File.OpenText(Path.Combine(Path.GetTempPath(), filename));
+            string content = await fileReader.ReadToEndAsync();
+            Assert.Equal("Initial file content.", content);
         }
 
         // Act (replace file)
         {
-            using var secondFileStream = new MemoryStream();
-            await using var writer = new StreamWriter(secondFileStream);
+            using var file = new MemoryStream();
+            await using var writer = new StreamWriter(file);
             await writer.WriteAsync("Second file content.");
             await writer.FlushAsync();
-            secondFileStream.Position = 0;
-            await FS.GetDisk(_diskname).ReplaceFileAsync(filename, secondFileStream);
+            file.Position = 0;
+            await FS.GetDisk(_diskname).ReplaceFileAsync(filename, file);
         }
 
         // Assert (file is replaced)
         {
-            using var file = File.OpenText(Path.Combine(Path.GetTempPath(), filename));
-            string content = await file.ReadToEndAsync();
+            using var fileReader = File.OpenText(Path.Combine(Path.GetTempPath(), filename));
+            string content = await fileReader.ReadToEndAsync();
 
             Assert.Equal("Second file content.", content);
         }
