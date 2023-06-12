@@ -4,10 +4,10 @@ namespace IOKode.OpinionatedFramework.FileSystem;
 
 public class FileAlreadyExistsException : Exception
 {
-    public string AttemptedFileName { get; }
+    public string AttemptedName { get; }
 
-    public FileAlreadyExistsException(string attemptedFileName):base($"The file {attemptedFileName} already exists in the disk.")
+    public FileAlreadyExistsException(string attemptedName):base($"The file {attemptedName} already exists in the disk.")
     {
-        AttemptedFileName = attemptedFileName;
+        AttemptedName = attemptedName;
     }
 }

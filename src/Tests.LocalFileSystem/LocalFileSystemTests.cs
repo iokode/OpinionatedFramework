@@ -1,4 +1,3 @@
-using System.Text;
 using IOKode.OpinionatedFramework.ConfigureApplication;
 using IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
 using IOKode.OpinionatedFramework.Contracts;
