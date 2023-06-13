@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Contracts;
@@ -107,7 +108,7 @@ public class LocalDisk : IFileDisk
         {
             throw new DirectoryAlreadyExistsException(directoryPath);
         }
-        
+
         Directory.CreateDirectory(cleanPath);
         return Task.CompletedTask;
     }
@@ -120,12 +121,13 @@ public class LocalDisk : IFileDisk
         {
             throw new DirectoryNotFoundException(directoryPath);
         }
-        
+
         Directory.Delete(cleanPath, true);
         return Task.CompletedTask;
     }
 
-    public Task<IEnumerable<string>> ListFilesAsync(string? directoryPath = null, CancellationToken cancellationToken = default)
+    public Task<IEnumerable<string>> ListFilesAsync(string? directoryPath = null,
+        CancellationToken cancellationToken = default)
     {
         directoryPath ??= string.Empty;
         string cleanPath = _ClearFilePath(directoryPath);
@@ -134,9 +136,9 @@ public class LocalDisk : IFileDisk
         {
             throw new DirectoryNotFoundException(directoryPath);
         }
-        
-        string[] files = Directory.GetFiles(cleanPath);
-        return Task.FromResult((IEnumerable<string>)files);
+
+        var files = Directory.GetFiles(cleanPath).Select(fullName => fullName[(cleanPath.Length + 1)..]);
+        return Task.FromResult(files);
     }
 
     private string _ClearFilePath(string filePath)

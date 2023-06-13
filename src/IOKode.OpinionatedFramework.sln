@@ -36,6 +36,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.LocalFileSystem", "Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractImplementations.LocalFileSystem", "ContractImplementations.LocalFileSystem\ContractImplementations.LocalFileSystem.csproj", "{2B8CE2A8-7FFA-4D7D-908A-A29409D2EF19}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractImplementations.GoogleCloudStorage", "ContractImplementations.GoogleCloudStorage\ContractImplementations.GoogleCloudStorage.csproj", "{B4B1C3B4-0114-400A-90FF-3CCB71179053}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.GoogleCloudStorage", "Tests.GoogleCloudStorage\Tests.GoogleCloudStorage.csproj", "{BD48218D-70C3-456F-A96E-C9862FC95311}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -102,6 +106,14 @@ Global
 		{2B8CE2A8-7FFA-4D7D-908A-A29409D2EF19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B8CE2A8-7FFA-4D7D-908A-A29409D2EF19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B8CE2A8-7FFA-4D7D-908A-A29409D2EF19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4B1C3B4-0114-400A-90FF-3CCB71179053}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4B1C3B4-0114-400A-90FF-3CCB71179053}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4B1C3B4-0114-400A-90FF-3CCB71179053}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4B1C3B4-0114-400A-90FF-3CCB71179053}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD48218D-70C3-456F-A96E-C9862FC95311}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD48218D-70C3-456F-A96E-C9862FC95311}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD48218D-70C3-456F-A96E-C9862FC95311}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD48218D-70C3-456F-A96E-C9862FC95311}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{3FD64445-84EB-4C23-84E2-72FFBACE1337} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
@@ -116,5 +128,7 @@ Global
 		{4A4762B8-28B2-49F3-9EB8-E46C053C2435} = {F231FFD4-12A2-49F4-9B02-85AEC3AEFFA9}
 		{D328F50C-422D-45D3-8910-75CD259BC888} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
 		{2B8CE2A8-7FFA-4D7D-908A-A29409D2EF19} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
+		{B4B1C3B4-0114-400A-90FF-3CCB71179053} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
+		{BD48218D-70C3-456F-A96E-C9862FC95311} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
 	EndGlobalSection
 EndGlobal

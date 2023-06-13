@@ -1,3 +1,7 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.ConfigureApplication;
 using IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
 using IOKode.OpinionatedFramework.Contracts;
@@ -99,6 +103,37 @@ public class LocalDirectoryTests : IDisposable
         
         // Assert directory does not exists with FileSystem API
         Assert.False(await FS.GetDisk(_diskname).ExistsDirectoryAsync(_directoryname));
+    }
+    
+    [Fact]
+    public async Task ListFiles_Success()
+    {
+        // Arrange
+        DeleteDirectory();
+        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname));
+        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file1.txt"));
+        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file2.txt"));
+        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file3.txt"));
+        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname, "dir"));
+        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file1.txt"));
+        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file2.txt"));
+        
+        // Act - List files in root
+        string[] itemsInRoot = (await FS.GetDisk(_diskname).ListFilesAsync(_directoryname)).ToArray();
+        
+        // Assert three files in root
+        Assert.Equal(3, itemsInRoot.Length);
+        Assert.Contains("file1.txt", itemsInRoot);
+        Assert.Contains("file2.txt", itemsInRoot);
+        Assert.Contains("file3.txt", itemsInRoot);
+        
+        // Act - List files in directory
+        string[] itemsInDirectory = (await FS.GetDisk(_diskname).ListFilesAsync(Path.Combine(_directoryname, "dir"))).ToArray();
+        
+        // Assert two files in root
+        Assert.Equal(2, itemsInDirectory.Length);
+        Assert.Contains("file1.txt", itemsInDirectory);
+        Assert.Contains("file2.txt", itemsInDirectory);
     }
 
     public void Dispose()
