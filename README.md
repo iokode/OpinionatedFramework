@@ -36,6 +36,7 @@ OpinionatedFramework simplifies the entire development process. It streamlines y
 OpinionatedFramework comes bundled with a myriad of features:
 
 - **Command**: Implement use-cases with middleware support and scoped services.
+- **FileSystem**: Infrastructure-agnostic file system. Local, InMemory and Google Cloud Storage implementations will be available.
 - **Persistence**: Incorporate the Unit of Work pattern. NHibernate and MongoDB implementations will be available.
 - **Emailing**: Send emails easily, with a default MailKit implementation.
 - **Encryption**: Safeguard sensitive data with our encrypter.
