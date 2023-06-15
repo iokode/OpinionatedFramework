@@ -22,6 +22,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
+      <ProjectReference Include="..\ContractImplementations.FileSystem\ContractImplementations.FileSystem.csproj" />
       <ProjectReference Include="..\ContractImplementations.GoogleCloudStorage\ContractImplementations.GoogleCloudStorage.csproj" />
       <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>

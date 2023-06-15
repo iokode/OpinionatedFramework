@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.ConfigureApplication;
+using IOKode.OpinionatedFramework.ContractImplementations.FileSystem;
 using IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
 using IOKode.OpinionatedFramework.Contracts;
 using IOKode.OpinionatedFramework.Facades;

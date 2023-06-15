@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Google.Cloud.Storage.V1;
 using IOKode.OpinionatedFramework.ConfigureApplication;
+using IOKode.OpinionatedFramework.ContractImplementations.FileSystem;
 using IOKode.OpinionatedFramework.ContractImplementations.GoogleCloudStorage;
 using IOKode.OpinionatedFramework.Contracts;
 using IOKode.OpinionatedFramework.Facades;

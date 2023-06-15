@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using IOKode.OpinionatedFramework.Contracts;
 
-namespace IOKode.OpinionatedFramework.FileSystem;
+namespace IOKode.OpinionatedFramework.ContractImplementations.FileSystem;
 
 public class FileSystem : IFileSystem
 {

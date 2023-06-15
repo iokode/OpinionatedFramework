@@ -18,11 +18,9 @@ public class LocalDisk : IFileDisk
     public LocalDisk(string basePath)
     {
         Ensure.ArgumentNotNull(basePath);
-
-        if (basePath[^1] != Path.DirectorySeparatorChar)
-        {
-            basePath += Path.DirectorySeparatorChar;
-        }
+        Ensure.Boolean.IsFalse(File.Exists(basePath))
+            .ElseThrowsIllegalArgument("The provided path corresponds to a file, a directory was expected.",
+                nameof(basePath));
 
         _basePath = basePath;
 
@@ -34,7 +32,7 @@ public class LocalDisk : IFileDisk
 
     public Task<bool> ExistsFileAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        string cleanPath = _ClearFilePath(filePath);
+        string cleanPath = ClearFilePath(filePath);
         bool exists = File.Exists(cleanPath);
 
         return Task.FromResult(exists);
@@ -42,7 +40,7 @@ public class LocalDisk : IFileDisk
 
     public async Task PutFileAsync(string filePath, Stream fileContent, CancellationToken cancellationToken = default)
     {
-        string cleanPath = _ClearFilePath(filePath);
+        string cleanPath = ClearFilePath(filePath);
         bool exists = File.Exists(cleanPath);
         if (exists)
         {
@@ -56,7 +54,7 @@ public class LocalDisk : IFileDisk
     public async Task ReplaceFileAsync(string filePath, Stream fileContent,
         CancellationToken cancellationToken = default)
     {
-        string cleanPath = _ClearFilePath(filePath);
+        string cleanPath = ClearFilePath(filePath);
         bool exists = File.Exists(cleanPath);
 
         if (exists)
@@ -69,7 +67,7 @@ public class LocalDisk : IFileDisk
 
     public Task<Stream> GetFileAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        string cleanPath = _ClearFilePath(filePath);
+        string cleanPath = ClearFilePath(filePath);
         bool exists = File.Exists(cleanPath);
         if (!exists)
         {
@@ -82,7 +80,7 @@ public class LocalDisk : IFileDisk
 
     public Task DeleteFileAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        string cleanPath = _ClearFilePath(filePath);
+        string cleanPath = ClearFilePath(filePath);
         bool exists = File.Exists(cleanPath);
         if (!exists)
         {
@@ -95,14 +93,14 @@ public class LocalDisk : IFileDisk
 
     public Task<bool> ExistsDirectoryAsync(string directoryPath, CancellationToken cancellationToken = default)
     {
-        string cleanPath = _ClearFilePath(directoryPath);
+        string cleanPath = ClearFilePath(directoryPath);
         bool exists = Directory.Exists(cleanPath);
         return Task.FromResult(exists);
     }
 
     public Task CreateDirectoryAsync(string directoryPath, CancellationToken cancellationToken = default)
     {
-        string cleanPath = _ClearFilePath(directoryPath);
+        string cleanPath = ClearFilePath(directoryPath);
 
         if (Directory.Exists(cleanPath))
         {
@@ -115,7 +113,7 @@ public class LocalDisk : IFileDisk
 
     public Task DeleteDirectoryAsync(string directoryPath, CancellationToken cancellationToken = default)
     {
-        string cleanPath = _ClearFilePath(directoryPath);
+        string cleanPath = ClearFilePath(directoryPath);
 
         if (!Directory.Exists(cleanPath))
         {
@@ -130,7 +128,7 @@ public class LocalDisk : IFileDisk
         CancellationToken cancellationToken = default)
     {
         directoryPath ??= string.Empty;
-        string cleanPath = _ClearFilePath(directoryPath);
+        string cleanPath = ClearFilePath(directoryPath);
 
         if (directoryPath != string.Empty && !Directory.Exists(cleanPath))
         {
@@ -141,7 +139,7 @@ public class LocalDisk : IFileDisk
         return Task.FromResult(files);
     }
 
-    private string _ClearFilePath(string filePath)
+    private string ClearFilePath(string filePath)
     {
         return Path.Combine(_basePath, filePath);
     }
