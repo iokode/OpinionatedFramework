@@ -108,4 +108,13 @@ public interface IFileDisk
     /// <exception cref="DirectoryNotFoundException">Thrown when the directory does not exist.</exception>
     Task<IEnumerable<string>> ListFilesAsync(string? directoryPath = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves a list of directory names in the directory at the specified path.
+    /// </summary>
+    /// <param name="directoryPath">The path to the directory. If this parameter is null, the method retrieves directories from the root directory.</param>
+    /// <param name="cancellationToken">An optional token to cancel the operation.</param>
+    /// <returns>An enumerable collection of direcrtory names in the directory.</returns>
+    Task<IEnumerable<string>> ListDirectoriesAsync(string? directoryPath = null,
+        CancellationToken cancellationToken = default);
 }

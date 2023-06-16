@@ -136,6 +136,29 @@ public class LocalDirectoryTests : IDisposable
         Assert.Contains("file2.txt", itemsInDirectory);
     }
 
+    [Fact]
+    public async Task ListDirectories_Success()
+    {
+        // Arrange
+        DeleteDirectory();
+        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname));
+        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file1.txt"));
+        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file2.txt"));
+        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file3.txt"));
+        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname, "dir"));
+        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname, "dir2"));
+        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file1.txt"));
+        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir2", "file2.txt"));
+        
+        // Act
+        string[] directories = (await FS.GetDisk(_diskname).ListDirectoriesAsync(_directoryname)).ToArray();
+        
+        // Assert
+        Assert.Equal(2, directories.Length);
+        Assert.Contains("dir", directories);
+        Assert.Contains("dir2", directories);
+    }
+
     public void Dispose()
     {
         DeleteDirectory();

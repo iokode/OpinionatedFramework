@@ -41,13 +41,19 @@ public class LocalDisk : IFileDisk
     public async Task PutFileAsync(string filePath, Stream fileContent, CancellationToken cancellationToken = default)
     {
         string cleanPath = ClearFilePath(filePath);
-        bool exists = File.Exists(cleanPath);
-        if (exists)
+        var file = new FileInfo(cleanPath);
+
+        if (file.Exists)
         {
             throw new FileAlreadyExistsException(filePath);
         }
 
-        await using var fileStream = File.Create(cleanPath);
+        if (!file.Directory?.Exists ?? false)
+        {
+            file.Directory.Create();
+        }
+
+        await using var fileStream = file.Create();
         await fileContent.CopyToAsync(fileStream, cancellationToken);
     }
 
@@ -136,6 +142,20 @@ public class LocalDisk : IFileDisk
         }
 
         var files = Directory.GetFiles(cleanPath).Select(fullName => fullName[(cleanPath.Length + 1)..]);
+        return Task.FromResult(files);
+    }
+
+    public Task<IEnumerable<string>> ListDirectoriesAsync(string? directoryPath = null, CancellationToken cancellationToken = default)
+    {
+        directoryPath ??= string.Empty;
+        string cleanPath = ClearFilePath(directoryPath);
+
+        if (directoryPath != string.Empty && !Directory.Exists(cleanPath))
+        {
+            throw new DirectoryNotFoundException(directoryPath);
+        }
+
+        var files = Directory.GetDirectories(cleanPath).Select(fullName => fullName[(cleanPath.Length + 1)..]);
         return Task.FromResult(files);
     }
 

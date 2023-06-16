@@ -180,6 +180,18 @@ public class LocalFileSystemTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task DirectoryShortcut()
+    {
+        // Act
+        await FS.GetDisk(_diskname).PutFileAsync("indir/dir2/file.txt", new MemoryStream("content"u8.ToArray()));
+        
+        // Assert
+        string path = Path.Combine(Path.GetTempPath(), "indir", "dir2", "file.txt");
+        Assert.True(File.Exists(path));
+        Assert.Equal("content", await File.ReadAllTextAsync(path));
+    }
+
     public void Dispose()
     {
         Container.Clear();

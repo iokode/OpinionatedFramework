@@ -109,6 +109,10 @@ public class GoogleCloudStorageDisk : IFileDisk
 
         await _storageClient.DeleteObjectAsync(_bucketName, filePath, cancellationToken: cancellationToken);
     }
+    
+    public Task<IEnumerable<string>> ListDirectoriesAsync(string? directoryPath = null,
+        CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("The methods for working with directories are not applicable in GCS.");
 
     public Task<bool> ExistsDirectoryAsync(string directoryPath, CancellationToken cancellationToken = default) =>
         throw new NotSupportedException("The methods for working with directories are not applicable in GCS.");
