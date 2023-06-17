@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Commands;
 using IOKode.OpinionatedFramework.Contracts;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,13 +12,35 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 public class CommandExecutor : ICommandExecutor
 {
     private readonly ICommandMiddleware[] _middlewares;
+    private readonly IEnumerable<KeyValuePair<string, object>>? _sharedData;
 
-    public CommandExecutor(ICommandMiddleware[] middlewares)
+    public CommandExecutor(ICommandMiddleware[] middlewares, IEnumerable<KeyValuePair<string, object>>? sharedData = null)
     {
         _middlewares = middlewares;
+        _sharedData = sharedData;
     }
 
-    private void _setScope(IServiceScope scope)
+    public async Task InvokeAsync<TCommand>(TCommand command, CancellationToken cancellationToken)
+        where TCommand : Command
+    {
+        using var scope = Locator.ServiceProvider!.CreateScope();
+        SetScope(scope);
+
+        var context = SettableCommandContext.Create(command.GetType(), _sharedData, cancellationToken);
+        await InvokeMiddlewarePipeline(command, context, 0);
+    }
+
+    public async Task<TResult> InvokeAsync<TCommand, TResult>(TCommand command, CancellationToken cancellationToken)
+        where TCommand : Command<TResult>
+    {
+        using var scope = Locator.ServiceProvider!.CreateScope();
+        SetScope(scope);
+
+        var context = SettableCommandContext.Create(command.GetType(), _sharedData, cancellationToken);
+        return await InvokeMiddlewarePipeline<TCommand, TResult>(command, context, 0);
+    }
+
+    private void SetScope(IServiceScope scope)
     {
         var scopedServiceProviderField =
             typeof(Locator).GetField("_scopedServiceProvider", BindingFlags.NonPublic | BindingFlags.Static)!;
@@ -22,80 +48,44 @@ public class CommandExecutor : ICommandExecutor
         ((AsyncLocal<IServiceProvider?>)scopedServiceProviderField.GetValue(null)!).Value = scope.ServiceProvider;
     }
 
-    private MethodInfo _getExecuteMethod<TCommand>()
+    private static MethodInfo GetExecuteMethod<TCommand>()
     {
         var executeMethod = typeof(TCommand).GetMethod("ExecuteAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
         return executeMethod;
     }
 
-    private async Task _invokeMiddlewarePipeline<TCommand>(TCommand command, CommandContext context, int index,
-        CancellationToken cancellationToken)
+    private async Task InvokeMiddlewarePipeline<TCommand>(TCommand command, SettableCommandContext context, int index)
     {
         if (index >= _middlewares.Length)
         {
-            await (Task)_getExecuteMethod<TCommand>().Invoke(command, new object?[] { cancellationToken })!;
-            context.IsExecuted = true;
+            await (Task)GetExecuteMethod<TCommand>().Invoke(command, new object?[] { context })!;
+            context.SetAsExecuted();
             return;
         }
 
         var middleware = _middlewares[index];
         await middleware.ExecuteAsync(context,
-            ctx => _invokeMiddlewarePipeline(command, ctx, index + 1, cancellationToken));
+            ctx => InvokeMiddlewarePipeline(command, (SettableCommandContext)ctx, index + 1));
     }
 
-    private async Task<TResult> _invokeMiddlewarePipeline<TCommand, TResult>(TCommand command, CommandContext context,
-        int index, CancellationToken cancellationToken)
+    private async Task<TResult> InvokeMiddlewarePipeline<TCommand, TResult>(TCommand command,
+        SettableCommandContext context, int index)
         where TCommand : Command<TResult>
     {
         if (index >= _middlewares.Length)
         {
-            var commandResult = await 
-                (Task<TResult>)_getExecuteMethod<TCommand>().Invoke(command, new object?[] { cancellationToken })!;
+            var commandResult = await
+                (Task<TResult>)GetExecuteMethod<TCommand>().Invoke(command, new object?[] { context })!;
 
-            context.IsExecuted = true;
-            context.HasResult = true;
-            context.Result = commandResult;
-            
+            context.SetAsExecuted();
+            context.SetResult(commandResult);
+
             return commandResult;
         }
 
         var middleware = _middlewares[index];
         await middleware.ExecuteAsync(context,
-            ctx => _invokeMiddlewarePipeline<TCommand, TResult>(command, ctx, index + 1, cancellationToken));
+            ctx => InvokeMiddlewarePipeline<TCommand, TResult>(command, (SettableCommandContext)ctx, index + 1));
         return default!;
-    }
-
-    private CommandContext _createContext(Type commandType, CancellationToken cancellationToken)
-    {
-        var context = new CommandContext
-        {
-            CommandType = commandType,
-            CancellationToken = cancellationToken,
-            HasResult = false,
-            Result = null,
-            IsExecuted = false
-        };
-
-        return context;
-    }
-
-    public async Task InvokeAsync<TCommand>(TCommand command, CancellationToken cancellationToken)
-        where TCommand : Command
-    {
-        using var scope = Locator.ServiceProvider!.CreateScope();
-        _setScope(scope);
-
-        var context = _createContext(command.GetType(), cancellationToken);
-        await _invokeMiddlewarePipeline(command, context, 0, cancellationToken);
-    }
-
-    public async Task<TResult> InvokeAsync<TCommand, TResult>(TCommand command, CancellationToken cancellationToken)
-        where TCommand : Command<TResult>
-    {
-        using var scope = Locator.ServiceProvider!.CreateScope();
-        _setScope(scope);
-
-        var context = _createContext(command.GetType(), cancellationToken);
-        return await _invokeMiddlewarePipeline<TCommand, TResult>(command, context, 0, cancellationToken);
     }
 }

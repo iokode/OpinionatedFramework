@@ -128,7 +128,7 @@ public partial class CommandExecutorTests
 
     private class ExceptionThrowingCommand : Command
     {
-        protected override Task ExecuteAsync(CancellationToken cancellationToken)
+        protected override Task ExecuteAsync(CommandContext context)
         {
             throw new Exception("Test exception");
         }

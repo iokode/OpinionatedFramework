@@ -3,11 +3,13 @@ using System.Threading;
 
 namespace IOKode.OpinionatedFramework.Commands;
 
-public class CommandContext
+public abstract class CommandContext
 {
-    public required Type CommandType { get; init; }
-    public required CancellationToken CancellationToken { get; init; }
-    public bool IsExecuted { get; set; }
-    public bool HasResult { get; set; }
-    public object? Result { get; set; }
+    public Type CommandType { get; protected set; }
+    public CancellationToken CancellationToken { get; protected set; }
+    public bool IsExecuted { get; protected set; }
+    public bool HasResult { get; protected set; }
+    public object? Result { get; protected set; }
+
+    public abstract object? GetSharedData(string key);
 }

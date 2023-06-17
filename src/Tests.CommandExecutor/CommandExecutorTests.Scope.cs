@@ -107,7 +107,7 @@ public partial class CommandExecutorTests
 
     private class SampleCommand : Command<(SampleService, SampleService)>
     {
-        protected override Task<(SampleService, SampleService)> ExecuteAsync(CancellationToken cancellationToken)
+        protected override Task<(SampleService, SampleService)> ExecuteAsync(CommandContext context)
         {
             var service = Locator.Resolve<SampleService>();
             var service2 = Locator.Resolve<SampleService>();
@@ -118,7 +118,7 @@ public partial class CommandExecutorTests
 
     private class GetProviderCommand : Command<IServiceProvider>
     {
-        protected override Task<IServiceProvider> ExecuteAsync(CancellationToken cancellationToken)
+        protected override Task<IServiceProvider> ExecuteAsync(CommandContext context)
         {
             return Task.FromResult(Locator.ServiceProvider!);
         }
@@ -136,7 +136,7 @@ public partial class CommandExecutorTests
 
     private class SampleCommandWithScopedState : Command<string>
     {
-        protected override async Task<string> ExecuteAsync(CancellationToken cancellationToken)
+        protected override async Task<string> ExecuteAsync(CommandContext context)
         {
             var scopedStateService = Locator.Resolve<ScopedStateService>();
             var scopedStateToModify = Locator.Resolve<ScopedStateService>();
@@ -170,7 +170,7 @@ public partial class CommandExecutorTests
             }
         }
 
-        protected override async Task<(SampleService, SampleService)> ExecuteAsync(CancellationToken cancellationToken)
+        protected override async Task<(SampleService, SampleService)> ExecuteAsync(CommandContext context)
         {
             var sync = new InnerSyncClass();
             var async = new InnerAsyncClass();
