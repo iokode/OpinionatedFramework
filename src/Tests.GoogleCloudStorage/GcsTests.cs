@@ -24,7 +24,7 @@ Prior to executing these tests, two environment variables should be provided to 
 Please note that these integration tests make calls to Google Cloud Storage.
 As a result, execution may incur charges on your Google Cloud account.
 */
-public class GcsTests
+public class GcsTests : IDisposable
 {
     private string _bucketName = Environment.GetEnvironmentVariable("GOOGLE_GCS_BUCKET_NAME")!;
     private readonly StorageClient _client;
@@ -214,5 +214,11 @@ public class GcsTests
         {
             await _client.DeleteObjectAsync(obj);
         }
+    }
+
+    public void Dispose()
+    {
+        Container.Clear();
+        _client.Dispose();
     }
 }
