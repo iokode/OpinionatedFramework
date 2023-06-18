@@ -9,6 +9,7 @@ using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.FileSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using DirectoryNotFoundException = System.IO.DirectoryNotFoundException;
 using FileNotFoundException = IOKode.OpinionatedFramework.FileSystem.FileNotFoundException;
 
 namespace Tests.LocalFileSystem;
@@ -19,6 +20,7 @@ public class LocalFileSystemTests : IDisposable
 
     public LocalFileSystemTests()
     {
+        Container.Clear();
         Container.Services.AddSingleton<IFileSystem>(_ =>
         {
             var fileSystem = new FileSystem();
@@ -185,11 +187,17 @@ public class LocalFileSystemTests : IDisposable
     {
         // Arrange
         string path = Path.Combine(Path.GetTempPath(), "indir", "dir2", "file.txt");
-        File.Delete(path);
+        try
+        {
+            File.Delete(path);
+        }
+        catch (DirectoryNotFoundException)
+        {
+        }
 
         // Act
         await FS.GetDisk(_diskname).PutFileAsync("indir/dir2/file.txt", new MemoryStream("content"u8.ToArray()));
-        
+
         // Assert
         Assert.True(File.Exists(path));
         Assert.Equal("content", await File.ReadAllTextAsync(path));
