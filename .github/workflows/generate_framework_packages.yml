@@ -39,6 +39,12 @@ jobs:
         dotnet build src/ContractImplementations.LocalFileSystem -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
         dotnet build src/ContractImplementations.MailKit -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
 
+        dotnet build src/Tests.Aes256GcmModeEncrypter -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+        dotnet build src/Tests.CommandExecutor -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+        dotnet build src/Tests.GoogleCloudStorage -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+        dotnet build src/Tests.LocalFileSystem -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+        dotnet build src/Tests.MailKit -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+
     - name: Test
       run: |
         dotnet test src/Tests.Aes256GcmModeEncrypter -c Release --no-build --verbosity normal
