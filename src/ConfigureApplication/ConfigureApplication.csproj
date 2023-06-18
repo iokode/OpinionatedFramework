@@ -9,7 +9,7 @@
 
     <PropertyGroup Label="Package settings">
         <IsPackable>true</IsPackable>
-        <PackageId>IOKode.OpinionatedFramework.Foundation</PackageId>
+        <PackageId>IOKode.OpinionatedFramework.ConfigureApplication</PackageId>
         <Copyright>Copyright (c) 2023, IOKode OÜ</Copyright>
         <Authors>IOKode, Ivan Montilla</Authors>
         <Description>OpinionatedFramework is a robust, comprehensive .NET 7+ framework designed to streamline the development of the application/domain layer.</Description>
