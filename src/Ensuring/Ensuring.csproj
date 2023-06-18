@@ -1,14 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
+    <PropertyGroup Label="Build settings">
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <Deterministic>true</Deterministic>
         <TargetName>IOKode.OpinionatedFramework.Ensuring</TargetName>
         <RootNamespace>IOKode.OpinionatedFramework.Ensuring</RootNamespace>
     </PropertyGroup>
-    
-    <PropertyGroup Label="Package">
+
+    <PropertyGroup Label="Package settings">
         <IsPackable>true</IsPackable>
         <PackageId>IOKode.OpinionatedFramework.Ensuring</PackageId>
         <Copyright>Copyright (c) 2023, IOKode OÜ</Copyright>
@@ -21,15 +22,28 @@
         <PackageTags>ensuring validation preconditions postconditions contract-design assertions</PackageTags>
         <PackageIcon>package_icon.png</PackageIcon>
     </PropertyGroup>
-    
-    <ItemGroup>
-        <None Include="..\..\docs\ensure\README.md" Pack="true" PackagePath="" />
-        <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
-        <None Include="..\..\package_icon.png" Pack="true" PackagePath="" />
+
+    <PropertyGroup Label="Source Link settings">
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    </PropertyGroup>
+
+    <ItemGroup Label="Include additional files to package">
+        <None Include="..\..\docs\ensure\README.md" Pack="true" PackagePath=""/>
+        <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
+        <None Include="..\..\package_icon.png" Pack="true" PackagePath=""/>
+    </ItemGroup>
+
+    <ItemGroup Label="Source Link references">
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Generators.Ensuring\Generators.Ensuring.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\Generators.Ensuring\Generators.Ensuring.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
 
 </Project>
