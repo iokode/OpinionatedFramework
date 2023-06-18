@@ -4,9 +4,13 @@
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <Deterministic>true</Deterministic>
         <TargetName>IOKode.OpinionatedFramework.Ensuring</TargetName>
         <RootNamespace>IOKode.OpinionatedFramework.Ensuring</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup Label="GitHub Actions settings" Condition="'$(GITHUB_ACTIONS)' == 'true'">
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     </PropertyGroup>
 
     <PropertyGroup Label="Package settings">

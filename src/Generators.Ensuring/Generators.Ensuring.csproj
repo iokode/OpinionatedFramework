@@ -3,11 +3,15 @@
     <PropertyGroup Label="Build settings">
         <TargetFramework>netstandard2.0</TargetFramework>
         <IncludeBuildOutput>false</IncludeBuildOutput>
-        <Deterministic>true</Deterministic>
         <LangVersion>11</LangVersion>
         <TargetName>IOKode.OpinionatedFramework.Generators.Ensuring</TargetName>
         <RootNamespace>IOKode.OpinionatedFramework.Generators.Ensuring</RootNamespace>
         <PackageScribanIncludeSource>true</PackageScribanIncludeSource>
+    </PropertyGroup>
+
+    <PropertyGroup Label="GitHub Actions settings" Condition="'$(GITHUB_ACTIONS)' == 'true'">
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     </PropertyGroup>
 
     <PropertyGroup Label="Package settings">
