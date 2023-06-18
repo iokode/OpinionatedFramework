@@ -1,13 +1,46 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
+    <PropertyGroup Label="Build settings">
         <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
         <RootNamespace>IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter</RootNamespace>
         <TargetName>IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter</TargetName>
     </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Foundation\Foundation.csproj" />
+    <PropertyGroup Label="Package settings">
+        <IsPackable>true</IsPackable>
+        <PackageId>IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter</PackageId>
+        <Copyright>Copyright (c) 2023, IOKode OÜ</Copyright>
+        <Authors>IOKode, Ivan Montilla</Authors>
+        <Description>OpinionatedFramework is a robust, comprehensive .NET 7+ framework designed to streamline the development of the application/domain layer.</Description>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/iokode/OpinionatedFramework</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>framework, opinionated-framework application-framework</PackageTags>
+        <PackageIcon>package_icon.png</PackageIcon>
+    </PropertyGroup>
+    
+    <ItemGroup Label="Include additional files to package">
+        <None Include="..\..\README.md" Pack="true" PackagePath=""/>
+        <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
+        <None Include="..\..\package_icon.png" Pack="true" PackagePath=""/>
+    </ItemGroup>
+
+    <PropertyGroup Label="Source Link settings">
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    </PropertyGroup>
+
+    <PropertyGroup Label="GitHub Actions settings" Condition="'$(GITHUB_ACTIONS)' == 'true'">
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    </PropertyGroup>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>
 
 </Project>

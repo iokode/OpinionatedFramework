@@ -7,7 +7,7 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncry
 
 public class Aes256GcmModeEncrypter : IEncrypter
 {
-    private byte[] _key;
+    private readonly byte[] _key;
 
     public Aes256GcmModeEncrypter(byte[] key)
     {

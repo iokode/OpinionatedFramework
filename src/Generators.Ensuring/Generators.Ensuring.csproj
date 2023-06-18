@@ -40,18 +40,18 @@
         <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
         <None Include="..\..\package_icon.png" Pack="true" PackagePath=""/>
     </ItemGroup>
-    
+
     <ItemGroup Label="Source generation references">
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all"/>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1"/>
     </ItemGroup>
-    
+
     <ItemGroup Label="Scriban dependencies">
         <PackageReference Include="Scriban" Version="5.4.6" Pack="true" IncludeAssets="Build" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
-        <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+        <PackageReference Include="Microsoft.CSharp" Version="4.5.0"/>
+        <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4"/>
     </ItemGroup>
-    
+
     <ItemGroup Label="Source Link references">
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
             <PrivateAssets>all</PrivateAssets>

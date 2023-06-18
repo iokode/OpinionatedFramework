@@ -1,20 +1,55 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
+    <PropertyGroup Label="Build settings">
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <TargetName>IOKode.OpinionatedFramework.Foundation</TargetName>
         <RootNamespace>IOKode.OpinionatedFramework</RootNamespace>
     </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Cronos" Version="0.7.1" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
+    <PropertyGroup Label="Package settings">
+        <IsPackable>true</IsPackable>
+        <PackageId>IOKode.OpinionatedFramework.Foundation</PackageId>
+        <Copyright>Copyright (c) 2023, IOKode OÜ</Copyright>
+        <Authors>IOKode, Ivan Montilla</Authors>
+        <Description>OpinionatedFramework is a robust, comprehensive .NET 7+ framework designed to streamline the development of the application/domain layer.</Description>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/iokode/OpinionatedFramework</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>framework, opinionated-framework application-framework</PackageTags>
+        <PackageIcon>package_icon.png</PackageIcon>
+    </PropertyGroup>
+
+    <PropertyGroup Label="Source Link settings">
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    </PropertyGroup>
+
+    <PropertyGroup Label="GitHub Actions settings" Condition="'$(GITHUB_ACTIONS)' == 'true'">
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    </PropertyGroup>
+
+    <ItemGroup Label="Include additional files to package">
+        <None Include="..\..\README.md" Pack="true" PackagePath=""/>
+        <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
+        <None Include="..\..\package_icon.png" Pack="true" PackagePath=""/>
     </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\Ensuring\Ensuring.csproj" />
-        <ProjectReference Include="..\Generators.Facades\Generators.Facades.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ItemGroup Label="Dependecies">
+        <PackageReference Include="Cronos" Version="0.7.1"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\Ensuring\Ensuring.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Analyzers and source generators">
+        <ProjectReference Include="..\Generators.Facades\Generators.Facades.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
 
 </Project>
