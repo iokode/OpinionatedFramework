@@ -24,6 +24,7 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Source Link settings">
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
