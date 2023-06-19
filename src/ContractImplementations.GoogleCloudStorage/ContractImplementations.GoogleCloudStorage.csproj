@@ -22,9 +22,9 @@
     </PropertyGroup>
 
     <ItemGroup Label="Include additional files to package">
-        <None Include="..\..\README.md" Pack="true" PackagePath=""/>
-        <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
-        <None Include="..\..\package_icon.png" Pack="true" PackagePath=""/>
+        <None Visible="false" Include="..\..\README.md" Pack="true" PackagePath="" />
+        <None Visible="false" Include="..\..\LICENSE" Pack="true" PackagePath="" />
+        <None Visible="false" Include="..\..\package_icon.png" Pack="true" PackagePath="" />
     </ItemGroup>
 
     <PropertyGroup Label="Source Link settings">
@@ -40,11 +40,11 @@
     </PropertyGroup>
 
     <ItemGroup Label="Project references">
-        <ProjectReference Include="..\Foundation\Foundation.csproj"/>
+        <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>
 
     <ItemGroup Label="Dependencies">
-        <PackageReference Include="Google.Cloud.Storage.V1" Version="4.6.0"/>
+        <PackageReference Include="Google.Cloud.Storage.V1" Version="4.6.0" />
     </ItemGroup>
 
 </Project>

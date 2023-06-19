@@ -36,9 +36,9 @@
     </PropertyGroup>
 
     <ItemGroup Label="Include additional files to package">
-        <None Include="..\..\docs\ensure\README.md" Pack="true" PackagePath=""/>
-        <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
-        <None Include="..\..\package_icon.png" Pack="true" PackagePath=""/>
+        <None Visible="false" Include="..\..\docs\ensure\README.md" Pack="true" PackagePath=""/>
+        <None Visible="false" Include="..\..\LICENSE" Pack="true" PackagePath=""/>
+        <None Visible="false" Include="..\..\package_icon.png" Pack="true" PackagePath=""/>
     </ItemGroup>
 
     <ItemGroup Label="Source Link references">

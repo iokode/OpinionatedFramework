@@ -34,22 +34,22 @@
     </PropertyGroup>
 
     <ItemGroup Label="Include additional files to package">
-        <None Include="..\..\README.md" Pack="true" PackagePath=""/>
-        <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
-        <None Include="..\..\package_icon.png" Pack="true" PackagePath=""/>
+        <None Visible="false" Include="..\..\README.md" Pack="true" PackagePath="" />
+        <None Visible="false" Include="..\..\LICENSE" Pack="true" PackagePath="" />
+        <None Visible="false" Include="..\..\package_icon.png" Pack="true" PackagePath="" />
     </ItemGroup>
 
     <ItemGroup Label="Dependecies">
-        <PackageReference Include="Cronos" Version="0.7.1"/>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0"/>
+        <PackageReference Include="Cronos" Version="0.7.1" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup Label="Project references">
-        <ProjectReference Include="..\Ensuring\Ensuring.csproj"/>
+        <ProjectReference Include="..\Ensuring\Ensuring.csproj" />
     </ItemGroup>
 
     <ItemGroup Label="Analyzers and source generators">
-        <ProjectReference Include="..\Generators.Facades\Generators.Facades.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\Generators.Facades\Generators.Facades.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>
