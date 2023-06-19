@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -69,7 +70,7 @@ public class GcsTests : IDisposable
         Assert.True(await FS.GetDisk(_diskname).ExistsFileAsync(_filename));
 
         // Act - download the file
-        var downloadStream = await FS.GetDisk(_diskname).GetFileAsync(_filename);
+        var downloadStream = await (await FS.GetDisk(_diskname).GetFileAsync(_filename)).OpenReadStreamAsync();
         var downloadReader = new StreamReader(downloadStream);
         var downloadContent = await downloadReader.ReadToEndAsync();
 
@@ -83,7 +84,7 @@ public class GcsTests : IDisposable
         await FS.GetDisk(_diskname).ReplaceFileAsync(_filename, replaceStream);
 
         // Act - download the replaced file
-        downloadStream = await FS.GetDisk(_diskname).GetFileAsync(_filename);
+        downloadStream = await (await FS.GetDisk(_diskname).GetFileAsync(_filename)).OpenReadStreamAsync();
         downloadReader = new StreamReader(downloadStream);
         downloadContent = await downloadReader.ReadToEndAsync();
 
@@ -150,30 +151,125 @@ public class GcsTests : IDisposable
     public async Task ListFiles_Success()
     {
         // Arrange
+        var fileContent = "Text content.";
+        byte[] fileContentBytes = Encoding.UTF8.GetBytes(fileContent);
+        var fileStream = new MemoryStream(fileContentBytes);
+        var expectedStorageClass =
+            GoogleCloudStorageHelpers.GetStorageClassFromString(
+                (await _client.GetBucketAsync(_bucketName)).StorageClass);
+
         await EmptyBucketAsync();
-        var fileStream = new MemoryStream("Text content."u8.ToArray());
-        await _client.UploadObjectAsync(_bucketName, "file1.txt", null, fileStream);
-        await _client.UploadObjectAsync(_bucketName, "file2.txt", null, fileStream);
-        await _client.UploadObjectAsync(_bucketName, "file3.txt", null, fileStream);
-        await _client.UploadObjectAsync(_bucketName, "dir/file1.txt", null, fileStream);
-        await _client.UploadObjectAsync(_bucketName, "dir/file2.txt", null, fileStream);
-        
+        await FS.GetDisk(_diskname).PutFileAsync("file1.txt", fileStream);
+        fileStream.Position = 0;
+        await FS.GetDisk(_diskname).PutFileAsync("file2.txt", fileStream);
+        fileStream.Position = 0;
+        await FS.GetDisk(_diskname).PutFileAsync("file3.txt", fileStream);
+        fileStream.Position = 0;
+        await FS.GetDisk(_diskname).PutFileAsync("dir/file1.txt", fileStream);
+        fileStream.Position = 0;
+        await FS.GetDisk(_diskname).PutFileAsync("dir/file2.txt", fileStream);
+        fileStream.Position = 0;
+
         // Act - List files in root
-        string[] itemsInRoot = (await FS.GetDisk(_diskname).ListFilesAsync()).ToArray();
-        
+        var itemsInRoot = (await FS.GetDisk(_diskname).ListFilesAsync()).ToArray();
+
         // Assert three files in root
         Assert.Equal(3, itemsInRoot.Length);
-        Assert.Contains("file1.txt", itemsInRoot);
-        Assert.Contains("file2.txt", itemsInRoot);
-        Assert.Contains("file3.txt", itemsInRoot);
-        
+
+        Assert.Equal("file1.txt", itemsInRoot[0].Name);
+        Assert.Equal("file1.txt", itemsInRoot[0].FullName);
+        Assert.Equal((ulong)13, itemsInRoot[0].Size);
+
+        Assert.Equal("file2.txt", itemsInRoot[1].Name);
+        Assert.Equal("file2.txt", itemsInRoot[1].FullName);
+        Assert.Equal((ulong)13, itemsInRoot[1].Size);
+
+        Assert.Equal("file3.txt", itemsInRoot[2].Name);
+        Assert.Equal("file3.txt", itemsInRoot[2].FullName);
+        Assert.Equal((ulong)13, itemsInRoot[2].Size);
+
+        Assert.All(itemsInRoot, item =>
+        {
+            Assert.IsType<GoogleCloudStorageFile>(item);
+            var gcsFile = (GoogleCloudStorageFile)item;
+            Assert.Equal(expectedStorageClass, gcsFile.StorageClass);
+            Assert.NotNull(gcsFile.Obj);
+            Assert.Equal((ulong)13, gcsFile.Obj.Size);
+        });
+
         // Act - List files in directory
-        string[] itemsInDirectory = (await FS.GetDisk(_diskname).ListFilesAsync("dir")).ToArray();
-        
-        // Assert two files in root
+        var itemsInDirectory = (await FS.GetDisk(_diskname).ListFilesAsync("dir")).ToArray();
+
+        // Assert two files in directory
         Assert.Equal(2, itemsInDirectory.Length);
-        Assert.Contains("file1.txt", itemsInDirectory);
-        Assert.Contains("file2.txt", itemsInDirectory);
+
+        Assert.Equal("file1.txt", itemsInDirectory[0].Name);
+        Assert.Equal("dir/file1.txt", itemsInDirectory[0].FullName);
+        Assert.Equal((ulong)13, itemsInDirectory[0].Size);
+
+        Assert.Equal("file2.txt", itemsInDirectory[1].Name);
+        Assert.Equal("dir/file2.txt", itemsInDirectory[1].FullName);
+        Assert.Equal((ulong)13, itemsInDirectory[1].Size);
+
+        Assert.All(itemsInDirectory, item =>
+        {
+            Assert.IsType<GoogleCloudStorageFile>(item);
+            var gcsFile = (GoogleCloudStorageFile)item;
+            Assert.Equal(expectedStorageClass, gcsFile.StorageClass);
+            Assert.NotNull(gcsFile.Obj);
+            Assert.Equal((ulong)13, gcsFile.Obj.Size);
+        });
+    }
+
+    [Fact]
+    public async Task ReplaceFile_WithCustomStorageClass()
+    {
+        // Arrange
+        var fileContent = "Text content.";
+        byte[] fileContentBytes = Encoding.UTF8.GetBytes(fileContent);
+        var fileStream = new MemoryStream(fileContentBytes);
+
+        // Act
+        var disk = (GoogleCloudStorageDisk)FS.GetDisk("gcs");
+        await disk.ReplaceFileAsync("customclass/standard.txt", fileStream, GoogleCloudStorageClass.Standard);
+        await disk.ReplaceFileAsync("customclass/coldline.txt", fileStream, GoogleCloudStorageClass.Coldline);
+        await disk.ReplaceFileAsync("customclass/nearline.txt", fileStream, GoogleCloudStorageClass.Nearline);
+        await disk.ReplaceFileAsync("customclass/archive.txt", fileStream, GoogleCloudStorageClass.Archive);
+
+        // Assert
+        var standardFile = (GoogleCloudStorageFile)await disk.GetFileAsync("customclass/standard.txt");
+        var coldlineFile = (GoogleCloudStorageFile)await disk.GetFileAsync("customclass/coldline.txt");
+        var nearlineFile = (GoogleCloudStorageFile)await disk.GetFileAsync("customclass/nearline.txt");
+        var archiveFile = (GoogleCloudStorageFile)await disk.GetFileAsync("customclass/archive.txt");
+
+        Assert.Equal(GoogleCloudStorageClass.Standard, standardFile.StorageClass);
+        Assert.Equal(GoogleCloudStorageClass.Coldline, coldlineFile.StorageClass);
+        Assert.Equal(GoogleCloudStorageClass.Nearline, nearlineFile.StorageClass);
+        Assert.Equal(GoogleCloudStorageClass.Archive, archiveFile.StorageClass);
+    }
+    
+    [Fact]
+    public async Task ReplaceFile_WithCustomMetadata()
+    {
+        // Arrange
+        var fileContent = "Text content.";
+        byte[] fileContentBytes = Encoding.UTF8.GetBytes(fileContent);
+        var fileStream = new MemoryStream(fileContentBytes);
+
+        // Act
+        var disk = (GoogleCloudStorageDisk)FS.GetDisk("gcs");
+        await disk.ReplaceFileAsync("customdata/greet.txt", fileStream, null, new Dictionary<string, string>()
+        {
+            {"Greeting", "Hello world!"}
+        });
+
+        // Assert
+        var file = (GoogleCloudStorageFile)await disk.GetFileAsync("customdata/greet.txt");
+
+        Assert.Equal(new Dictionary<string, string>()
+        {
+            {"Greeting", "Hello world!"}
+        }, file.Obj.Metadata);
     }
 
     private async Task<bool> FileExistsAsync()

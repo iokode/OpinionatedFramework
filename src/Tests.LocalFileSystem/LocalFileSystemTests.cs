@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.ConfigureApplication;
 using IOKode.OpinionatedFramework.ContractImplementations.FileSystem;
@@ -10,6 +11,7 @@ using IOKode.OpinionatedFramework.FileSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using DirectoryNotFoundException = System.IO.DirectoryNotFoundException;
+using File = System.IO.File;
 using FileNotFoundException = IOKode.OpinionatedFramework.FileSystem.FileNotFoundException;
 
 namespace Tests.LocalFileSystem;
@@ -60,7 +62,7 @@ public class LocalFileSystemTests : IDisposable
 
         {
             // Act (read file)
-            await using var file = await FS.GetDisk(_diskname).GetFileAsync(filename);
+            await using var file = await (await FS.GetDisk(_diskname).GetFileAsync(filename)).OpenReadStreamAsync();
             using var reader = new StreamReader(file);
             string content = await reader.ReadToEndAsync();
 
@@ -164,13 +166,14 @@ public class LocalFileSystemTests : IDisposable
         }
 
         // Act (replace file)
+        IOKode.OpinionatedFramework.FileSystem.File replacedFile;
         {
             using var file = new MemoryStream();
             await using var writer = new StreamWriter(file);
             await writer.WriteAsync("Second file content.");
             await writer.FlushAsync();
             file.Position = 0;
-            await FS.GetDisk(_diskname).ReplaceFileAsync(filename, file);
+            replacedFile = await FS.GetDisk(_diskname).ReplaceFileAsync(filename, file);
         }
 
         // Assert (file is replaced)
@@ -180,6 +183,13 @@ public class LocalFileSystemTests : IDisposable
 
             Assert.Equal("Second file content.", content);
         }
+        
+        // Assert (check additional File properties)
+        var fileInfo = new FileInfo(Path.Combine(Path.GetTempPath(), filename));
+        Assert.Equal(filename, replacedFile.Name);
+        Assert.Equal(fileInfo.FullName, replacedFile.FullName);
+        Assert.Equal((ulong)20, replacedFile.Size);
+        Assert.Equal(fileInfo.CreationTime, replacedFile.CreationTime);
     }
 
     [Fact]

@@ -118,23 +118,29 @@ public class LocalDirectoryTests : IDisposable
         File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file1.txt"));
         File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file2.txt"));
 
-        // Act - List files in root
-        string[] itemsInRoot = (await FS.GetDisk(_diskname).ListFilesAsync(_directoryname)).ToArray();
+        {
+            // Act - List files in root
+            var itemsInRoot = (await FS.GetDisk(_diskname).ListFilesAsync(_directoryname)).ToArray();
 
-        // Assert three files in root
-        Assert.Equal(3, itemsInRoot.Length);
-        Assert.Contains("file1.txt", itemsInRoot);
-        Assert.Contains("file2.txt", itemsInRoot);
-        Assert.Contains("file3.txt", itemsInRoot);
+            // Assert three files in root
+            string[] names = itemsInRoot.Select(item => item.Name).ToArray();
+            Assert.Equal(3, itemsInRoot.Length);
+            Assert.Contains("file1.txt", names);
+            Assert.Contains("file2.txt", names);
+            Assert.Contains("file3.txt", names);
+        }
 
-        // Act - List files in directory
-        string[] itemsInDirectory =
-            (await FS.GetDisk(_diskname).ListFilesAsync(Path.Combine(_directoryname, "dir"))).ToArray();
+        {
+            // Act - List files in directory
+            var itemsInDirectory =
+                (await FS.GetDisk(_diskname).ListFilesAsync(_directoryname + "/dir")).ToArray();
 
-        // Assert two files in root
-        Assert.Equal(2, itemsInDirectory.Length);
-        Assert.Contains("file1.txt", itemsInDirectory);
-        Assert.Contains("file2.txt", itemsInDirectory);
+            // Assert two files in root
+            string[] names = itemsInDirectory.Select(item => item.Name).ToArray();
+            Assert.Equal(2, itemsInDirectory.Length);
+            Assert.Contains("file1.txt", names);
+            Assert.Contains("file2.txt", names);
+        }
     }
 
     [Fact]
@@ -152,12 +158,13 @@ public class LocalDirectoryTests : IDisposable
         File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir2", "file2.txt"));
 
         // Act
-        string[] directories = (await FS.GetDisk(_diskname).ListDirectoriesAsync(_directoryname)).ToArray();
+        var directories = (await FS.GetDisk(_diskname).ListDirectoriesAsync(_directoryname)).ToArray();
 
         // Assert
+        string[] names = directories.Select(directory => directory.Name).ToArray();
         Assert.Equal(2, directories.Length);
-        Assert.Contains("dir", directories);
-        Assert.Contains("dir2", directories);
+        Assert.Contains("dir", names);
+        Assert.Contains("dir2", names);
     }
 
     public void Dispose()
