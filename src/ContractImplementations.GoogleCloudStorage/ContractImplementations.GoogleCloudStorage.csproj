@@ -47,4 +47,11 @@
         <PackageReference Include="Google.Cloud.Storage.V1" Version="4.6.0" />
     </ItemGroup>
 
+    <ItemGroup Label="Source Link references">
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
 </Project>

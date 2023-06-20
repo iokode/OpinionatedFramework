@@ -28,8 +28,7 @@
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
     </PropertyGroup>
-
-
+    
     <PropertyGroup Label="GitHub Actions settings" Condition="'$(GITHUB_ACTIONS)' == 'true'">
         <Deterministic>true</Deterministic>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
