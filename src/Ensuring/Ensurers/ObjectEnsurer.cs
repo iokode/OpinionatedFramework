@@ -19,4 +19,14 @@ public static class ObjectEnsurer
     {
         return value != null;
     }
+
+    /// <summary>
+    /// Validates that the given object is null.
+    /// </summary>
+    /// <param name="value">The object to be validated.</param>
+    /// <returns>A boolean value indicating whether the object is null. Returns true if the object is null; otherwise, false.</returns>
+    public static bool IsNull(object? value)
+    {
+        return value == null;
+    }
 }
