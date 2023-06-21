@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Contracts;
 using IOKode.OpinionatedFramework.Emailing;
 using IOKode.OpinionatedFramework.Jobs;
 

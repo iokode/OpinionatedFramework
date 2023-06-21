@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using IOKode.OpinionatedFramework.Facades;
 
-namespace IOKode.OpinionatedFramework.Contracts;
+namespace IOKode.OpinionatedFramework.Security;
 
 /// <summary>
 /// Provides a blueprint for cryptographic operations.

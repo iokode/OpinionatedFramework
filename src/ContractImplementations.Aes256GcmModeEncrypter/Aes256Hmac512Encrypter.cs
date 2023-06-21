@@ -1,7 +1,7 @@
 using System;
 using System.Security.Cryptography;
-using IOKode.OpinionatedFramework.Contracts;
 using IOKode.OpinionatedFramework.Ensuring;
+using IOKode.OpinionatedFramework.Security;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter;
 

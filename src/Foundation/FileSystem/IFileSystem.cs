@@ -1,8 +1,6 @@
 using IOKode.OpinionatedFramework.Facades;
-using IOKode.OpinionatedFramework.FileSystem;
-using DirectoryNotFoundException = IOKode.OpinionatedFramework.FileSystem.FileNotFoundException;
 
-namespace IOKode.OpinionatedFramework.Contracts;
+namespace IOKode.OpinionatedFramework.FileSystem;
 
 /// <summary>
 /// Defines the contract for a system that manages multiple disk systems.

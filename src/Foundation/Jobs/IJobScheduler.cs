@@ -2,9 +2,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
 using IOKode.OpinionatedFramework.Facades;
-using IOKode.OpinionatedFramework.Jobs;
 
-namespace IOKode.OpinionatedFramework.Contracts;
+namespace IOKode.OpinionatedFramework.Jobs;
 
 [AddToFacade("Job")]
 public interface IJobScheduler

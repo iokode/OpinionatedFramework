@@ -1,5 +1,3 @@
-using IOKode.OpinionatedFramework.Contracts;
-
 namespace IOKode.OpinionatedFramework.Persistence;
 
 /// <summary>

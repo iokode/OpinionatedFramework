@@ -1,10 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Emailing;
 using IOKode.OpinionatedFramework.Facades;
-using Email = IOKode.OpinionatedFramework.Emailing.Email;
 
-namespace IOKode.OpinionatedFramework.Contracts;
+namespace IOKode.OpinionatedFramework.Emailing;
 
 [AddToFacade("Email")]
 public interface IEmailSender

@@ -1,4 +1,4 @@
-using IOKode.OpinionatedFramework.Contracts;
+using IOKode.OpinionatedFramework.Emailing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

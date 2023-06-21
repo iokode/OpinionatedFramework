@@ -1,6 +1,6 @@
 using IOKode.OpinionatedFramework.Facades;
 
-namespace IOKode.OpinionatedFramework.Contracts;
+namespace IOKode.OpinionatedFramework.Security;
 
 [AddToFacade("Password")]
 public interface IPasswordHasher

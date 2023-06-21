@@ -1,10 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Commands;
 using IOKode.OpinionatedFramework.Facades;
-using Command = IOKode.OpinionatedFramework.Commands.Command;
 
-namespace IOKode.OpinionatedFramework.Contracts;
+namespace IOKode.OpinionatedFramework.Commands;
 
 /// <summary>
 /// Defines the contract for a command executor, responsible for invoking commands.
