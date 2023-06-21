@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Commands;
 using IOKode.OpinionatedFramework.ConfigureApplication;
-using IOKode.OpinionatedFramework.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

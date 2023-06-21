@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.ConfigureApplication;
 using IOKode.OpinionatedFramework.ContractImplementations.FileSystem;
 using IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
-using IOKode.OpinionatedFramework.Contracts;
 using IOKode.OpinionatedFramework.Facades;
+using IOKode.OpinionatedFramework.FileSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using Directory = System.IO.Directory;
+using File = System.IO.File;
 
 namespace Tests.LocalFileSystem;
 

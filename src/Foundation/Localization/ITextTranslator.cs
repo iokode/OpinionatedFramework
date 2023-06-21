@@ -1,6 +1,6 @@
 using IOKode.OpinionatedFramework.Facades;
 
-namespace IOKode.OpinionatedFramework.Contracts;
+namespace IOKode.OpinionatedFramework.Localization;
 
 [AddToFacade("i18n")]
 public interface ITextTranslator

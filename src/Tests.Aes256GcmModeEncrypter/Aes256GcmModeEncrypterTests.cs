@@ -1,4 +1,4 @@
-using IOKode.OpinionatedFramework.Contracts;
+using IOKode.OpinionatedFramework.Security;
 using Xunit;
 
 namespace IOKode.OpinionatedFramework.Tests.Aes256GcmModeEncrypter;

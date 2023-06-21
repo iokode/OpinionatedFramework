@@ -2,10 +2,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Facades;
-using IOKode.OpinionatedFramework.Notifications;
-using Notification = IOKode.OpinionatedFramework.Notifications.Notification;
 
-namespace IOKode.OpinionatedFramework.Contracts;
+namespace IOKode.OpinionatedFramework.Notifications;
 
 [AddToFacade("Notification")]
 public interface INotificationDispatcher

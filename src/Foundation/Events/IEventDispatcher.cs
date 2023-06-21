@@ -1,8 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Events;
 
-namespace IOKode.OpinionatedFramework.Contracts;
+namespace IOKode.OpinionatedFramework.Events;
 
 public interface IEventDispatcher
 {

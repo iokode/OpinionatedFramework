@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Contracts;
 using IOKode.OpinionatedFramework.Emailing;
 using MailKit.Net.Smtp;
 using MimeKit;
