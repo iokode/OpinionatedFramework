@@ -97,14 +97,45 @@ public partial class CommandExecutorTests
         Assert.Equal(5, result);
     }
 
+    [Fact]
+    public async Task UpdatingSharedData()
+    {
+        // Arrange
+        Container.Clear();
+        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ =>
+            new ContractImplementations.CommandExecutor.CommandExecutor(new ICommandMiddleware[] {new UpdateSharedDataMiddleware()},
+                new Dictionary<string, object>
+                {
+                    { "number1", 2 },
+                    { "number2", 3 }
+                }));
+        Container.Initialize();
+
+        // Act
+        var command = new SumNumbersFromSharedDataCommand();
+        int result = await command.InvokeAsync();
+
+        // Assert
+        Assert.Equal(6, result);
+    }
+
     private class SumNumbersFromSharedDataCommand : Command<int>
     {
         protected override Task<int> ExecuteAsync(CommandContext context)
         {
-            int n1 = (int)context.GetSharedData("number1")!;
-            int n2 = (int)context.GetSharedData("number2")!;
+            int n1 = (int)context.GetFromSharedData("number1")!;
+            int n2 = (int)context.GetFromSharedData("number2")!;
 
             return Task.FromResult(n1 + n2);
+        }
+    }
+
+    private class UpdateSharedDataMiddleware : ICommandMiddleware
+    {
+        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
+        {
+            context.SetInSharedData("number1", 3);
+            await nextAsync(context);
         }
     }
 

@@ -6,5 +6,5 @@ public delegate Task InvokeNextMiddlewareDelegate(CommandContext context);
 
 public interface ICommandMiddleware
 {
-    public Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate next);
+    public Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync);
 }

@@ -13,7 +13,8 @@ public class CommandExecutor : ICommandExecutor
     private readonly ICommandMiddleware[] _middlewares;
     private readonly IEnumerable<KeyValuePair<string, object>>? _sharedData;
 
-    public CommandExecutor(ICommandMiddleware[] middlewares, IEnumerable<KeyValuePair<string, object>>? sharedData = null)
+    public CommandExecutor(ICommandMiddleware[] middlewares,
+        IEnumerable<KeyValuePair<string, object>>? sharedData = null)
     {
         _middlewares = middlewares;
         _sharedData = sharedData;
@@ -71,6 +72,7 @@ public class CommandExecutor : ICommandExecutor
         SettableCommandContext context, int index)
         where TCommand : Command<TResult>
     {
+        TResult result = default!;
         if (index >= _middlewares.Length)
         {
             var commandResult = await
@@ -84,7 +86,12 @@ public class CommandExecutor : ICommandExecutor
 
         var middleware = _middlewares[index];
         await middleware.ExecuteAsync(context,
-            ctx => InvokeMiddlewarePipeline<TCommand, TResult>(command, (SettableCommandContext)ctx, index + 1));
-        return default!;
+            async ctx =>
+            {
+                result = await InvokeMiddlewarePipeline<TCommand, TResult>(command, (SettableCommandContext)ctx,
+                    index + 1);
+            });
+
+        return result;
     }
 }

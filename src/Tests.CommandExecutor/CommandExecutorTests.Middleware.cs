@@ -88,11 +88,11 @@ public partial class CommandExecutorTests
     {
         public static int Counter { get; set; } = 0;
 
-        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate next)
+        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
         {
             _middlewares.Add("Middleware");
             Counter++;
-            await next(context);
+            await nextAsync(context);
         }
     }
 
@@ -100,11 +100,11 @@ public partial class CommandExecutorTests
     {
         public static int Counter { get; set; } = 0;
 
-        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate next)
+        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
         {
             _middlewares.Add("Middleware2");
             Counter++;
-            await next(context);
+            await nextAsync(context);
         }
     }
 
@@ -112,11 +112,11 @@ public partial class CommandExecutorTests
     {
         public static bool ExceptionHandled { get; set; } = false;
 
-        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate next)
+        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
         {
             try
             {
-                await next(context);
+                await nextAsync(context);
             }
             catch (Exception)
             {
@@ -135,22 +135,22 @@ public partial class CommandExecutorTests
     
     private class AssertContextMiddlewareBeforeCommand : ICommandMiddleware
     {
-        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate next)
+        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
         {
             Assert.Equal(typeof(AddTwoNumbersCommand), context.CommandType);
             Assert.False(context.HasResult);
             Assert.Null(context.Result);
             Assert.False(context.IsExecuted);
 
-            await next(context);
+            await nextAsync(context);
         }
     }
 
     private class AssertContextMiddlewareAfterCommand : ICommandMiddleware
     {
-        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate next)
+        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
         {
-            await next(context);
+            await nextAsync(context);
             
             Assert.Equal(typeof(AddTwoNumbersCommand), context.CommandType);
             Assert.True(context.HasResult);
