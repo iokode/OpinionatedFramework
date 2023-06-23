@@ -42,6 +42,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.GoogleCloudStorage", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractImplementations.FileSystem", "ContractImplementations.FileSystem\ContractImplementations.FileSystem.csproj", "{4EC029DA-77F0-4D4D-893B-F4E1BD7B440D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractImplementations.Bcrypt", "ContractImplementations.Bcrypt\ContractImplementations.Bcrypt.csproj", "{4DFA2F5C-12DA-41F8-853F-3B6CF322C854}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -120,6 +122,10 @@ Global
 		{4EC029DA-77F0-4D4D-893B-F4E1BD7B440D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4EC029DA-77F0-4D4D-893B-F4E1BD7B440D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4EC029DA-77F0-4D4D-893B-F4E1BD7B440D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DFA2F5C-12DA-41F8-853F-3B6CF322C854}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DFA2F5C-12DA-41F8-853F-3B6CF322C854}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DFA2F5C-12DA-41F8-853F-3B6CF322C854}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DFA2F5C-12DA-41F8-853F-3B6CF322C854}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{3FD64445-84EB-4C23-84E2-72FFBACE1337} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
@@ -137,5 +143,6 @@ Global
 		{B4B1C3B4-0114-400A-90FF-3CCB71179053} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
 		{BD48218D-70C3-456F-A96E-C9862FC95311} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
 		{4EC029DA-77F0-4D4D-893B-F4E1BD7B440D} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
+		{4DFA2F5C-12DA-41F8-853F-3B6CF322C854} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
 	EndGlobalSection
 EndGlobal
