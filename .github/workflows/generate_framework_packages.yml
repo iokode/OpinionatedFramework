@@ -33,6 +33,7 @@ jobs:
         dotnet build src/ConfigureApplication -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
 
         dotnet build src/ContractImplementations.Aes256GcmModeEncrypter -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
+        dotnet build src/ContractImplementations.Bcrypt -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
         dotnet build src/ContractImplementations.CommandExecutor -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
         dotnet build src/ContractImplementations.FileSystem -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
         dotnet build src/ContractImplementations.GoogleCloudStorage -c Release /p:Version=${{ github.event.inputs.version }} --no-restore
@@ -57,6 +58,7 @@ jobs:
         dotnet pack src/ConfigureApplication --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
         
         dotnet pack src/ContractImplementations.Aes256GcmModeEncrypter --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
+        dotnet pack src/ContractImplementations.Bcrypt --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
         dotnet pack src/ContractImplementations.CommandExecutor --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
         dotnet pack src/ContractImplementations.FileSystem --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
         dotnet pack src/ContractImplementations.GoogleCloudStorage --no-build -c Release /p:Version=${{ github.event.inputs.version }} --output ./nupkgs
@@ -69,6 +71,7 @@ jobs:
         dotnet nuget push "./nupkgs/IOKode.OpinionatedFramework.ConfigureApplication.${{ github.event.inputs.version }}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
         
         dotnet nuget push "./nupkgs/IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter.${{ github.event.inputs.version }}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        dotnet nuget push "./nupkgs/IOKode.OpinionatedFramework.ContractImplementations.Bcrypt.${{ github.event.inputs.version }}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
         dotnet nuget push "./nupkgs/IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor.${{ github.event.inputs.version }}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
         dotnet nuget push "./nupkgs/IOKode.OpinionatedFramework.ContractImplementations.FileSystem.${{ github.event.inputs.version }}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
         dotnet nuget push "./nupkgs/IOKode.OpinionatedFramework.ContractImplementations.GoogleCloudStorage.${{ github.event.inputs.version }}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
