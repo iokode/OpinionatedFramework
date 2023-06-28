@@ -1,6 +1,6 @@
 using System;
 
-namespace IOKode.OpinionatedFramework.FileSystem;
+namespace IOKode.OpinionatedFramework.FileSystem.Exceptions;
 
 public class DirectoryAlreadyExistsException : Exception
 {

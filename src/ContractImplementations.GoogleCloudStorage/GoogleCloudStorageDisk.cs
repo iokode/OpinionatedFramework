@@ -6,8 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Cloud.Storage.V1;
 using IOKode.OpinionatedFramework.FileSystem;
+using IOKode.OpinionatedFramework.FileSystem.Exceptions;
 using Directory = IOKode.OpinionatedFramework.FileSystem.Directory;
 using File = IOKode.OpinionatedFramework.FileSystem.File;
+using FileNotFoundException = IOKode.OpinionatedFramework.FileSystem.Exceptions.FileNotFoundException;
 using Object = Google.Apis.Storage.v1.Data.Object;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.GoogleCloudStorage;
@@ -103,7 +105,7 @@ public class GoogleCloudStorageDisk : IFileDisk
     {
         if (!await ExistsFileAsync(filePath, cancellationToken))
         {
-            throw new FileSystem.FileNotFoundException(filePath);
+            throw new FileNotFoundException(filePath);
         }
 
         var obj = await _storageClient.GetObjectAsync(_bucketName, filePath, cancellationToken: cancellationToken);
@@ -148,7 +150,7 @@ public class GoogleCloudStorageDisk : IFileDisk
     {
         if (!await ExistsFileAsync(filePath, cancellationToken))
         {
-            throw new FileSystem.FileNotFoundException(filePath);
+            throw new FileNotFoundException(filePath);
         }
 
         await _storageClient.DeleteObjectAsync(_bucketName, filePath, cancellationToken: cancellationToken);

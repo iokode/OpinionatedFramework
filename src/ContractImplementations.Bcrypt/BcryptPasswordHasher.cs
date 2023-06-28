@@ -1,6 +1,6 @@
 ﻿using IOKode.OpinionatedFramework.Security;
 
-namespace ContractImplementations.Bcrypt;
+namespace IOKode.OpinionatedFramework.ContractImplementations.Bcrypt;
 
 public class BcryptPasswordHasher : IPasswordHasher
 {

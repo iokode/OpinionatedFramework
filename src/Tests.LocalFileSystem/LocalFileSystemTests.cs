@@ -7,11 +7,12 @@ using IOKode.OpinionatedFramework.ContractImplementations.FileSystem;
 using IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.FileSystem;
+using IOKode.OpinionatedFramework.FileSystem.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using DirectoryNotFoundException = System.IO.DirectoryNotFoundException;
 using File = System.IO.File;
-using FileNotFoundException = IOKode.OpinionatedFramework.FileSystem.FileNotFoundException;
+using FileNotFoundException = IOKode.OpinionatedFramework.FileSystem.Exceptions.FileNotFoundException;
 
 namespace Tests.LocalFileSystem;
 

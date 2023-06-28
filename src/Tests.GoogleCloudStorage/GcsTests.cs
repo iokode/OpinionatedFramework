@@ -10,9 +10,10 @@ using IOKode.OpinionatedFramework.ContractImplementations.FileSystem;
 using IOKode.OpinionatedFramework.ContractImplementations.GoogleCloudStorage;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.FileSystem;
+using IOKode.OpinionatedFramework.FileSystem.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using FileNotFoundException = IOKode.OpinionatedFramework.FileSystem.FileNotFoundException;
+using FileNotFoundException = IOKode.OpinionatedFramework.FileSystem.Exceptions.FileNotFoundException;
 
 namespace Tests.GoogleCloudStorage;
 

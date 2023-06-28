@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.FileSystem.Exceptions;
 
 namespace IOKode.OpinionatedFramework.FileSystem;
 
@@ -48,7 +49,7 @@ public interface IFileDisk
     /// <param name="filePath">The path to the file.</param>
     /// <param name="cancellationToken">An optional token to cancel the operation.</param>
     /// <returns>A File object representing the file at the given path.</returns>
-    /// <exception cref="FileNotFoundException">Thrown when the file does not exist.</exception>
+    /// <exception cref="Exceptions.FileNotFoundException">Thrown when the file does not exist.</exception>
     public Task<File> GetFileAsync(string filePath, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -88,7 +89,7 @@ public interface IFileDisk
     /// <param name="directoryPath">The path to the directory. If this parameter is null, the method retrieves files from the root directory.</param>
     /// <param name="cancellationToken">An optional token to cancel the operation.</param>
     /// <returns>An enumerable collection of File objects in the directory.</returns>
-    /// <exception cref="DirectoryNotFoundException">Thrown when the directory does not exist.</exception>
+    /// <exception cref="Exceptions.DirectoryNotFoundException">Thrown when the directory does not exist.</exception>
     Task<IEnumerable<File>> ListFilesAsync(string? directoryPath = null, CancellationToken cancellationToken = default);
 
     /// <summary>

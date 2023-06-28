@@ -6,10 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.FileSystem;
+using IOKode.OpinionatedFramework.FileSystem.Exceptions;
 using Directory = System.IO.Directory;
-using DirectoryNotFoundException = IOKode.OpinionatedFramework.FileSystem.DirectoryNotFoundException;
+using DirectoryNotFoundException = IOKode.OpinionatedFramework.FileSystem.Exceptions.DirectoryNotFoundException;
 using File = System.IO.File;
-using FileNotFoundException = IOKode.OpinionatedFramework.FileSystem.FileNotFoundException;
+using FileNotFoundException = IOKode.OpinionatedFramework.FileSystem.Exceptions.FileNotFoundException;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
 
