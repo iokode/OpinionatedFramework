@@ -54,12 +54,44 @@ public class CommandExecutor : ICommandExecutor
         return executeMethod;
     }
 
+    private static MethodInfo GetPrepareMethod<TCommand>()
+    {
+        var executeMethod = typeof(TCommand).GetMethod("PrepareAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        return executeMethod;
+    }
+
+    private async Task PrepareAndExecuteAsync<TCommand>(TCommand command, SettableCommandContext context)
+    {
+        var prepare = GetPrepareMethod<TCommand>();
+        var execute = GetExecuteMethod<TCommand>();
+        var parameters = new object?[] { context };
+
+        await (Task)prepare.Invoke(command, parameters)!;
+        await (Task)execute.Invoke(command, parameters)!;
+        
+        context.SetAsExecuted();
+    }
+    
+    private async Task<TResult> PrepareAndExecuteAsync<TCommand, TResult>(TCommand command, SettableCommandContext context)
+    {
+        var prepare = GetPrepareMethod<TCommand>();
+        var execute = GetExecuteMethod<TCommand>();
+        var parameters = new object?[] { context };
+
+        await (Task)prepare.Invoke(command, parameters)!;
+        var result = await (Task<TResult>)execute.Invoke(command, parameters)!;
+        
+        context.SetAsExecuted();
+        context.SetResult(result);
+
+        return result;
+    }
+
     private async Task InvokeMiddlewarePipeline<TCommand>(TCommand command, SettableCommandContext context, int index)
     {
         if (index >= _middlewares.Length)
         {
-            await (Task)GetExecuteMethod<TCommand>().Invoke(command, new object?[] { context })!;
-            context.SetAsExecuted();
+            await PrepareAndExecuteAsync(command, context);
             return;
         }
 
@@ -75,13 +107,7 @@ public class CommandExecutor : ICommandExecutor
         TResult result = default!;
         if (index >= _middlewares.Length)
         {
-            var commandResult = await
-                (Task<TResult>)GetExecuteMethod<TCommand>().Invoke(command, new object?[] { context })!;
-
-            context.SetAsExecuted();
-            context.SetResult(commandResult);
-
-            return commandResult;
+            return await PrepareAndExecuteAsync<TCommand, TResult>(command, context);
         }
 
         var middleware = _middlewares[index];
