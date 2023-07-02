@@ -21,7 +21,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
-      <ProjectReference Include="..\Ensuring\Ensuring.csproj" />
+      <PackageReference Include="IOKode.OpinionatedFramework.Ensuring" Version="1.1.0" />
       <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>
 
