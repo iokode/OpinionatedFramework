@@ -22,9 +22,9 @@
     </PropertyGroup>
 
     <ItemGroup Label="Include additional files to package">
-        <None Visible="false" Include="..\..\README.md" Pack="true" PackagePath=""/>
-        <None Visible="false" Include="..\..\LICENSE" Pack="true" PackagePath=""/>
-        <None Visible="false" Include="..\..\package_icon.png" Pack="true" PackagePath=""/>
+        <None Visible="false" Include="..\..\README.md" Pack="true" PackagePath="" />
+        <None Visible="false" Include="..\..\LICENSE" Pack="true" PackagePath="" />
+        <None Visible="false" Include="..\..\package_icon.png" Pack="true" PackagePath="" />
     </ItemGroup>
 
     <PropertyGroup Label="Source Link settings">
@@ -40,11 +40,13 @@
     </PropertyGroup>
     
     <ItemGroup Label="Dependencies">
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup Label="Project references">
-        <ProjectReference Include="..\Foundation\Foundation.csproj"/>
+        <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
+        <ProjectReference Include="..\Foundation\Foundation.csproj" />
+        <ProjectReference Include="..\ConfigureApplication\Con.csproj" />
     </ItemGroup>
 
     <ItemGroup Label="Source Link references">
