@@ -1,4 +1,6 @@
+using System;
 using System.Reflection;
+using System.Threading;
 using IOKode.OpinionatedFramework.Ensuring;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +13,7 @@ public static class Container
 {
     private static ServiceCollection _serviceCollection = new();
     private static ServiceProvider? _serviceProvider;
+    private static IServiceScope? _serviceProviderScope;
 
     /// <summary>
     /// Gets the service collection used for registering services.
@@ -34,6 +37,7 @@ public static class Container
     /// <remarks>
     /// Call this method after registering all services in the service collection.
     /// </remarks>
+    /// <exception cref="InvalidOperationException">The container is already initialized.</exception>
     public static void Initialize()
     {
         Ensure.Boolean.IsFalse(IsInitialized)
@@ -41,7 +45,30 @@ public static class Container
 
         _serviceCollection.MakeReadOnly();
         _serviceProvider = _serviceCollection.BuildServiceProvider();
-        _setProviderIntoLocator();
+        SetProviderIntoLocator();
+    }
+
+    /// <summary>
+    /// Creates a new service scope that can be used to resolve scoped services and sets it in the Locator.
+    /// </summary>
+    /// <returns>A new IServiceScope that can be used to resolve scoped services.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when trying to create a scope before the container is initialized.</exception>
+    /// <remarks>
+    /// Scoped services are disposed when the scope is disposed.This method returns an IServiceScope which should
+    /// be disposed by the caller, typically in a using block.
+    ///
+    /// Typically, you shouldn't call this method directly, except in advanced scenarios like creating a custom
+    /// implementation of the CommandExecutor. The framework will do in some parts like the command executor.
+    /// </remarks>
+    public static IServiceScope CreateScope()
+    {
+        Ensure.Boolean.IsTrue(IsInitialized)
+            .ElseThrowsInvalidOperation("Cannot create a scope if the container is not initialized.");
+
+        var scope = _serviceProvider!.CreateScope();
+        SetScopeIntoLocator(scope);
+
+        return scope;
     }
 
     /// <summary>
@@ -56,12 +83,21 @@ public static class Container
     {
         _serviceCollection = new ServiceCollection();
         _serviceProvider = null;
-        _setProviderIntoLocator();
+
+        SetProviderIntoLocator();
+        SetScopeIntoLocator(null);
     }
 
-    private static void _setProviderIntoLocator()
+    private static void SetProviderIntoLocator()
     {
         var field = typeof(Locator).GetField("_serviceProvider", BindingFlags.Static | BindingFlags.NonPublic)!;
         field.SetValue(null, _serviceProvider);
+    }
+
+    private static void SetScopeIntoLocator(IServiceScope? scope)
+    {
+        var field = typeof(Locator).GetField("_scopedServiceProvider", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var providerHolder = (AsyncLocal<IServiceProvider?>)field.GetValue(null)!;
+        providerHolder.Value = scope?.ServiceProvider;
     }
 }

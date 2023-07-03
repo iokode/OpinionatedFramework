@@ -1,19 +1,19 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Commands;
-using Microsoft.Extensions.DependencyInjection;
+using IOKode.OpinionatedFramework.ConfigureApplication;
+using Command = IOKode.OpinionatedFramework.Commands.Command;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 
 public class CommandExecutor : ICommandExecutor
 {
-    private readonly ICommandMiddleware[] _middlewares;
+    private readonly CommandMiddleware[] _middlewares;
     private readonly IEnumerable<KeyValuePair<string, object>>? _sharedData;
 
-    public CommandExecutor(ICommandMiddleware[] middlewares,
+    public CommandExecutor(CommandMiddleware[] middlewares,
         IEnumerable<KeyValuePair<string, object>>? sharedData = null)
     {
         _middlewares = middlewares;
@@ -23,29 +23,21 @@ public class CommandExecutor : ICommandExecutor
     public async Task InvokeAsync<TCommand>(TCommand command, CancellationToken cancellationToken)
         where TCommand : Command
     {
-        using var scope = Locator.ServiceProvider!.CreateScope();
-        SetScope(scope);
-
-        var context = SettableCommandContext.Create(command.GetType(), _sharedData, cancellationToken);
-        await InvokeMiddlewarePipeline(command, context, 0);
+        using (Container.CreateScope())
+        {
+            var context = SettableCommandContext.Create(command.GetType(), _sharedData, cancellationToken);
+            await InvokeMiddlewarePipeline(command, context, 0);
+        }
     }
 
     public async Task<TResult> InvokeAsync<TCommand, TResult>(TCommand command, CancellationToken cancellationToken)
         where TCommand : Command<TResult>
     {
-        using var scope = Locator.ServiceProvider!.CreateScope();
-        SetScope(scope);
-
-        var context = SettableCommandContext.Create(command.GetType(), _sharedData, cancellationToken);
-        return await InvokeMiddlewarePipeline<TCommand, TResult>(command, context, 0);
-    }
-
-    private void SetScope(IServiceScope scope)
-    {
-        var scopedServiceProviderField =
-            typeof(Locator).GetField("_scopedServiceProvider", BindingFlags.NonPublic | BindingFlags.Static)!;
-
-        ((AsyncLocal<IServiceProvider?>)scopedServiceProviderField.GetValue(null)!).Value = scope.ServiceProvider;
+        using (Container.CreateScope())
+        {
+            var context = SettableCommandContext.Create(command.GetType(), _sharedData, cancellationToken);
+            return await InvokeMiddlewarePipeline<TCommand, TResult>(command, context, 0);
+        }
     }
 
     private static MethodInfo GetExecuteMethod<TCommand>()
@@ -66,9 +58,16 @@ public class CommandExecutor : ICommandExecutor
         var execute = GetExecuteMethod<TCommand>();
         var parameters = new object?[] { context };
 
-        await (Task)prepare.Invoke(command, parameters)!;
-        await (Task)execute.Invoke(command, parameters)!;
-        
+        try
+        {
+            await (Task)prepare.Invoke(command, parameters)!;
+            await (Task)execute.Invoke(command, parameters)!;
+        }
+        catch (TargetInvocationException ex)
+        {
+            throw ex.InnerException!;
+        }
+
         context.SetAsExecuted();
     }
     
