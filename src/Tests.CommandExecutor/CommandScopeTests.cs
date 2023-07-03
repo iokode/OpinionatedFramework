@@ -11,87 +11,78 @@ using Xunit;
 
 namespace IOKode.OpinionatedFramework.Tests.CommandExecutor;
 
-public partial class CommandExecutorTests
+public class CommandScopeTests
 {
     [Fact]
     public async Task InvokeCommandMaintainsScopeInDeep_Success()
     {
         // Arrange
-        Container.Clear();
-        Container.Services.AddScoped<SampleService>();
-        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ => new ContractImplementations.CommandExecutor.CommandExecutor(Array.Empty<ICommandMiddleware>()));
-        Container.Initialize();
+        var executor = Helpers.CreateExecutorWithSampleScopedService();
 
         // Act
-        var command = new InDeepCommand();
-        var servicesFrom1stExecution = await command.InvokeAsync();
-        var servicesFrom2ndExecution = await command.InvokeAsync();
-
+        var cmd = new InDeepCommand();
+        var servicesFromFirstExecution = await executor.InvokeAsync<InDeepCommand, (SampleService, SampleService)>(cmd, default);
+        var servicesFromSecondExecution = await executor.InvokeAsync<InDeepCommand, (SampleService, SampleService)>(cmd, default);
+        
         // Assert
-        Assert.Same(servicesFrom1stExecution.Item1, servicesFrom1stExecution.Item2);
-        Assert.Same(servicesFrom2ndExecution.Item1, servicesFrom2ndExecution.Item2);
-        Assert.NotSame(servicesFrom1stExecution.Item1, servicesFrom2ndExecution.Item1);
+        Assert.Same(servicesFromFirstExecution.Item1, servicesFromFirstExecution.Item2);
+        Assert.Same(servicesFromSecondExecution.Item1, servicesFromSecondExecution.Item2);
+        Assert.NotSame(servicesFromFirstExecution.Item1, servicesFromSecondExecution.Item1);
     }
     
     [Fact]
     public async Task InvokesCommandWithScopedService_SameServiceIsResolved()
     {
         // Arrange
-        Container.Clear();
-        Container.Services.AddScoped<SampleService>();
-        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ => new ContractImplementations.CommandExecutor.CommandExecutor(Array.Empty<ICommandMiddleware>()));
-        Container.Initialize();
+        var executor = Helpers.CreateExecutorWithSampleScopedService();
 
         // Act
-        var command = new SampleCommand();
-        var servicesFrom1stExecution = await command.InvokeAsync();
-        var servicesFrom2ndExecution = await command.InvokeAsync();
+        var cmd = new SampleCommand();
+        var servicesFromFirstExecution = await executor.InvokeAsync<SampleCommand, (SampleService, SampleService)>(cmd, default);
+        var servicesFromSecondExecution = await executor.InvokeAsync<SampleCommand, (SampleService, SampleService)>(cmd, default);
 
         // Assert
-        Assert.Same(servicesFrom1stExecution.Item1, servicesFrom1stExecution.Item2);
-        Assert.Same(servicesFrom2ndExecution.Item1, servicesFrom2ndExecution.Item2);
-        Assert.NotSame(servicesFrom1stExecution.Item1, servicesFrom2ndExecution.Item1);
+        Assert.Same(servicesFromFirstExecution.Item1, servicesFromFirstExecution.Item2);
+        Assert.Same(servicesFromSecondExecution.Item1, servicesFromSecondExecution.Item2);
+        Assert.NotSame(servicesFromFirstExecution.Item1, servicesFromSecondExecution.Item1);
     }
 
     [Fact]
     public async Task InvokeCommandAsync_DoesNotOverrideServiceScopes()
     {
         // Arrange
-        Container.Clear();
-        Container.Services.AddScoped<ScopedStateService>();
-        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ => new ContractImplementations.CommandExecutor.CommandExecutor(Array.Empty<ICommandMiddleware>()));
-        Container.Initialize();
+        var executor = Helpers.CreateExecutor(() =>
+        {
+            Container.Services.AddScoped<ScopedStateService>();
+        });
 
-        var command = new SampleCommandWithScopedState();
+        var cmd = new SampleCommandWithScopedState();
         var tasks = new List<Task<string>>();
 
         // Act
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 1000; i++)
         {
-            // Run 100 commands concurrently
-            tasks.Add(Task.Run(async () => await command.InvokeAsync()));
+            // Run 1000 cmds concurrently
+            tasks.Add(Task.Run(async () => await executor.InvokeAsync<SampleCommandWithScopedState, string>(cmd, default)));
         }
 
         var results = await Task.WhenAll(tasks);
 
         // Assert
-        // Check that each command got its own unique scoped state
-        Assert.Equal(100, results.Length); // 100 commands
-        Assert.Equal(100, results.Distinct().Count()); // Each scoped state should be unique
+        // Check that each cmd got its own unique scoped state
+        Assert.Equal(1000, results.Length); // 100 cmds
+        Assert.Equal(1000, results.Distinct().Count()); // Each scoped state should be unique
     }
 
     [Fact]
     public async Task InvokeCommandAsync_EnsureScopedServiceProviderDoesNotRemains()
     {
         // Arrange
-        Container.Clear();
-        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ => new ContractImplementations.CommandExecutor.CommandExecutor(Array.Empty<ICommandMiddleware>()));
-        Container.Services.AddScoped<SampleService>();
-        Container.Initialize();
+        var executor = Helpers.CreateExecutorWithSampleScopedService();
 
         // Act
-        var command = new GetProviderCommand();
-        var provider = await command.InvokeAsync();
+        var cmd = new GetProviderCommand();
+        var provider = await executor.InvokeAsync<GetProviderCommand, IServiceProvider>(cmd, default);
 
         // Arrange
         Assert.NotSame(Container.Services, provider);
@@ -99,9 +90,39 @@ public partial class CommandExecutorTests
             BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
         Assert.Null(asyncLocalSp.Value);
     }
-    
-    public class SampleService
+
+    [Fact]
+    public async Task InvokeCommandWithMiddleware_ScopeIsShared()
     {
+        // Arrange
+        var executor = Helpers.CreateExecutorWithSampleScopedService(new CommandMiddleware[]
+            { new SetSampleServiceInSharedDataMiddleware() });
+        
+        // Act & Assert (assertions inside command)
+        var cmd = new AssertSharedDateServiceIsSameCommand();
+        await executor.InvokeAsync(cmd, default);
+    }
+    
+    private class SetSampleServiceInSharedDataMiddleware : CommandMiddleware
+    {
+        public override Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
+        {
+            context.SetInSharedData("Service", Locator.Resolve<SampleService>());
+            return Task.CompletedTask;
+        }
+    }
+
+    private class AssertSharedDateServiceIsSameCommand : Command
+    {
+        protected override Task ExecuteAsync(CommandContext context)
+        {
+            var serviceFromSharedData = context.GetFromSharedData("Service");
+            var serviceFromLocator = Locator.Resolve<SampleService>();
+            
+            Assert.Same(serviceFromLocator, serviceFromSharedData);
+            
+            return Task.CompletedTask;
+        }
     }
 
     private class SampleCommand : Command<(SampleService, SampleService)>

@@ -4,7 +4,7 @@ namespace IOKode.OpinionatedFramework.Commands;
 
 public delegate Task InvokeNextMiddlewareDelegate(CommandContext context);
 
-public interface ICommandMiddleware
+public abstract class CommandMiddleware
 {
-    public Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync);
+    public abstract Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync);
 }

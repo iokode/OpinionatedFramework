@@ -1,44 +1,35 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Commands;
-using IOKode.OpinionatedFramework.ConfigureApplication;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace IOKode.OpinionatedFramework.Tests.CommandExecutor;
 
-public partial class CommandExecutorTests
+public class CommandExecutorTests
 {
     [Fact]
     public async Task InvokeVoidCommand_Success()
     {
         // Arrange
-        Container.Clear();
-        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ =>
-            new ContractImplementations.CommandExecutor.CommandExecutor(Array.Empty<ICommandMiddleware>()));
-        Container.Initialize();
+        var executor = Helpers.CreateExecutor();
 
         // Act
-        var command = new VoidCommand();
-        await command.InvokeAsync();
+        var cmd = new VoidCommand();
+        await executor.InvokeAsync(cmd, default);
 
         // Assert
-        Assert.True(command.IsExecuted);
+        Assert.True(cmd.IsExecuted);
     }
 
     [Fact]
     public async Task InvokeReturningCommand_Success()
     {
         // Arrange
-        Container.Clear();
-        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ =>
-            new ContractImplementations.CommandExecutor.CommandExecutor(Array.Empty<ICommandMiddleware>()));
-        Container.Initialize();
+        var executor = Helpers.CreateExecutor();
 
         // Act
-        var command = new ReturningCommand();
-        int result = await command.InvokeAsync();
+        var cmd = new ReturningCommand();
+        int result = await executor.InvokeAsync<ReturningCommand, int>(cmd, default);
 
         // Assert
         Assert.Equal(26, result);
@@ -48,143 +39,63 @@ public partial class CommandExecutorTests
     public async Task InvokeReturningCommandWithParameters_Success()
     {
         // Arrange
-        Container.Clear();
-        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ =>
-            new ContractImplementations.CommandExecutor.CommandExecutor(Array.Empty<ICommandMiddleware>()));
-        Container.Initialize();
+        var executor = Helpers.CreateExecutor();
 
         // Act
-        var command = new AddTwoNumbersCommand(3, 5);
-        int result = await command.InvokeAsync();
+        var cmd = new SumTwoNumbersCommand(3, 5);
+        int result = await executor.InvokeAsync<SumTwoNumbersCommand, int>(cmd, default);
 
         // Assert
         Assert.Equal(8, result);
     }
 
     [Fact]
-    public async Task CommandContext_IsOk()
+    public async Task AssertCommandContext_PropertiesAreOk()
     {
         // Arrange
-        Container.Clear();
-        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ =>
-            new ContractImplementations.CommandExecutor.CommandExecutor(Array.Empty<ICommandMiddleware>()));
-        Container.Initialize();
+        var executor = Helpers.CreateExecutor();
 
         // Act & Assert
-        var command = new AssertContextCommand();
-        await command.InvokeAsync();
+        var cmd = new AssertContextCommand();
+        await executor.InvokeAsync(cmd, default);
     }
 
     [Fact]
-    public async Task WithSharedData()
+    public async Task SharedDataFromConstructor_IsPassedToCommand()
     {
         // Arrange
-        Container.Clear();
-        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ =>
-            new ContractImplementations.CommandExecutor.CommandExecutor(Array.Empty<ICommandMiddleware>(),
-                new Dictionary<string, object>
-                {
-                    { "number1", 2 },
-                    { "number2", 3 }
-                }));
-        Container.Initialize();
+        var executor = Helpers.CreateExecutor(null, new Dictionary<string, object>
+        {
+            { "number1", 2 },
+            { "number2", 3 }
+        });
 
         // Act
-        var command = new SumNumbersFromSharedDataCommand();
-        int result = await command.InvokeAsync();
+        var cmd = new SumNumbersFromSharedDataCommand();
+        int result = await executor.InvokeAsync<SumNumbersFromSharedDataCommand, int>(cmd, default);
 
         // Assert
         Assert.Equal(5, result);
     }
 
     [Fact]
-    public async Task UpdatingSharedData()
+    public async Task MiddlewareUpdatesSharedData_IsPassedToCommand()
     {
         // Arrange
-        Container.Clear();
-        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ =>
-            new ContractImplementations.CommandExecutor.CommandExecutor(new ICommandMiddleware[] {new UpdateSharedDataMiddleware()},
-                new Dictionary<string, object>
-                {
-                    { "number1", 2 },
-                    { "number2", 3 }
-                }));
-        Container.Initialize();
+        var executor = Helpers.CreateExecutor(new CommandMiddleware[]
+        {
+            new UpdateSharedDataMiddleware()
+        }, new Dictionary<string, object>
+        {
+            { "number1", 2 },
+            { "number2", 3 }
+        });
 
         // Act
-        var command = new SumNumbersFromSharedDataCommand();
-        int result = await command.InvokeAsync();
+        var cmd = new SumNumbersFromSharedDataCommand();
+        int result = await executor.InvokeAsync<SumNumbersFromSharedDataCommand, int>(cmd, default);
 
         // Assert
         Assert.Equal(6, result);
-    }
-
-    private class SumNumbersFromSharedDataCommand : Command<int>
-    {
-        protected override Task<int> ExecuteAsync(CommandContext context)
-        {
-            int n1 = (int)context.GetFromSharedData("number1")!;
-            int n2 = (int)context.GetFromSharedData("number2")!;
-
-            return Task.FromResult(n1 + n2);
-        }
-    }
-
-    private class UpdateSharedDataMiddleware : ICommandMiddleware
-    {
-        public async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
-        {
-            context.SetInSharedData("number1", 3);
-            await nextAsync(context);
-        }
-    }
-
-    private class VoidCommand : Command
-    {
-        public bool IsExecuted = false;
-
-        protected override Task ExecuteAsync(CommandContext context)
-        {
-            IsExecuted = true;
-            return Task.CompletedTask;
-        }
-    }
-
-    private class ReturningCommand : Command<int>
-    {
-        protected override Task<int> ExecuteAsync(CommandContext context)
-        {
-            return Task.FromResult(26);
-        }
-    }
-
-    private class AddTwoNumbersCommand : Command<int>
-    {
-        private readonly int _a;
-        private readonly int _b;
-
-        public AddTwoNumbersCommand(int a, int b)
-        {
-            _a = a;
-            _b = b;
-        }
-
-        protected override Task<int> ExecuteAsync(CommandContext context)
-        {
-            return Task.FromResult(_a + _b);
-        }
-    }
-
-    private class AssertContextCommand : Command
-    {
-        protected override Task ExecuteAsync(CommandContext context)
-        {
-            Assert.False(context.IsExecuted);
-            Assert.Equal(typeof(AssertContextCommand), context.CommandType);
-            Assert.False(context.HasResult);
-            Assert.Null(context.Result);
-
-            return Task.CompletedTask;
-        }
     }
 }

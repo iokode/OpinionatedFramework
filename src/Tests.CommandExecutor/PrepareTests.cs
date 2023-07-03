@@ -1,8 +1,5 @@
-using System;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Commands;
-using IOKode.OpinionatedFramework.ConfigureApplication;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace IOKode.OpinionatedFramework.Tests.CommandExecutor;
@@ -13,14 +10,11 @@ public class PrepareTests
     public async Task PreparedCommand_IsPrepared()
     {
         // Arrange
-        Container.Clear();
-        Container.Services.AddTransient<ICommandExecutor, ContractImplementations.CommandExecutor.CommandExecutor>(_ =>
-            new ContractImplementations.CommandExecutor.CommandExecutor(Array.Empty<ICommandMiddleware>()));
-        Container.Initialize();
+        var executor = Helpers.CreateExecutor();
         
         // Act & Assert
         var cmd = new VoidCommand();
-        await cmd.InvokeAsync();
+        await executor.InvokeAsync(cmd, default);
     }
 
     private abstract class PreparedCommandBase : Command
