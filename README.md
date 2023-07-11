@@ -82,7 +82,9 @@ We appreciate the support of all our sponsors. Your contribution will go a long 
 We love our contributors! Check out the Contributors page to see who has contributed to the project, and find out how you can contribute too.
 
 ## License
-OpinionatedFramework is licensed under the BSD 2-Clause License. See [LICENSE](https://github.com/iokode/OpinionatedFramework/blob/main/LICENSE) for more information.
+Source code in this repository and published bytecode in NuGet are licensed under the BSD 2-Clause License. See [LICENSE](https://github.com/iokode/OpinionatedFramework/blob/main/LICENSE) for more information.
+
+Logo image in this repository is licensed under the IOKode Visual Assets License. See [LICENSE_ASSETS](https://github.com/iokode/OpinionatedFramework/blob/main/LICENSE_ASSETS) for more information.
 
 ## Contact
 For any questions, issues, or feedback, please feel free to file an [issue](https://github.com/iokode/OpinionatedFramework/issues) or open a [discussion](https://github.com/iokode/OpinionatedFramework/discussions).
