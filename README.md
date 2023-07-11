@@ -1,5 +1,5 @@
-# OpinionatedFramework
 <p align="center">
+    <img src="logo.png" />
     <em>Architectural Clarity, Without the Constraints.</em>
 </p>
 
