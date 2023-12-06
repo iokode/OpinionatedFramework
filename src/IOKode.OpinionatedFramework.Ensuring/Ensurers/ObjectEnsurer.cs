@@ -61,7 +61,7 @@ public static class ObjectEnsurer
     /// <returns><c>true</c> if the specified objects are the same instance; otherwise, <c>false</c>.</returns>
     public static bool Same(object? value, object? other)
     {
-        return value == other;
+        return ReferenceEquals(value, other);
     }
 
     /// <summary>
@@ -72,6 +72,6 @@ public static class ObjectEnsurer
     /// <returns><c>true</c> if the specified objects are not the same instance; otherwise, <c>false</c>.</returns>
     public static bool NotSame(object? value, object? other)
     {
-        return value != other;
+        return !ReferenceEquals(value, other);
     }
 }
