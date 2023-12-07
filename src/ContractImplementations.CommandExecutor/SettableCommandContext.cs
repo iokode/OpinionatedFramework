@@ -8,7 +8,9 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 
 internal class SettableCommandContext : CommandContext
 {
-    private Dictionary<string, object> _sharedData = null!;
+    private Dictionary<string, object?> sharedData = null!;
+
+    internal Dictionary<string, object?> ShareData => this.sharedData;
 
     private SettableCommandContext()
     {
@@ -22,14 +24,14 @@ internal class SettableCommandContext : CommandContext
         Result = result;
     }
 
-    public static SettableCommandContext Create(Type commandType, IEnumerable<KeyValuePair<string, object>>? initialSharedData,
+    public static SettableCommandContext Create(Type commandType, IEnumerable<KeyValuePair<string, object?>>? initialSharedData,
         CancellationToken cancellationToken)
     {
         var ctx = new SettableCommandContext
         {
             CommandType = commandType,
             CancellationToken = cancellationToken,
-            _sharedData = initialSharedData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, object>()
+            sharedData = initialSharedData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, object?>()
         };
 
         return ctx;
@@ -37,16 +39,29 @@ internal class SettableCommandContext : CommandContext
 
     public override bool ExistsInSharedData(string key)
     {
-        return _sharedData.ContainsKey(key);
+        bool exists = this.sharedData.ContainsKey(key);
+        return exists;
     }
 
     public override object? GetFromSharedData(string key)
     {
-        return _sharedData.GetValueOrDefault(key);
+        object? value = this.sharedData[key];
+        return value;
     }
 
-    public override void SetInSharedData(string key, object value)
+    public override object? GetFromSharedDataOrDefault(string key)
     {
-        _sharedData[key] = value;
+        object? value = this.sharedData.GetValueOrDefault(key);
+        return value;
+    }
+
+    public override void SetInSharedData(string key, object? value)
+    {
+        this.sharedData[key] = value;
+    }
+
+    public override void RemoveFromSharedData(string key)
+    {
+        this.sharedData.Remove(key);
     }
 }

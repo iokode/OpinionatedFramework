@@ -50,11 +50,35 @@ public abstract class CommandContext
     public abstract bool ExistsInSharedData(string key);
 
     /// <summary>
+    /// Retrieves a value from the shared data.
+    /// </summary>
+    /// <param name="key">The key of the value to retrieve.</param>
+    /// <returns>The value associated with the specified key.</returns>
+    /// <exception cref="System.Collections.Generic.KeyNotFoundException">The key does not exists.</exception>
+    public abstract object? GetFromSharedData(string key);
+
+    /// <summary>
+    /// Retrieves a value of type T from the shared data, if it exists.
+    /// </summary>
+    /// <param name="key">The key of the value to retrieve.</param>
+    /// <returns>The value associated with the specified key, cast to type T.</returns>
+    /// <exception cref="System.Collections.Generic.KeyNotFoundException">The key does not exists.</exception>
+    public T? GetFromSharedData<T>(string key) => (T?)GetFromSharedData(key);
+    
+    /// <summary>
     /// Retrieves a value from the shared data, if it exists.
     /// </summary>
     /// <param name="key">The key of the value to retrieve.</param>
     /// <returns>The value associated with the specified key, or null if the key does not exist.</returns>
-    public abstract object? GetFromSharedData(string key);
+    public abstract object? GetFromSharedDataOrDefault(string key);
+
+    /// <summary>
+    /// Retrieves a value of type T from the shared data, if it exists.
+    /// </summary>
+    /// <param name="key">The key of the value to retrieve.</param>
+    /// <returns>The value associated with the specified key, cast to type T,
+    /// or null if the key does not exist or the value cannot be cast to type T.</returns>
+    public T? GetFromSharedDataOrDefault<T>(string key) => (T?)GetFromSharedDataOrDefault(key);
 
     /// <summary>
     /// Stores a value in the shared data.
@@ -64,13 +88,11 @@ public abstract class CommandContext
     /// </remarks>
     /// <param name="key">The key under which the value should be stored.</param>
     /// <param name="value">The value to store.</param>
-    public abstract void SetInSharedData(string key, object value);
+    public abstract void SetInSharedData(string key, object? value);
 
     /// <summary>
-    /// Retrieves a value of type T from the shared data, if it exists.
+    /// Remove a value from the shared data, if it exists.
     /// </summary>
-    /// <param name="key">The key of the value to retrieve.</param>
-    /// <returns>The value associated with the specified key, cast to type T,
-    /// or null if the key does not exist or the value cannot be cast to type T.</returns>
-    public T? GetFromSharedData<T>(string key) => (T?)GetFromSharedData(key);
+    /// <param name="key">The key of the value to remove.</param>
+    public abstract void RemoveFromSharedData(string key);
 }

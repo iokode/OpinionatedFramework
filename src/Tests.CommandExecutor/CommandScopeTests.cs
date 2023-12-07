@@ -116,7 +116,7 @@ public class CommandScopeTests
     {
         protected override Task ExecuteAsync(CommandContext context)
         {
-            var serviceFromSharedData = context.GetFromSharedData("Service");
+            var serviceFromSharedData = context.GetFromSharedDataOrDefault("Service");
             var serviceFromLocator = Locator.Resolve<SampleService>();
             
             Assert.Same(serviceFromLocator, serviceFromSharedData);

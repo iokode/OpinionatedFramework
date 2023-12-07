@@ -46,7 +46,6 @@
     <ItemGroup Label="Project references">
         <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj" />
-        <ProjectReference Include="..\ConfigureApplication\Con.csproj" />
     </ItemGroup>
 
     <ItemGroup Label="Source Link references">

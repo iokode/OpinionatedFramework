@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,14 +11,22 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 
 public class CommandExecutor : ICommandExecutor
 {
-    private readonly CommandMiddleware[] _middlewares;
-    private readonly IEnumerable<KeyValuePair<string, object>>? _sharedData;
+    private readonly CommandMiddleware[] middlewares;
+    private Dictionary<string, object?>? sharedData;
 
     public CommandExecutor(CommandMiddleware[] middlewares,
-        IEnumerable<KeyValuePair<string, object>>? sharedData = null)
+        IEnumerable<KeyValuePair<string, object?>>? sharedData = null)
     {
-        _middlewares = middlewares;
-        _sharedData = sharedData;
+        this.middlewares = middlewares;
+
+        if (sharedData is Dictionary<string, object?> sharedDataAsDict)
+        {
+            this.sharedData = sharedDataAsDict;
+        }
+        else
+        {
+            this.sharedData = sharedData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, object?>();
+        }
     }
 
     public async Task InvokeAsync<TCommand>(TCommand command, CancellationToken cancellationToken)
@@ -25,7 +34,7 @@ public class CommandExecutor : ICommandExecutor
     {
         using (Container.CreateScope())
         {
-            var context = SettableCommandContext.Create(command.GetType(), _sharedData, cancellationToken);
+            var context = SettableCommandContext.Create(command.GetType(), this.sharedData, cancellationToken);
             await InvokeMiddlewarePipeline(command, context, 0);
         }
     }
@@ -35,7 +44,7 @@ public class CommandExecutor : ICommandExecutor
     {
         using (Container.CreateScope())
         {
-            var context = SettableCommandContext.Create(command.GetType(), _sharedData, cancellationToken);
+            var context = SettableCommandContext.Create(command.GetType(), sharedData, cancellationToken);
             return await InvokeMiddlewarePipeline<TCommand, TResult>(command, context, 0);
         }
     }
@@ -52,6 +61,9 @@ public class CommandExecutor : ICommandExecutor
         return executeMethod;
     }
 
+    /// <summary>
+    /// Prepare and execute command that DO NOT return any result.
+    /// </summary>
     private async Task PrepareAndExecuteAsync<TCommand>(TCommand command, SettableCommandContext context)
     {
         var prepare = GetPrepareMethod<TCommand>();
@@ -69,32 +81,46 @@ public class CommandExecutor : ICommandExecutor
         }
 
         context.SetAsExecuted();
+        this.sharedData = context.ShareData;
     }
-    
-    private async Task<TResult> PrepareAndExecuteAsync<TCommand, TResult>(TCommand command, SettableCommandContext context)
+
+    /// <summary>
+    /// Prepare and execute command that DO return a result.
+    /// </summary>
+    private async Task<TResult> PrepareAndExecuteAsync<TCommand, TResult>(TCommand command,
+        SettableCommandContext context)
     {
         var prepare = GetPrepareMethod<TCommand>();
         var execute = GetExecuteMethod<TCommand>();
         var parameters = new object?[] { context };
 
-        await (Task)prepare.Invoke(command, parameters)!;
-        var result = await (Task<TResult>)execute.Invoke(command, parameters)!;
-        
+        TResult result;
+        try
+        {
+            await (Task)prepare.Invoke(command, parameters)!;
+            result = await (Task<TResult>)execute.Invoke(command, parameters)!;
+        }
+        catch (TargetInvocationException ex)
+        {
+            throw ex.InnerException!;
+        }
+
         context.SetAsExecuted();
         context.SetResult(result);
+        this.sharedData = context.ShareData;
 
         return result;
     }
 
     private async Task InvokeMiddlewarePipeline<TCommand>(TCommand command, SettableCommandContext context, int index)
     {
-        if (index >= _middlewares.Length)
+        if (index >= middlewares.Length)
         {
             await PrepareAndExecuteAsync(command, context);
             return;
         }
 
-        var middleware = _middlewares[index];
+        var middleware = middlewares[index];
         await middleware.ExecuteAsync(context,
             ctx => InvokeMiddlewarePipeline(command, (SettableCommandContext)ctx, index + 1));
     }
@@ -104,12 +130,12 @@ public class CommandExecutor : ICommandExecutor
         where TCommand : Command<TResult>
     {
         TResult result = default!;
-        if (index >= _middlewares.Length)
+        if (index >= middlewares.Length)
         {
             return await PrepareAndExecuteAsync<TCommand, TResult>(command, context);
         }
 
-        var middleware = _middlewares[index];
+        var middleware = middlewares[index];
         await middleware.ExecuteAsync(context,
             async ctx =>
             {
