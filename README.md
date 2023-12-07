@@ -1,5 +1,5 @@
-# OpinionatedFramework
 <p align="center">
+    <img src="logo.png" />
     <em>Architectural Clarity, Without the Constraints.</em>
 </p>
 
@@ -8,6 +8,10 @@ OpinionatedFramework is a robust, comprehensive .NET 7+ framework designed to st
 **The heart of OpinionatedFramework is our opinionated approach.** We provide a suite of tools that guide and structure the way you develop your application, making design decisions with experience and best practices in mind. This does not limit flexibility, as our core interfaces have default implementations but allow for custom ones.
 
 ## Status
+### Ensure API 1.0.0 is now launched!
+While the rest of the framework remains in active development and is not launched, the Ensure API is now launched. See [documentation](https://github.com/iokode/OpinionatedFramework/tree/main/docs/ensure) and [NuGet page](https://www.nuget.org/packages/IOKode.OpinionatedFramework.Ensuring).
+
+### Active development – Not launched yet
 OpinionatedFramework is currently in active development and has not been officially launched yet.
 
 As we are in the active development stage, some features such as the Unit of Work implementations may not be currently available. These features are on our development roadmap and we're diligently working to implement them in upcoming releases.
@@ -32,6 +36,7 @@ OpinionatedFramework simplifies the entire development process. It streamlines y
 OpinionatedFramework comes bundled with a myriad of features:
 
 - **Command**: Implement use-cases with middleware support and scoped services.
+- **FileSystem**: Infrastructure-agnostic file system. Local, InMemory and Google Cloud Storage implementations will be available.
 - **Persistence**: Incorporate the Unit of Work pattern. NHibernate and MongoDB implementations will be available.
 - **Emailing**: Send emails easily, with a default MailKit implementation.
 - **Encryption**: Safeguard sensitive data with our encrypter.
@@ -40,25 +45,26 @@ OpinionatedFramework comes bundled with a myriad of features:
 - **Job Scheduling**: Plan and schedule tasks effortlessly.
 - **Notifications**: Notify users via different channels like email, SMS, Slack, Teams, etc.
 - **Text translations**: Localize your applications easily.
-- **Validation**: Validate data with the Ensurer.
+- **Validation**: Validate preconditions, postconditions and invariants.
 - **Service Container**: Implement a service container without dependency injection, using a static locator with scope in a command execution.
 - **Facades**: Gain easy, static access to contracts.
 
 ## Core interfaces
 Our core interfaces each have a default implementation, but can also be customized according to your specific needs:
 
-| Contract               | Default Implementation |
-| ---------------------- | ---------------------- |
-| [`ICommandExecutor`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/ICommandExecutor.cs)     | [`CommandExecutor`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor/CommandExecutor.cs) |
-| [`IEmailSender`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IEmailSender.cs)         | [`MailKitEmailSender`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.ContractImplementations.MailKit/MailKitEmailSender.cs) |
-| [`IEncrypter`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IEncrypter.cs)           | [`Aes256GcmModeEncrypter`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter/Aes256Hmac512Encrypter.cs) |
-| [`IEventDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IEventDispatcher.cs)     | [`EventDispatcher`] |
-| [`IJobEnqueuer`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IJobEnqueuer.cs)         | [`JobEnqueuer`] |
-| [`IJobScheduler`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IJobScheduler.cs)       | [`JobScheduler`] |
-| [`INotificationDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/INotificationDispatcher.cs) | [`NotificationDispatcher`] |
-| [`IPasswordHasher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IPasswordHasher.cs)      | [`PasswordHasher`] |
-| [`ITextTranslator`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/ITextTranslator.cs)      | [`TextTranslator`] |
-| [`IUnitOfWorkFactory`](https://github.com/iokode/OpinionatedFramework/blob/main/src/IOKode.OpinionatedFramework.Foundation/Contracts/IUnitOfWorkFactory.cs)   | [`UnitOfWorkFactory`] |
+| Contract                                                                                                                                                              | Default Implementation                                                                                                                                       |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ICommandExecutor`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/ICommandExecutor.cs)               | [`CommandExecutor`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.CommandExecutor/CommandExecutor.cs)                 |
+| [`IFileSystem`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/ICommandExecutor.cs)                    | [`FileSystem`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.FileSystem/FileSystem.cs)                                |
+| [`IEmailSender`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IEmailSender.cs)                       | [`MailKitEmailSender`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.MailKit/MailKitEmailSender.cs)                   |
+| [`IEncrypter`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IEncrypter.cs)                           | [`Aes256GcmModeEncrypter`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.Aes256GcmModeEncrypter/Aes256Hmac512Encrypter.cs) |
+| [`IEventDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IEventDispatcher.cs)               | [`EventDispatcher`]                                                                                                                                          |
+| [`IJobEnqueuer`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IJobEnqueuer.cs)                       | [`JobEnqueuer`]                                                                                                                                              |
+| [`IJobScheduler`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IJobScheduler.cs)                     | [`JobScheduler`]                                                                                                                                             |
+| [`INotificationDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/INotificationDispatcher.cs) | [`NotificationDispatcher`]                                                                                                                                   |
+| [`IPasswordHasher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IPasswordHasher.cs)                 | [`PasswordHasher`]                                                                                                                                           |
+| [`ITextTranslator`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/ITextTranslator.cs)                 | [`TextTranslator`]                                                                                                                                           |
+| [`IUnitOfWorkFactory`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IUnitOfWorkFactory.cs)           | [`UnitOfWorkFactory`]                                                                                                                                        |
 
 ## How to use
 Detailed documentation on how to use each feature will be available in our [wiki](https://github.com/iokode/OpinionatedFramework/wiki). Stay tuned!
@@ -76,7 +82,9 @@ We appreciate the support of all our sponsors. Your contribution will go a long 
 We love our contributors! Check out the Contributors page to see who has contributed to the project, and find out how you can contribute too.
 
 ## License
-OpinionatedFramework is licensed under the BSD 2-Clause License. See [LICENSE](https://github.com/iokode/OpinionatedFramework/blob/main/LICENSE) for more information.
+Source code in this repository and published bytecode in NuGet are licensed under the BSD 2-Clause License. See [LICENSE](https://github.com/iokode/OpinionatedFramework/blob/main/LICENSE) for more information.
+
+Logo image in this repository is licensed under the IOKode Visual Assets License. See [LICENSE_ASSETS](https://github.com/iokode/OpinionatedFramework/blob/main/LICENSE_ASSETS) for more information.
 
 ## Contact
 For any questions, issues, or feedback, please feel free to file an [issue](https://github.com/iokode/OpinionatedFramework/issues) or open a [discussion](https://github.com/iokode/OpinionatedFramework/discussions).
