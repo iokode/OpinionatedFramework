@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <RootNamespace>IOKode.OpinionatedFramework.ContractImplementations.Hangfire</RootNamespace>
+        <TargetName>IOKode.OpinionatedFramework.ContractImplementations.Hangfire</TargetName>
+    </PropertyGroup>
+
+    <PropertyGroup Label="Package settings">
+        <IsPackable>true</IsPackable>
+        <PackageId>IOKode.OpinionatedFramework.ContractImplementations.Hangfire</PackageId>
+        <Copyright>Copyright (c) 2023, IOKode OÜ</Copyright>
+        <Authors>IOKode, Ivan Montilla</Authors>
+        <Description>OpinionatedFramework is a robust, comprehensive .NET 7+ framework designed to streamline the development of the application/domain layer.</Description>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/iokode/OpinionatedFramework</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>framework, opinionated-framework application-framework</PackageTags>
+        <PackageIcon>package_icon.png</PackageIcon>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Hangfire.Core" Version="1.8.6" />
+        <PackageReference Include="Hangfire.AspNetCore" Version="1.8.6" />
+        <PackageReference Include="Hangfire.Mongo" Version="1.9.15" />
+        <PackageReference Include="JsonNet.ContractResolvers" Version="2.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Foundation\Foundation.csproj" />
+    </ItemGroup>
+
+</Project>

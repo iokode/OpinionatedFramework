@@ -15,12 +15,12 @@ public static class JobExtensions
         await Job.ScheduleAsync(job, interval, cancellationToken);
     }
 
-    public static async Task EnqueueAsync(this IJob job, string queue, CancellationToken cancellationToken)
+    public static async Task EnqueueAsync(this IJob job, Queue queue, CancellationToken cancellationToken)
     {
         await Job.EnqueueAsync(queue, job, cancellationToken);
     }
 
-    public static async Task EnqueueWithDelayAsync(this IJob job, string queue, TimeSpan delay, CancellationToken cancellationToken)
+    public static async Task EnqueueWithDelayAsync(this IJob job, Queue queue, TimeSpan delay, CancellationToken cancellationToken)
     {
         await Job.EnqueueWithDelayAsync(queue, job, delay, cancellationToken);
     }
