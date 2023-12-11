@@ -21,8 +21,7 @@ public class JobsTest
         Container.Services.AddHangfire(configuration);
         Container.Initialize();
         var jobEnqueuer = Locator.Resolve<IJobEnqueuer>();
-        var queue = new Queue();
-        await jobEnqueuer.EnqueueAsync(queue, new Job(), default);
+        await jobEnqueuer.EnqueueAsync(Queue.Default, new Job(), default);
         Assert.True(true);
     }
 }

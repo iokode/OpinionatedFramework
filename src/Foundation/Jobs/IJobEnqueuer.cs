@@ -20,7 +20,7 @@ public interface IJobEnqueuer
     }
 
     /// <summary>
-    /// 
+    /// Enqueue a job with delay in the default queue.
     /// </summary>
     /// <param name="job"></param>
     /// <param name="delay"></param>
@@ -32,7 +32,7 @@ public interface IJobEnqueuer
     }
     
     /// <summary>
-    /// 
+    /// Enqueue a job in specific queue.
     /// </summary>
     /// <param name="queue"></param>
     /// <param name="job"></param>
@@ -41,7 +41,7 @@ public interface IJobEnqueuer
     public Task EnqueueAsync(Queue queue, IJob job, CancellationToken cancellationToken);
     
     /// <summary>
-    /// 
+    /// Enqueue a job with delay in specific queue.
     /// </summary>
     /// <param name="queue"></param>
     /// <param name="job"></param>

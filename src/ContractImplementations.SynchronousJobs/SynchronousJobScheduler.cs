@@ -12,15 +12,15 @@ public class SynchronousJobScheduler : IJobScheduler
 {
     private class SynchronousMutableScheduledJob : MutableScheduledJob
     {
-        public DateTime LastExecution { get; set; }
+        public DateTime LastInvocation { get; set; }
         public bool IsFinalized { get; private set; }
-        
+
         public SynchronousMutableScheduledJob(CronExpression interval, IJob job) : base(interval, job)
         {
-            LastExecution = DateTime.UtcNow;
+            LastInvocation = DateTime.UtcNow;
         }
 
-        public void FinalizeExecution()
+        public void CancelLoop()
         {
             IsFinalized = true;
         }
@@ -37,17 +37,19 @@ public class SynchronousJobScheduler : IJobScheduler
             while (!scheduledJob.IsFinalized)
             {
                 var now = DateTime.UtcNow;
-                var nextOccurrence = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastExecution);
+                var nextOccurrence = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastInvocation);
                 if (now >= nextOccurrence)
                 {
-                    await scheduledJob.Job.InvokeAsync(default);
-                    scheduledJob.LastExecution = now;
+                    // This call is not awaited because we want a "fire it and forget" behaviour.
+                    // The correct behaviour is invoke it, but not await to be finalized.
+                    scheduledJob.Job.InvokeAsync(default);
+                    scheduledJob.LastInvocation = now;
                 }
 
-                var delay = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastExecution) - now;
+                var delay = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastInvocation) - now;
                 if (delay is null)
                 {
-                    scheduledJob.FinalizeExecution();
+                    scheduledJob.CancelLoop();
                     this.registeredJobs.Remove(scheduledJob);
                     break;
                 }
@@ -76,11 +78,13 @@ public class SynchronousJobScheduler : IJobScheduler
 
     public Task UnscheduleAsync(ScheduledJob scheduledJob, CancellationToken cancellationToken)
     {
-        var mutableScheduledJob = this.registeredJobs.Find(j => j.Identifier == scheduledJob.Identifier);
+        var identifier = scheduledJob.Identifier;
+
+        var mutableScheduledJob = this.registeredJobs.Find(j => j.Identifier == identifier);
         Ensure.Object.NotNull(mutableScheduledJob)
             .ElseThrowsIllegalArgument($"The {nameof(ScheduledJob.Identifier)} value was not found on the schedule jobs.", nameof(scheduledJob));
 
-        mutableScheduledJob!.FinalizeExecution();
+        mutableScheduledJob!.CancelLoop();
         this.registeredJobs.Remove(mutableScheduledJob);
 
         return Task.CompletedTask;
