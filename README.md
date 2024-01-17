@@ -21,15 +21,15 @@ Additionally, please note that we have not released any NuGet packages yet. We'r
 ## Why use OpinionatedFramework?
 While the usual practice is to keep the application layer independent of the framework, OpinionatedFramework is an exception to the rule. Here's why:
 
-### Minimal infrastructure coupling
-With OpinionatedFramework, you aren't actually coupled to the infrastructure. Your application layer can remain neutral, giving you the freedom to use your app in a web, mobile, or desktop context without traditional framework dependencies. Need to send emails? You can either use a straightforward SMTP approach or switch to something more custom like MailChimp by simply providing custom implementations of the contracts.
-
 ### Don't reinvent the wheel
 Starting a new project often means creating foundational interfaces like EmailSender or UnitOfWork in the application layer and implementing them in the infrastructure layer. With OpinionatedFramework, you no longer need to do this. We provide these interfaces out of the box, reducing boilerplate and getting you up and running faster.
 
 ### Not coupled to the infrastructure
+With OpinionatedFramework, you aren't actually coupled to the infrastructure. Your application layer can remain neutral, giving you the freedom to use your app in a web, mobile, or desktop context without traditional framework dependencies. Need to send emails? You can either use a straightforward SMTP approach or switch to something more custom like MailChimp by simply providing custom implementations of the contracts.
+
 Our default implementations are conveniently placed in a separate package. This means your application layer won't be forced to depend on it. Your infrastructure layer can choose to use these default implementations or easily substitute its own, giving you both flexibility and control over your project's infrastructure.
 
+### Focus on what really matters
 OpinionatedFramework simplifies the entire development process. It streamlines your project setup, facilitates architectural decisions, and significantly reduces the time you spend on repetitive tasks, allowing you to focus on building what really matters: your application's unique features.
 
 ## Features
