@@ -43,7 +43,7 @@ public static class Locator
         Ensure.Object.NotNull(ServiceProvider)
             .ElseThrowsInvalidOperation("The container is not initialized. Call Container.Initialize().");
 
-        var service = ServiceProvider!.GetService(serviceType);
+        object? service = ServiceProvider!.GetService(serviceType);
 
         Ensure.Object.NotNull(service)
             .ElseThrowsInvalidOperation($"No service of type '{serviceType.FullName}' has been registered.");
