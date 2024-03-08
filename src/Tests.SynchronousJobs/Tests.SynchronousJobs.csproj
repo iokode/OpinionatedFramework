@@ -23,7 +23,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
-      <ProjectReference Include="..\ContractImplementations.SynchronousJobs\ContractImplementations.SynchronousJobs.csproj" />
+      <ProjectReference Include="..\ContractImplementations.TaskRunJobs\ContractImplementations.TaskRunJobs.csproj" />
       <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>
 

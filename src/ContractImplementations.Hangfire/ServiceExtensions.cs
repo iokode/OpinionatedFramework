@@ -3,6 +3,7 @@ using Hangfire;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
+using IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Converters;
 using IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
 using IOKode.OpinionatedFramework.Jobs;
 using JsonNet.ContractResolvers;
@@ -32,32 +33,32 @@ public static class ServiceExtensions
             },
             CheckQueuedJobsStrategy = CheckQueuedJobsStrategy.TailNotificationsCollection
         };
+        
+        GlobalConfiguration.Configuration
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseMongoStorage(dbOptions.ConnectionString, dbOptions.Database, storageOptions);
 
-        services.AddHangfire(configuration =>
+        // GlobalConfiguration.Configuration.UseDefaultTypeSerializer();
+        // GlobalConfiguration.Configuration.UseDefaultTypeResolver();
+        GlobalConfiguration.Configuration.UseSerializerSettings(new JsonSerializerSettings
         {
-            configuration
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UseMongoStorage(dbOptions.ConnectionString, dbOptions.Database, storageOptions);
-
-            configuration.UseSerializerSettings(new JsonSerializerSettings
-            {
-                Formatting = Formatting.None,
-                TypeNameHandling = TypeNameHandling.Objects,
-                ContractResolver = new PrivateSetterContractResolver(), // todo review
-                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Full,
-                // SerializationBinder = new SerializationBinder(),
-                // Converters = 
-            });
-
-            // configuration.UseTypeResolver(Plugin.GetType);
-            configuration.UseTypeSerializer(type => type.AssemblyQualifiedName);
+            Formatting = Formatting.None,
+            TypeNameHandling = TypeNameHandling.Objects,
+            ContractResolver = new PrivateSetterContractResolver(), // todo review
+            TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Full,
+            
+            // SerializationBinder = new SerializationBinder(),
+            Converters = new JsonConverter[] { new FieldsOnlyConverter() }
         });
 
-        services.AddHangfireServer(option =>
-        {
-            option.SchedulePollingInterval = TimeSpan.FromSeconds(1);
-            option.CancellationCheckInterval = TimeSpan.FromSeconds(1);
-        });
+        // GlobalConfiguration.Configuration.UseTypeResolver(Plugin.GetType);
+        // GlobalConfiguration.Configuration.UseTypeSerializer(type => type.AssemblyQualifiedName);
+
+        // services.AddHangfireServer(option =>
+        // {
+        //     option.SchedulePollingInterval = TimeSpan.FromSeconds(1);
+        //     option.CancellationCheckInterval = TimeSpan.FromSeconds(1);
+        // });
     }
 }

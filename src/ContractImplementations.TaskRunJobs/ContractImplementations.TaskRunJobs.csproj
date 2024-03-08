@@ -3,8 +3,8 @@
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <RootNamespace>IOKode.OpinionatedFramework.ContractImplementations.SynchronousJobs</RootNamespace>
-        <TargetName>IOKode.OpinionatedFramework.ContractImplementations.SynchronousJobs</TargetName>
+        <RootNamespace>IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs</RootNamespace>
+        <TargetName>IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs</TargetName>
     </PropertyGroup>
 
     <ItemGroup>

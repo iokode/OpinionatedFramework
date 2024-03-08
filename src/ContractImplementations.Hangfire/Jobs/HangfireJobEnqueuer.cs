@@ -8,22 +8,20 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
 
 public class HangfireJobEnqueuer : IJobEnqueuer
 {
-    private readonly IBackgroundJobClient backgroundJobClient;
-
-    public HangfireJobEnqueuer(IBackgroundJobClient backgroundJobClient)
-    {
-        this.backgroundJobClient = backgroundJobClient;
-    }
-
     public Task EnqueueAsync(Queue queue, IJob job, CancellationToken cancellationToken)
     {
-        this.backgroundJobClient.Enqueue(queue.Name, () => job.InvokeAsync(cancellationToken));
+        BackgroundJob.Enqueue(queue.Name, () => InvokeJob(job));
         return Task.CompletedTask;
     }
 
     public Task EnqueueWithDelayAsync(Queue queue, IJob job, TimeSpan delay, CancellationToken cancellationToken)
     {
-        this.backgroundJobClient.Schedule<IJob>(queue.Name, j => j.InvokeAsync(CancellationToken.None), delay);
+        BackgroundJob.Schedule(queue.Name, () => InvokeJob(job), delay);
         return Task.CompletedTask;
+    }
+
+    public async Task InvokeJob(IJob job)
+    {
+        await job.InvokeAsync(default);
     }
 }

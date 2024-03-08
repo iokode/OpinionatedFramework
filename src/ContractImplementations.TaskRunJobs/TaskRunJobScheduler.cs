@@ -6,16 +6,16 @@ using Cronos;
 using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Jobs;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.SynchronousJobs;
+namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
-public class SynchronousJobScheduler : IJobScheduler
+public class TaskRunJobScheduler : IJobScheduler
 {
-    private class SynchronousMutableScheduledJob : MutableScheduledJob
+    private class TaskRunMutableScheduledJob : MutableScheduledJob
     {
         public DateTime LastInvocation { get; set; }
         public bool IsFinalized { get; private set; }
 
-        public SynchronousMutableScheduledJob(CronExpression interval, IJob job) : base(interval, job)
+        public TaskRunMutableScheduledJob(CronExpression interval, IJob job) : base(interval, job)
         {
             LastInvocation = DateTime.UtcNow;
         }
@@ -26,11 +26,11 @@ public class SynchronousJobScheduler : IJobScheduler
         }
     }
 
-    private List<SynchronousMutableScheduledJob> registeredJobs = new List<SynchronousMutableScheduledJob>();
+    private List<TaskRunMutableScheduledJob> registeredJobs = new List<TaskRunMutableScheduledJob>();
 
     public Task<ScheduledJob> ScheduleAsync(IJob job, CronExpression interval, CancellationToken cancellationToken)
     {
-        var scheduledJob = new SynchronousMutableScheduledJob(interval, job);
+        var scheduledJob = new TaskRunMutableScheduledJob(interval, job);
         this.registeredJobs.Add(scheduledJob);
         Task.Run(async () =>
         {
@@ -42,7 +42,7 @@ public class SynchronousJobScheduler : IJobScheduler
                 {
                     // This call is not awaited because we want a "fire it and forget" behaviour.
                     // The correct behaviour is invoke it, but not await to be finalized.
-                    scheduledJob.Job.InvokeAsync(default);
+                    _ = RetryHelper.RetryOnException(job, 10);
                     scheduledJob.LastInvocation = now;
                 }
 
@@ -54,7 +54,7 @@ public class SynchronousJobScheduler : IJobScheduler
                     break;
                 }
 
-                await Task.Delay(delay.Value, default);
+                await Task.Delay(delay.Value);
             }
         }, cancellationToken);
 

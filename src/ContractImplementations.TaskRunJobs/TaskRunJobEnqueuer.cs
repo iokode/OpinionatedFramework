@@ -3,13 +3,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Jobs;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.SynchronousJobs;
+namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
-public class SynchronousJobEnqueuer : IJobEnqueuer
+public class TaskRunJobEnqueuer : IJobEnqueuer
 {
     public async Task EnqueueAsync(Queue queue, IJob job, CancellationToken cancellationToken)
     {
-        await job.InvokeAsync(cancellationToken);
+        _ = RetryHelper.RetryOnException(job, 10);
     }
 
     public Task EnqueueWithDelayAsync(Queue queue, IJob job, TimeSpan delay, CancellationToken cancellationToken)
@@ -17,7 +17,13 @@ public class SynchronousJobEnqueuer : IJobEnqueuer
         _ = Task.Run(async () =>
         {
             await Task.Delay(delay, cancellationToken);
-            await job.InvokeAsync(cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            await RetryHelper.RetryOnException(job, 10);
         }, cancellationToken);
 
         return Task.CompletedTask;
