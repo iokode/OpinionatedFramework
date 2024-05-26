@@ -226,7 +226,11 @@ public partial class FacadesGenerator
             {{~ end ~}}
             public static {{ method.ReturnType }} {{ method.Name }}{{ if !method.GenericTypeParameters.empty? }}<{{ for parameter in method.GenericTypeParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }}>{{ end }}({{ for parameter in method.Parameters }}{{ parameter.Type }} {{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }}) {{ for parameter in method.GenericTypeParameters }}{{ if parameter.HasConstraints }}where {{ parameter.Name }} : {{ parameter.Constraints }}{{ end }}{{ end }}
             {
+                {{~ if method.ReturnType == 'void' ~}}
+                Locator.Resolve<{{ method.ContractFullName }}>().{{ method.Name }}{{~ if !method.GenericTypeParameters.empty? ~}}<{{~ for param in method.GenericTypeParameters ~}}{{ param.Name }}{{~ if !for.last ~}}, {{~ end ~}}{{~ end ~}}>{{~ end ~}}({{~ for param in method.Parameters ~}}{{ param.Name }}{{~ if !for.last ~}}, {{~ end ~}}{{~ end ~}});
+                {{~ else ~}}
                 return Locator.Resolve<{{ method.ContractFullName }}>().{{ method.Name }}{{~ if !method.GenericTypeParameters.empty? ~}}<{{~ for param in method.GenericTypeParameters ~}}{{ param.Name }}{{~ if !for.last ~}}, {{~ end ~}}{{~ end ~}}>{{~ end ~}}({{~ for param in method.Parameters ~}}{{ param.Name }}{{~ if !for.last ~}}, {{~ end ~}}{{~ end ~}});
+                {{~ end ~}}
             }
             {{~ if !for.last ~}}
 
