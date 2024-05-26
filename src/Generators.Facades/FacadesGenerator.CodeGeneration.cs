@@ -32,6 +32,7 @@ public partial class FacadesGenerator
 
     private class _FacadeMethodParameter
     {
+        public bool IsParams { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }
     }
@@ -94,6 +95,7 @@ public partial class FacadesGenerator
                         .Where(parameterSymbol => parameterSymbol is not null)
                         .Select(parameterSymbol => new _FacadeMethodParameter
                         {
+                            IsParams = parameterSymbol.IsParams,
                             Name = parameterSymbol.Name,
                             Type = parameterSymbol.Type.ToString()
                         });
@@ -224,7 +226,7 @@ public partial class FacadesGenerator
             {{~ if method.Has ~}}
             {{ method.DocComment }}
             {{~ end ~}}
-            public static {{ method.ReturnType }} {{ method.Name }}{{ if !method.GenericTypeParameters.empty? }}<{{ for parameter in method.GenericTypeParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }}>{{ end }}({{ for parameter in method.Parameters }}{{ parameter.Type }} {{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }}) {{ for parameter in method.GenericTypeParameters }}{{ if parameter.HasConstraints }}where {{ parameter.Name }} : {{ parameter.Constraints }}{{ end }}{{ end }}
+            public static {{ method.ReturnType }} {{ method.Name }}{{ if !method.GenericTypeParameters.empty? }}<{{ for parameter in method.GenericTypeParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }}>{{ end }}({{ for parameter in method.Parameters }}{{ if parameter.IsParams }}params {{ end }}{{ parameter.Type }} {{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }}) {{ for parameter in method.GenericTypeParameters }}{{ if parameter.HasConstraints }}where {{ parameter.Name }} : {{ parameter.Constraints }}{{ end }}{{ end }}
             {
                 {{~ if method.ReturnType == 'void' ~}}
                 Locator.Resolve<{{ method.ContractFullName }}>().{{ method.Name }}{{~ if !method.GenericTypeParameters.empty? ~}}<{{~ for param in method.GenericTypeParameters ~}}{{ param.Name }}{{~ if !for.last ~}}, {{~ end ~}}{{~ end ~}}>{{~ end ~}}({{~ for param in method.Parameters ~}}{{ param.Name }}{{~ if !for.last ~}}, {{~ end ~}}{{~ end ~}});
