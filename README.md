@@ -3,7 +3,7 @@
     <em>Architectural Clarity, Without the Constraints.</em>
 </p>
 
-OpinionatedFramework is a robust, comprehensive .NET 7+ framework designed to streamline the development of the application/domain layer. With a strong focus on architectural principles and modern development practices, OpinionatedFramework assists developers in implementing scalable and maintainable software solutions.
+OpinionatedFramework is a robust, comprehensive .NET 8+ framework designed to streamline the development of the application/domain layer. With a strong focus on architectural principles and modern development practices, OpinionatedFramework assists developers in implementing scalable and maintainable software solutions.
 
 **The heart of OpinionatedFramework is our opinionated approach.** We provide a suite of tools that guide and structure the way you develop your application, making design decisions with experience and best practices in mind. This does not limit flexibility, as our core interfaces have default implementations but allow for custom ones.
 

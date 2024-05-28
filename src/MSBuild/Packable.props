@@ -7,7 +7,6 @@
 
     <PropertyGroup Label="Package settings">
         <IsPackable>true</IsPackable>
-        <Version>0.2.0-dev</Version>
         <PackageId>IOKode.OpinionatedFramework.$(MSBuildProjectName)</PackageId>
         <Copyright>Copyright (c) 2023, IOKode OÜ</Copyright>
         <Authors>IOKode, Ivan Montilla</Authors>
