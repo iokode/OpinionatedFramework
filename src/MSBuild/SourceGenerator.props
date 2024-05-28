@@ -5,6 +5,7 @@
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <LangVersion>11</LangVersion>
         <PackageScribanIncludeSource>true</PackageScribanIncludeSource>
+        <IncludeSymbols>false</IncludeSymbols>
     </PropertyGroup>
 
     <ItemGroup Label="Source generation references">
