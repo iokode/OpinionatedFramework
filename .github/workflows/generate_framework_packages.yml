@@ -37,11 +37,5 @@ jobs:
       - name: Push to NuGet
         run: |
           for file in ./nupkgs/*.nupkg; do
-            dotnet nuget push "$file" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-          done
-
-      - name: Push symbol packages to NuGet
-        run: |
-          for file in ./nupkgs/*.snupkg; do
-            dotnet nuget push "$file" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+            dotnet nuget push "$file" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
           done
