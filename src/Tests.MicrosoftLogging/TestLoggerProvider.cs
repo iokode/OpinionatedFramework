@@ -1,10 +1,12 @@
+using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
 namespace IOKode.OpinionatedFramework.Tests.MicrosoftLogging;
 
 public class TestLoggerProvider : ILoggerProvider
 {
-    private readonly List<TestLogger> _loggers = new List<TestLogger>();
+    private readonly List<TestLogger> _loggers = new();
 
     public ILogger CreateLogger(string categoryName)
     {

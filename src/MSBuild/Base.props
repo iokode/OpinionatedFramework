@@ -1,0 +1,14 @@
+<Project>
+    <PropertyGroup Label="Build settings">
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <AssemblyName>IOKode.OpinionatedFramework.$(MSBuildProjectName)</AssemblyName>
+        <TargetName>IOKode.OpinionatedFramework.$(MSBuildProjectName)</TargetName>
+        <RootNamespace>IOKode.OpinionatedFramework.$(MSBuildProjectName)</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup Label="GitHub Actions settings" Condition="'$(GITHUB_ACTIONS)' == 'true'">
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    </PropertyGroup>
+</Project>

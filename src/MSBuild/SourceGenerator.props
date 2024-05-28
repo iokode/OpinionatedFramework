@@ -1,0 +1,25 @@
+<Project>
+    <PropertyGroup Label="Source generator settings">
+        <IsSourceGeneratorProject>true</IsSourceGeneratorProject>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <LangVersion>11</LangVersion>
+        <PackageScribanIncludeSource>true</PackageScribanIncludeSource>
+    </PropertyGroup>
+
+    <ItemGroup Label="Source generation references">
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Scriban dependencies">
+        <PackageReference Include="Scriban" Version="5.4.6" Pack="true" IncludeAssets="Build" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.CSharp" Version="4.5.0"/>
+        <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Source generation settings">
+        <None Include="$(OutputPath)\$(TargetName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+        <Compile Include="..\SourceGenerationHelper.cs"/>
+    </ItemGroup>
+</Project>

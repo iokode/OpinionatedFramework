@@ -1,67 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup Label="Build settings">
-        <TargetFramework>netstandard2.0</TargetFramework>
-        <IncludeBuildOutput>false</IncludeBuildOutput>
-        <LangVersion>11</LangVersion>
-        <TargetName>IOKode.OpinionatedFramework.Generators.Ensuring</TargetName>
-        <RootNamespace>IOKode.OpinionatedFramework.Generators.Ensuring</RootNamespace>
-        <PackageScribanIncludeSource>true</PackageScribanIncludeSource>
-    </PropertyGroup>
-
-    <PropertyGroup Label="GitHub Actions settings" Condition="'$(GITHUB_ACTIONS)' == 'true'">
-        <Deterministic>true</Deterministic>
-        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    </PropertyGroup>
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Packable.props"/>
+    <Import Project="../MSBuild/SourceGenerator.props"/>
 
     <PropertyGroup Label="Package settings">
-        <IsPackable>true</IsPackable>
-        <PackageId>IOKode.OpinionatedFramework.Generators.Ensuring</PackageId>
-        <Copyright>Copyright (c) 2023, IOKode OÜ</Copyright>
-        <Authors>IOKode, Ivan Montilla</Authors>
         <Description>This library, part of the OpinionatedFramework, offers a set of robust tools for enforcing preconditions, postconditions, and invariants in your .NET code. It's designed to boost code reliability and maintainability by offering a fluent, readable way to handle validation tasks.</Description>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-        <RepositoryUrl>https://github.com/iokode/OpinionatedFramework</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
         <PackageTags>ensuring validation preconditions postconditions contract-design assertions</PackageTags>
-        <PackageIcon>package_icon.png</PackageIcon>
     </PropertyGroup>
-
-    <PropertyGroup Label="Source Link settings">
-        <EmbedUntrackedSources>true</EmbedUntrackedSources>
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    </PropertyGroup>
-
-    <ItemGroup Label="Include additional files to package">
-        <None Visible="false" Include="..\..\docs\ensure\README.md" Pack="true" PackagePath=""/>
-        <None Visible="false" Include="..\..\LICENSE" Pack="true" PackagePath=""/>
-        <None Visible="false" Include="..\..\package_icon.png" Pack="true" PackagePath=""/>
-    </ItemGroup>
-
-    <ItemGroup Label="Source generation references">
-        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1"/>
-    </ItemGroup>
-
-    <ItemGroup Label="Scriban dependencies">
-        <PackageReference Include="Scriban" Version="5.4.6" Pack="true" IncludeAssets="Build" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.CSharp" Version="4.5.0"/>
-        <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4"/>
-    </ItemGroup>
-
-    <ItemGroup Label="Source Link references">
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-    </ItemGroup>
-
-    <ItemGroup Label="Source generation settings">
-        <None Include="$(OutputPath)\$(TargetName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
-        <Compile Include="..\SourceGenerationHelper.cs"/>
-    </ItemGroup>
-
 </Project>

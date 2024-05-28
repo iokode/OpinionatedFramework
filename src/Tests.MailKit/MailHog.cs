@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace IOKode.OpinionatedFramework.Tests.MailKit;
 
 public class MailHogEmailResponse
