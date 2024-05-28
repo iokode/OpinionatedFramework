@@ -22,7 +22,13 @@ public interface ILogging
 
     private ILogger FromCaller()
     {
-        var callerType = new StackFrame(1).GetMethod()!.DeclaringType!;
+        var callerType = new StackFrame(2).GetMethod()!.DeclaringType!;
+
+        if (callerType == typeof(Log)) // From facade
+        {
+            callerType = new StackFrame(3).GetMethod()!.DeclaringType!;
+        }
+        
         var logger = FromCategory(callerType);
 
         return logger;
