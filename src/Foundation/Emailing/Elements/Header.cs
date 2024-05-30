@@ -15,7 +15,8 @@ public class Header : EmailElement
     {
         var sb = new StringBuilder();
         sb.AppendLine($"**{_value}**");
-        sb.AppendLine(new string('=', _value.Length));
+        sb.AppendLine(new string('=', _value.Length + 4));
+        sb.AppendLine();
         return sb.ToString();
     }
 

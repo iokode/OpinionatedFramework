@@ -5,14 +5,15 @@ namespace IOKode.OpinionatedFramework.Emailing.Elements;
 
 public static class ElementExtensions
 {
-    public static void Header(this EmailContentBuilder builder, string value)
+    public static EmailContentBuilder Header(this EmailContentBuilder builder, string value)
     {
         builder.AddElement(new Header(value));
+        return builder;
     }
 
-    public static EmailContentBuilder Image(this EmailContentBuilder builder, Uri imageUri)
+    public static EmailContentBuilder Image(this EmailContentBuilder builder, Uri imageUri, string? altText = null)
     {
-        builder.AddElement(new ImageFromUriElement(imageUri));
+        builder.AddElement(new ImageFromUriElement(imageUri, altText));
         return builder;
     }
 

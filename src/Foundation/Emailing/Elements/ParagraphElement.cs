@@ -13,7 +13,7 @@ public class ParagraphElement : EmailElement
 
     public override string ToText()
     {
-        return $"{Text}\n";
+        return $"{Text}\n\n";
     }
 
     public override string ToHtml()
