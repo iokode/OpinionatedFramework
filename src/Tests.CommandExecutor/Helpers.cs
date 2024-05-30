@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using IOKode.OpinionatedFramework.Commands;
 using IOKode.OpinionatedFramework.ConfigureApplication;
+using IOKode.OpinionatedFramework.ContractImplementations.MicrosoftLogging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IOKode.OpinionatedFramework.Tests.CommandExecutor;
@@ -14,6 +15,7 @@ public static class Helpers
         IEnumerable<KeyValuePair<string, object>>? sharedData = default)
     {
         Container.Clear();
+        Container.Services.AddMicrosoftLogging(_ => { });
         Container.Initialize();
         var executor =
             new ContractImplementations.CommandExecutor.CommandExecutor(
@@ -32,6 +34,7 @@ public static class Helpers
         IEnumerable<KeyValuePair<string, object>>? sharedData = default)
     {
         Container.Clear();
+        Container.Services.AddMicrosoftLogging(_ => { });
         configureContainer();
         Container.Initialize();
 

@@ -54,8 +54,8 @@ public static class Container
     /// <returns>A new IServiceScope that can be used to resolve scoped services.</returns>
     /// <exception cref="InvalidOperationException">Thrown when trying to create a scope before the container is initialized.</exception>
     /// <remarks>
-    /// Scoped services are disposed when the scope is disposed.This method returns an IServiceScope which should
-    /// be disposed by the caller, typically in a using block.
+    /// Scoped services are disposed when the scope is disposed. When the scope was used, it should be disposed
+    /// calling <see cref="DisposeScope"/> method.
     ///
     /// Typically, you shouldn't call this method directly, except in advanced scenarios like creating a custom
     /// implementation of the CommandExecutor. The framework will do in some parts like the command executor.
@@ -67,8 +67,27 @@ public static class Container
 
         var scope = _serviceProvider!.CreateScope();
         SetScopeIntoLocator(scope);
+        _serviceProviderScope = scope;
 
         return scope;
+    }
+
+    /// <summary>
+    /// Disposes and removes the service scope.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the container isn't initialized.</exception>
+    /// <remarks>
+    /// Typically, you shouldn't call this method directly, except in advanced scenarios like creating a custom
+    /// implementation of the CommandExecutor. The framework will do in some parts like the command executor.
+    /// </remarks>
+    public static void DisposeScope()
+    {
+        Ensure.Boolean.IsTrue(IsInitialized)
+            .ElseThrowsInvalidOperation("Cannot dispose the scope because the container is not initialized.");
+
+        _serviceProviderScope?.Dispose();
+        _serviceProviderScope = null;
+        SetScopeIntoLocator(null);
     }
 
     /// <summary>
@@ -81,6 +100,11 @@ public static class Container
     /// </remarks>
     public static void Clear()
     {
+        if (IsInitialized)
+        {
+            DisposeScope();
+        }
+
         _serviceCollection = new ServiceCollection();
         _serviceProvider = null;
 
