@@ -2,10 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
-using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Facades;
 
-namespace IOKode.OpinionatedFramework.Extensions;
+namespace IOKode.OpinionatedFramework.Jobs;
 
 public static class JobExtensions
 {

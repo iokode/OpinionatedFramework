@@ -1,9 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Emailing;
 using IOKode.OpinionatedFramework.Jobs;
 
-namespace IOKode.OpinionatedFramework.Extensions;
+namespace IOKode.OpinionatedFramework.Emailing;
 
 public static class EmailExtensions
 {
