@@ -28,7 +28,13 @@ public interface ILogging
         {
             callerType = new StackFrame(3).GetMethod()!.DeclaringType!;
         }
-        
+
+        // Handle the case where the caller is an async state machine
+        if (callerType is { IsNested: true, DeclaringType: not null } && callerType.Name.Contains('<'))
+        {
+            callerType = callerType.DeclaringType;
+        }
+
         var logger = FromCategory(callerType);
 
         return logger;
