@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Packable.props"/>
+
+    <ItemGroup Label="Package references">
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Project dependencies">
+        <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
+        <ProjectReference Include="..\Foundation\Foundation.csproj"/>
+    </ItemGroup>
+</Project>
