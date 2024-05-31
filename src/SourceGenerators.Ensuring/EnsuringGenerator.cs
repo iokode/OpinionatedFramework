@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace IOKode.OpinionatedFramework.Generators.Ensuring;
+namespace IOKode.OpinionatedFramework.SourceGenerators.Ensuring;
 
 [Generator]
 internal partial class EnsuringGenerator : IIncrementalGenerator

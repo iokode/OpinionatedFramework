@@ -2,12 +2,13 @@
 using System.Linq;
 using System.Text;
 using System.Threading;
+using IOKode.OpinionatedFramework.SourceGenerators.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Scriban;
 using Scriban.Runtime;
 
-namespace IOKode.OpinionatedFramework.Generators.Ensuring;
+namespace IOKode.OpinionatedFramework.SourceGenerators.Ensuring;
 
 internal partial class EnsuringGenerator
 {

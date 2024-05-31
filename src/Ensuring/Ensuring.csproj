@@ -9,6 +9,6 @@
     </PropertyGroup>
 
     <ItemGroup Label="Analyzers and source generators">
-        <ProjectReference Include="..\Generators.Ensuring\Generators.Ensuring.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\SourceGenerators.Ensuring\SourceGenerators.Ensuring.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 </Project>

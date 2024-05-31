@@ -26,11 +26,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Aes256GcmModeEncrypte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Ensuring", "Tests.Ensuring\Tests.Ensuring.csproj", "{A5BBB500-C21E-4DC2-AC18-85B701E3237B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Generators", "Generators", "{F231FFD4-12A2-49F4-9B02-85AEC3AEFFA9}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SourceGenerators", "SourceGenerators", "{F231FFD4-12A2-49F4-9B02-85AEC3AEFFA9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generators.Ensuring", "Generators.Ensuring\Generators.Ensuring.csproj", "{AF6B7E9A-77D1-4C2E-8A66-BA2A5A291F52}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerators.Ensuring", "SourceGenerators.Ensuring\SourceGenerators.Ensuring.csproj", "{AF6B7E9A-77D1-4C2E-8A66-BA2A5A291F52}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generators.Facades", "Generators.Facades\Generators.Facades.csproj", "{4A4762B8-28B2-49F3-9EB8-E46C053C2435}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerators.Facades", "SourceGenerators.Facades\SourceGenerators.Facades.csproj", "{4A4762B8-28B2-49F3-9EB8-E46C053C2435}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.LocalFileSystem", "Tests.LocalFileSystem\Tests.LocalFileSystem.csproj", "{D328F50C-422D-45D3-8910-75CD259BC888}"
 EndProject

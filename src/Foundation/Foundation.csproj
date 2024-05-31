@@ -13,6 +13,6 @@
     </ItemGroup>
 
     <ItemGroup Label="Analyzers and source generators">
-        <ProjectReference Include="..\Generators.Facades\Generators.Facades.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\SourceGenerators.Facades\SourceGenerators.Facades.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 </Project>

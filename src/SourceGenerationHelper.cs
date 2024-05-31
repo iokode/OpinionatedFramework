@@ -6,7 +6,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace IOKode.OpinionatedFramework.Generators;
+namespace IOKode.OpinionatedFramework.SourceGenerators.Helpers;
 
 internal static class SourceGenerationHelper
 {
