@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Jobs;
 
-namespace IOKode.OpinionatedFramework.Emailing;
+namespace IOKode.OpinionatedFramework.Emailing.Extensions;
 
 public static class EmailExtensions
 {
@@ -12,7 +12,8 @@ public static class EmailExtensions
     /// <exception cref="EmailException">Something fail while trying to send the email.</exception>
     public static async Task SendAsync(this Email email, CancellationToken cancellationToken = default)
     {
-        await Facades.Email.SendAsync(email, cancellationToken);
+        var sender = Locator.Resolve<IEmailSender>();
+        await sender.SendAsync(email, cancellationToken);
     }
 
     /// <summary>

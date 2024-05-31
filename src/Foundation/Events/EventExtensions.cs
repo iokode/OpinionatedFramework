@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IOKode.OpinionatedFramework.Events;
+namespace IOKode.OpinionatedFramework.Events.Extensions;
 
 public static class EventExtensions
 {
