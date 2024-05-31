@@ -153,6 +153,9 @@ public partial class FacadesGenerator
                     var definedMethodParameters = definedMethod.MethodSymbol.Parameters
                         .Select(parameter => parameter.Type)
                         .ToArray();
+                    var definedMethodTypeParameters = definedMethod.MethodSymbol.TypeParameters
+                        .Select(typeParam => typeParam.Name)
+                        .ToArray();
 
                     for (var j = i + 1; j < overloadedMethods.Count; j++)
                     {
@@ -160,13 +163,17 @@ public partial class FacadesGenerator
                         var overloadedMethodParameters = overloadedMethod.MethodSymbol.Parameters
                             .Select(parameter => parameter.Type)
                             .ToArray();
+                        var overloadedMethodTypeParameters = overloadedMethod.MethodSymbol.TypeParameters
+                            .Select(typeParam => typeParam.Name)
+                            .ToArray();
 
-                        if (definedMethodParameters.Length != overloadedMethodParameters.Length)
+                        if (definedMethodParameters.Length != overloadedMethodParameters.Length ||
+                            definedMethodTypeParameters.Length != overloadedMethodTypeParameters.Length)
                         {
                             continue;
                         }
 
-                        var isSameSignature = definedMethodParameters
+                        bool areParametersEqual = definedMethodParameters
                             .Zip(overloadedMethodParameters,
                                 (firstDefinedMethodArgumentType, overloadedMethodArgumentType) =>
                                     (firstDefinedMethodArgumentType, overloadedMethodArgumentType))
@@ -174,6 +181,13 @@ public partial class FacadesGenerator
                                 SymbolEqualityComparer.Default.Equals(arguments.firstDefinedMethodArgumentType,
                                     arguments.overloadedMethodArgumentType));
 
+                        bool areTypeParametersEqual = definedMethodTypeParameters
+                            .Zip(overloadedMethodTypeParameters,
+                                (firstTypeParam, overloadedTypeParam) =>
+                                    (firstTypeParam, overloadedTypeParam))
+                            .All(typeParams => typeParams.firstTypeParam == typeParams.overloadedTypeParam);
+
+                        bool isSameSignature = areParametersEqual && areTypeParametersEqual;
                         if (isSameSignature)
                         {
                             yield return
@@ -187,6 +201,7 @@ public partial class FacadesGenerator
             }
         }
     }
+
 
     private static string _GenerateFacadeClass(_Facade facade)
     {
@@ -209,7 +224,7 @@ public partial class FacadesGenerator
         {
             return false;
         }
-        
+
         return genericTypeParameters.Any(parameter => !string.IsNullOrEmpty(parameter.Constraints));
     }
 
@@ -237,7 +252,7 @@ public partial class FacadesGenerator
                 {{~ end ~}}
             }
             {{~ if !for.last ~}}
-
+        
             {{~ end ~}}
             {{~ end ~}}
         }
