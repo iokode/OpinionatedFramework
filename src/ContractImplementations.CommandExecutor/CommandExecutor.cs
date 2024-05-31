@@ -90,7 +90,7 @@ public class CommandExecutor : ICommandExecutor
         }
 
         context.SetAsExecuted();
-        this.sharedData = context.ShareData;
+        this.sharedData = context.SharedData;
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class CommandExecutor : ICommandExecutor
 
         context.SetAsExecuted();
         context.SetResult(result);
-        this.sharedData = context.ShareData;
+        this.sharedData = context.SharedData;
 
         return result;
     }

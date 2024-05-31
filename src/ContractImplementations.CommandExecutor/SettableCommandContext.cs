@@ -10,7 +10,7 @@ internal class SettableCommandContext : CommandContext
 {
     private Dictionary<string, object?> sharedData = null!;
 
-    internal Dictionary<string, object?> ShareData => this.sharedData;
+    internal Dictionary<string, object?> SharedData => this.sharedData;
 
     private SettableCommandContext()
     {
@@ -27,14 +27,14 @@ internal class SettableCommandContext : CommandContext
     public static SettableCommandContext Create(Type commandType, IEnumerable<KeyValuePair<string, object?>>? initialSharedData,
         CancellationToken cancellationToken)
     {
-        var ctx = new SettableCommandContext
+        var context = new SettableCommandContext
         {
             CommandType = commandType,
             CancellationToken = cancellationToken,
             sharedData = initialSharedData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, object?>()
         };
 
-        return ctx;
+        return context;
     }
 
     public override bool ExistsInSharedData(string key)
