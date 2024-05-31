@@ -11,23 +11,19 @@ namespace IOKode.OpinionatedFramework.Tests.MicrosoftLogging;
 public class LogTests
 {
     private static TestLoggerProvider provider = null!;
-    
+
     public LogTests()
     {
-        if (Container.IsInitialized)
-        {
-            return;
-        }
-        
-        var testLoggerProvider = new TestLoggerProvider();
+        Container.Clear();
+        provider = new TestLoggerProvider();
+
         Container.Services.AddMicrosoftLogging(builder =>
         {
             builder.SetMinimumLevel(LogLevel.Trace);
-            builder.AddProvider(testLoggerProvider);
+            builder.AddProvider(provider);
         });
 
         Container.Initialize();
-        provider = testLoggerProvider;
     }
 
     [Fact]
@@ -54,7 +50,7 @@ public class LogTests
 
         // Act
         logging.Info("Expected log message");
-        
+
         // Assert
         var loggers = provider.GetLoggers();
         var loggerEntries = loggers.Last().LogEntries;
