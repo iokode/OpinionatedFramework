@@ -79,48 +79,60 @@ public partial class FacadesGenerator
                     .Single()
                     .Value;
 
-                foreach (var methodDeclarationSyntax in interfaceDeclarationSyntax.Members
-                             .OfType<MethodDeclarationSyntax>())
+                // Get all partial declarations of the interface
+                var allInterfaceDeclarations = interfaceSymbol.DeclaringSyntaxReferences
+                    .Select(reference => reference.GetSyntax())
+                    .OfType<InterfaceDeclarationSyntax>();
+
+                foreach (var partialDeclaration in allInterfaceDeclarations)
                 {
-                    var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(methodDeclarationSyntax)!;
-                    if (methodSymbol.DeclaredAccessibility != Accessibility.Public)
+                    var partialSemanticModel = compilation.GetSemanticModel(partialDeclaration.SyntaxTree);
+
+                    foreach (var methodDeclarationSyntax in
+                             partialDeclaration.Members.OfType<MethodDeclarationSyntax>())
                     {
-                        continue;
+                        var methodSymbol =
+                            (IMethodSymbol)partialSemanticModel.GetDeclaredSymbol(methodDeclarationSyntax)!;
+                        if (methodSymbol.DeclaredAccessibility != Accessibility.Public)
+                        {
+                            continue;
+                        }
+
+                        var methodName = methodDeclarationSyntax.Identifier.Text;
+                        var methodReturnType = methodSymbol?.ReturnType.ToDisplayString();
+                        var docComment = SourceGenerationHelper.GetMethodDocComment(methodSymbol);
+                        var methodParameters = methodDeclarationSyntax.ParameterList.Parameters
+                            .Select(parameterSyntax =>
+                                (IParameterSymbol)partialSemanticModel.GetDeclaredSymbol(parameterSyntax))
+                            .Where(parameterSymbol => parameterSymbol is not null)
+                            .Select(parameterSymbol => new _FacadeMethodParameter
+                            {
+                                IsParams = parameterSymbol.IsParams,
+                                Name = parameterSymbol.Name,
+                                Type = parameterSymbol.Type.ToString()
+                            });
+
+                        var methodGenericTypeParameters = methodSymbol.TypeParameters.Select(typeParam =>
+                            new _FacadeMethodGenericParameter()
+                            {
+                                Name = typeParam.Name,
+                                Constraints = string.Join(", ",
+                                    typeParam.ConstraintTypes.Select(constraint => constraint.ToDisplayString()))
+                            });
+
+                        var method = new _FacadeMethod
+                        {
+                            Name = methodName,
+                            ReturnType = methodReturnType,
+                            Parameters = methodParameters,
+                            GenericTypeParameters = methodGenericTypeParameters,
+                            DocComment = docComment,
+                            FacadeName = facadeName,
+                            ContractFullName = interfaceFullName,
+                            MethodSymbol = methodSymbol,
+                        };
+                        yield return method;
                     }
-
-                    var methodName = methodDeclarationSyntax.Identifier.Text;
-                    var methodReturnType = methodSymbol?.ReturnType.ToDisplayString();
-                    var docComment = SourceGenerationHelper.GetMethodDocComment(methodSymbol);
-                    var methodParameters = methodDeclarationSyntax.ParameterList.Parameters
-                        .Select(parameterSyntax => (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterSyntax))
-                        .Where(parameterSymbol => parameterSymbol is not null)
-                        .Select(parameterSymbol => new _FacadeMethodParameter
-                        {
-                            IsParams = parameterSymbol.IsParams,
-                            Name = parameterSymbol.Name,
-                            Type = parameterSymbol.Type.ToString()
-                        });
-
-                    var methodGenericTypeParameters = methodSymbol.TypeParameters.Select(typeParam =>
-                        new _FacadeMethodGenericParameter()
-                        {
-                            Name = typeParam.Name,
-                            Constraints = string.Join(", ",
-                                typeParam.ConstraintTypes.Select(constraint => constraint.ToDisplayString()))
-                        });
-
-                    var method = new _FacadeMethod
-                    {
-                        Name = methodName,
-                        ReturnType = methodReturnType,
-                        Parameters = methodParameters,
-                        GenericTypeParameters = methodGenericTypeParameters,
-                        DocComment = docComment,
-                        FacadeName = facadeName,
-                        ContractFullName = interfaceFullName,
-                        MethodSymbol = methodSymbol,
-                    };
-                    yield return method;
                 }
             }
         }
