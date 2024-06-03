@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace IOKode.OpinionatedFramework.Utilities;
@@ -19,62 +20,24 @@ public static class PollingUtility
     /// <param name="function">The synchronous function to poll.</param>
     /// <param name="timeout">The duration after which the polling will stop if the function does not return true.</param>
     /// <param name="pollingInterval">The duration to wait between polling attempts.</param>
+    /// <param name="cancellationToken">Stop the polling if cancellation is requested.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
     public static async ValueTask<bool> WaitUntilTrueAsync(Func<bool> function, TimeSpan timeout,
-        TimeSpan pollingInterval)
+        TimeSpan pollingInterval, CancellationToken cancellationToken = default)
     {
         var startTime = DateTime.UtcNow;
 
-        while (DateTime.UtcNow - startTime < timeout)
+        while (!cancellationToken.IsCancellationRequested && DateTime.UtcNow - startTime < timeout)
         {
             if (function())
             {
                 return true;
             }
 
-            await Task.Delay(pollingInterval);
+            await Task.Delay(pollingInterval, cancellationToken);
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Polls the specified asynchronous function until it returns true or the timeout duration has been reached.
-    /// </summary>
-    /// <param name="function">The asynchronous function to poll.</param>
-    /// <param name="timeout">The duration after which the polling will stop if the function does not return true.</param>
-    /// <param name="pollingInterval">The duration to wait between polling attempts.</param>
-    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
-    public static async ValueTask<bool> WaitUntilTrueAsync(Func<Task<bool>> function, TimeSpan timeout,
-        TimeSpan pollingInterval)
-    {
-        var startTime = DateTime.UtcNow;
-
-        while (DateTime.UtcNow - startTime < timeout)
-        {
-            if (await function())
-            {
-                return true;
-            }
-
-            await Task.Delay(pollingInterval);
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Polls the specified asynchronous function until it returns true or the timeout duration has been reached.
-    /// </summary>
-    /// <param name="function">The asynchronous function to poll.</param>
-    /// <param name="timeout">The duration in milliseconds after which the polling will stop if the function does not return true.</param>
-    /// <param name="pollingInterval">The duration in milliseconds to wait between polling attempts.</param>
-    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
-    public static async ValueTask<bool> WaitUntilTrueAsync(Func<Task<bool>> function, int timeout,
-        int pollingInterval)
-    {
-        return await WaitUntilTrueAsync(function, TimeSpan.FromMilliseconds(timeout),
-            TimeSpan.FromMilliseconds(pollingInterval));
     }
 
     /// <summary>
@@ -83,11 +46,125 @@ public static class PollingUtility
     /// <param name="function">The synchronous function to poll.</param>
     /// <param name="timeout">The duration in milliseconds after which the polling will stop if the function does not return true.</param>
     /// <param name="pollingInterval">The duration in milliseconds to wait between polling attempts.</param>
+    /// <param name="cancellationToken">Stop the polling if cancellation is requested.</param>
     /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
-    public static async ValueTask<bool> WaitUntilTrueAsync(Func<bool> function, int timeout,
-        int pollingInterval)
+    public static async ValueTask<bool> WaitUntilTrueAsync(Func<bool> function, int timeout, int pollingInterval,
+        CancellationToken cancellationToken = default)
     {
         return await WaitUntilTrueAsync(function, TimeSpan.FromMilliseconds(timeout),
-            TimeSpan.FromMilliseconds(pollingInterval));
+            TimeSpan.FromMilliseconds(pollingInterval), cancellationToken);
+    }
+
+    /// <summary>
+    /// Polls the specified asynchronous function until it returns true or the timeout duration has been reached.
+    /// </summary>
+    /// <param name="function">The asynchronous function to poll.</param>
+    /// <param name="timeout">The duration after which the polling will stop if the function does not return true.</param>
+    /// <param name="pollingInterval">The duration to wait between polling attempts.</param>
+    /// <param name="cancellationToken">Stop the polling if cancellation is requested.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
+    public static async ValueTask<bool> WaitUntilTrueAsync(Func<Task<bool>> function, TimeSpan timeout,
+        TimeSpan pollingInterval, CancellationToken cancellationToken = default)
+    {
+        var startTime = DateTime.UtcNow;
+
+        while (!cancellationToken.IsCancellationRequested && DateTime.UtcNow - startTime < timeout)
+        {
+            if (await function())
+            {
+                return true;
+            }
+
+            await Task.Delay(pollingInterval, cancellationToken);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Polls the specified asynchronous function until it returns true or the timeout duration has been reached.
+    /// </summary>
+    /// <param name="function">The asynchronous function to poll.</param>
+    /// <param name="timeout">The duration in milliseconds after which the polling will stop if the function does not return true.</param>
+    /// <param name="pollingInterval">The duration in milliseconds to wait between polling attempts.</param>
+    /// <param name="cancellationToken">Stop the polling if cancellation is requested.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true before the timeout duration, otherwise false.</returns>
+    public static async ValueTask<bool> WaitUntilTrueAsync(Func<Task<bool>> function, int timeout, int pollingInterval,
+        CancellationToken cancellationToken = default)
+    {
+        return await WaitUntilTrueAsync(function, TimeSpan.FromMilliseconds(timeout),
+            TimeSpan.FromMilliseconds(pollingInterval), cancellationToken);
+    }
+
+    /// <summary>
+    /// Polls the specified synchronous function until it returns true, with no timeout.
+    /// </summary>
+    /// <param name="function">The synchronous function to poll.</param>
+    /// <param name="pollingInterval">The duration to wait between polling attempts.</param>
+    /// <param name="cancellationToken">Stop the polling if cancellation is requested.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true, otherwise false.</returns>
+    public static async ValueTask<bool> WaitUntilTrueAsync(Func<bool> function, TimeSpan pollingInterval,
+        CancellationToken cancellationToken = default)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (function())
+            {
+                return true;
+            }
+
+            await Task.Delay(pollingInterval, cancellationToken);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Polls the specified synchronous function until it returns true, with no timeout.
+    /// </summary>
+    /// <param name="function">The synchronous function to poll.</param>
+    /// <param name="pollingInterval">The duration in milliseconds to wait between polling attempts.</param>
+    /// <param name="cancellationToken">Stop the polling if cancellation is requested.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true, otherwise false.</returns>
+    public static async ValueTask<bool> WaitUntilTrueAsync(Func<bool> function, int pollingInterval,
+        CancellationToken cancellationToken = default)
+    {
+        return await WaitUntilTrueAsync(function, TimeSpan.FromMilliseconds(pollingInterval), cancellationToken);
+    }
+
+    /// <summary>
+    /// Polls the specified asynchronous function until it returns true, with no timeout.
+    /// </summary>
+    /// <param name="function">The asynchronous function to poll.</param>
+    /// <param name="pollingInterval">The duration to wait between polling attempts.</param>
+    /// <param name="cancellationToken">Stop the polling if cancellation is requested.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true, otherwise false.</returns>
+    public static async ValueTask<bool> WaitUntilTrueAsync(Func<Task<bool>> function, TimeSpan pollingInterval,
+        CancellationToken cancellationToken = default)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (await function())
+            {
+                return true;
+            }
+
+            await Task.Delay(pollingInterval, cancellationToken);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Polls the specified asynchronous function until it returns true, with no timeout.
+    /// </summary>
+    /// <param name="function">The asynchronous function to poll.</param>
+    /// <param name="pollingInterval">The duration in milliseconds to wait between polling attempts.</param>
+    /// <param name="cancellationToken">Stop the polling if cancellation is requested.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation. The task result is true if the function returns true, otherwise false.</returns>
+    public static async ValueTask<bool> WaitUntilTrueAsync(Func<Task<bool>> function, int pollingInterval,
+        CancellationToken cancellationToken = default)
+    {
+        return await WaitUntilTrueAsync(function, TimeSpan.FromMilliseconds(pollingInterval), cancellationToken);
     }
 }
