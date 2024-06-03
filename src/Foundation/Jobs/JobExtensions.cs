@@ -14,13 +14,13 @@ public static class JobExtensions
         await scheduler.ScheduleAsync(job, interval, cancellationToken);
     }
 
-    public static async Task EnqueueAsync(this IJob job, string queue, CancellationToken cancellationToken)
+    public static async Task EnqueueAsync(this IJob job, Queue queue, CancellationToken cancellationToken)
     {
         var enqueuer = Locator.Resolve<IJobEnqueuer>();
         await enqueuer.EnqueueAsync(queue, job, cancellationToken);
     }
 
-    public static async Task EnqueueWithDelayAsync(this IJob job, string queue, TimeSpan delay, CancellationToken cancellationToken)
+    public static async Task EnqueueWithDelayAsync(this IJob job, Queue queue, TimeSpan delay, CancellationToken cancellationToken)
     {
         var enqueuer = Locator.Resolve<IJobEnqueuer>();
         await enqueuer.EnqueueWithDelayAsync(queue, job, delay, cancellationToken);

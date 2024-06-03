@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\ContractImplementations.DeferredTaskExecution\ContractImplementations.DeferredTaskExecution.csproj"/>
+    </ItemGroup>
+</Project>

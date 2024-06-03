@@ -8,6 +8,6 @@ namespace IOKode.OpinionatedFramework.Jobs;
 [AddToFacade("Job")]
 public interface IJobEnqueuer
 {
-    public Task EnqueueAsync(string queue, IJob job, CancellationToken cancellationToken);
-    public Task EnqueueWithDelayAsync(string queue, IJob job, TimeSpan delay, CancellationToken cancellationToken);
+    public Task EnqueueAsync(Queue queue, IJob job, CancellationToken cancellationToken);
+    public Task EnqueueWithDelayAsync(Queue queue, IJob job, TimeSpan delay, CancellationToken cancellationToken);
 }
