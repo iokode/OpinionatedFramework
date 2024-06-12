@@ -2,7 +2,7 @@ using System;
 using IOKode.OpinionatedFramework.Ensuring;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IOKode.OpinionatedFramework.ConfigureApplication;
+namespace IOKode.OpinionatedFramework.Bootstrapping;
 
 public static partial class Container
 {

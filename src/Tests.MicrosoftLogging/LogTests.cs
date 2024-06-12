@@ -1,5 +1,5 @@
 using System.Linq;
-using IOKode.OpinionatedFramework.ConfigureApplication;
+using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.MicrosoftLogging;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Logging;

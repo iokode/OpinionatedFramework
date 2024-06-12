@@ -3,7 +3,7 @@
     <Import Project="../MSBuild/Test.props"/>
 
     <ItemGroup Label="Project references">
-        <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj"/>
+        <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
         <ProjectReference Include="..\ContractImplementations.FileSystem\ContractImplementations.FileSystem.csproj"/>
         <ProjectReference Include="..\ContractImplementations.LocalFileSystem\ContractImplementations.LocalFileSystem.csproj"/>
         <ProjectReference Include="..\Foundation\Foundation.csproj"/>

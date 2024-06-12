@@ -3,8 +3,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.Commands;
-using IOKode.OpinionatedFramework.ConfigureApplication;
 using IOKode.OpinionatedFramework.Facades;
 using Command = IOKode.OpinionatedFramework.Commands.Command;
 

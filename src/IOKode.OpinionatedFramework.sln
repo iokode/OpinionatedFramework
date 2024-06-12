@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foundation", "Foundation\Foundation.csproj", "{797F57C1-AB6B-4D77-ABD0-D71D0883081B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigureApplication", "ConfigureApplication\ConfigureApplication.csproj", "{15480C47-4873-4AE6-B307-E8C192F1BDB0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bootstrapping", "Bootstrapping\Bootstrapping.csproj", "{15480C47-4873-4AE6-B307-E8C192F1BDB0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ensuring", "Ensuring\Ensuring.csproj", "{187D67C1-7C4D-44E9-ACD8-147DDB71EE16}"
 EndProject

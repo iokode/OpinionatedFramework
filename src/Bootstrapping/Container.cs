@@ -4,7 +4,7 @@ using System.Threading;
 using IOKode.OpinionatedFramework.Ensuring;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IOKode.OpinionatedFramework.ConfigureApplication;
+namespace IOKode.OpinionatedFramework.Bootstrapping;
 
 /// <summary>
 /// Provides a static container for registering services and building a service provider.

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.Commands;
-using IOKode.OpinionatedFramework.ConfigureApplication;
 using IOKode.OpinionatedFramework.ContractImplementations.MicrosoftLogging;
 using Microsoft.Extensions.DependencyInjection;
 

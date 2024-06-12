@@ -9,7 +9,7 @@
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">
-        <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
+        <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>
 </Project>

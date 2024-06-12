@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace IOKode.OpinionatedFramework.ConfigureApplication;
+namespace IOKode.OpinionatedFramework.Bootstrapping;
 
 public class OpinionatedServiceCollection : ServiceCollection, IOpinionatedServiceCollection
 {
