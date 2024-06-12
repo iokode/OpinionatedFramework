@@ -121,6 +121,6 @@ public class ContainerTests : IDisposable
 
     public void Dispose()
     {
-        Container.Clear();
+        Container.Advanced.Clear();
     }
 }

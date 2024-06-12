@@ -14,7 +14,7 @@ public class LogTests
 
     public LogTests()
     {
-        Container.Clear();
+        Container.Advanced.Clear();
         provider = new TestLoggerProvider();
 
         Container.Services.AddMicrosoftLogging(builder =>

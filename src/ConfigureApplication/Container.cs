@@ -9,9 +9,9 @@ namespace IOKode.OpinionatedFramework.ConfigureApplication;
 /// <summary>
 /// Provides a static container for registering services and building a service provider.
 /// </summary>
-public static class Container
+public static partial class Container
 {
-    private static ServiceCollection _serviceCollection = new();
+    private static OpinionatedServiceCollection _serviceCollection = new();
     private static ServiceProvider? _serviceProvider;
     private static IServiceScope? _serviceProviderScope;
 
@@ -21,7 +21,7 @@ public static class Container
     /// <value>
     /// The service collection.
     /// </value>
-    public static IServiceCollection Services => _serviceCollection;
+    public static IOpinionatedServiceCollection Services => _serviceCollection;
 
     /// <summary>
     /// Gets a value indicating whether the container has been initialized.
@@ -46,70 +46,6 @@ public static class Container
         _serviceCollection.MakeReadOnly();
         _serviceProvider = _serviceCollection.BuildServiceProvider();
         SetProviderIntoLocator();
-    }
-
-    /// <summary>
-    /// Creates a new service scope that can be used to resolve scoped services and sets it in the Locator.
-    /// </summary>
-    /// <returns>A new IServiceScope that can be used to resolve scoped services.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when trying to create a scope before the container is initialized.</exception>
-    /// <remarks>
-    /// Scoped services are disposed when the scope is disposed. When the scope was used, it should be disposed
-    /// calling <see cref="DisposeScope"/> method.
-    ///
-    /// Typically, you shouldn't call this method directly, except in advanced scenarios like creating a custom
-    /// implementation of the CommandExecutor. The framework will do in some parts like the command executor.
-    /// </remarks>
-    public static IServiceScope CreateScope()
-    {
-        Ensure.Boolean.IsTrue(IsInitialized)
-            .ElseThrowsInvalidOperation("Cannot create a scope if the container is not initialized.");
-
-        var scope = _serviceProvider!.CreateScope();
-        SetScopeIntoLocator(scope);
-        _serviceProviderScope = scope;
-
-        return scope;
-    }
-
-    /// <summary>
-    /// Disposes and removes the service scope.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown when the container isn't initialized.</exception>
-    /// <remarks>
-    /// Typically, you shouldn't call this method directly, except in advanced scenarios like creating a custom
-    /// implementation of the CommandExecutor. The framework will do in some parts like the command executor.
-    /// </remarks>
-    public static void DisposeScope()
-    {
-        Ensure.Boolean.IsTrue(IsInitialized)
-            .ElseThrowsInvalidOperation("Cannot dispose the scope because the container is not initialized.");
-
-        _serviceProviderScope?.Dispose();
-        _serviceProviderScope = null;
-        SetScopeIntoLocator(null);
-    }
-
-    /// <summary>
-    /// Clears the current service collection and resets the service provider, effectively allowing the container to be reconfigured.
-    /// </summary>
-    /// <remarks>
-    /// This method should be used with caution, as it will discard all previously registered services and set the service provider to null.
-    /// After calling this method, you should re-register your services and call Initialize() again.
-    /// This method is primarily intended for use in testing scenarios where the container's state needs to be reset between test runs.
-    /// </remarks>
-    public static void Clear()
-    {
-        if (IsInitialized)
-        {
-            DisposeScope();
-        }
-
-        _serviceCollection = new ServiceCollection();
-        _serviceProvider = null;
-
-        SetProviderIntoLocator();
-        SetScopeIntoLocator(null);
     }
 
     private static void SetProviderIntoLocator()

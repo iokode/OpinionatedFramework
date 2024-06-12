@@ -3,6 +3,7 @@
     <Import Project="../MSBuild/Packable.props"/>
 
     <ItemGroup Label="Project dependencies">
+        <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>
 

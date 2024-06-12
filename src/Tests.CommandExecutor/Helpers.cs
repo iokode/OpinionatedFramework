@@ -14,7 +14,7 @@ public static class Helpers
     public static ICommandExecutor CreateExecutor(CommandMiddleware[]? middlewares = null,
         IEnumerable<KeyValuePair<string, object>>? sharedData = default)
     {
-        Container.Clear();
+        Container.Advanced.Clear();
         Container.Services.AddMicrosoftLogging(_ => { });
         Container.Initialize();
         var executor =
@@ -33,7 +33,7 @@ public static class Helpers
     public static ICommandExecutor CreateExecutor(Action configureContainer, CommandMiddleware[]? middlewares = null,
         IEnumerable<KeyValuePair<string, object>>? sharedData = default)
     {
-        Container.Clear();
+        Container.Advanced.Clear();
         Container.Services.AddMicrosoftLogging(_ => { });
         configureContainer();
         Container.Initialize();

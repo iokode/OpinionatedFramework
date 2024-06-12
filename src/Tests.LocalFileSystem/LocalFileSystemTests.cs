@@ -1,9 +1,7 @@
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.ConfigureApplication;
-using IOKode.OpinionatedFramework.ContractImplementations.FileSystem;
 using IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.FileSystem;
@@ -14,7 +12,7 @@ using DirectoryNotFoundException = System.IO.DirectoryNotFoundException;
 using File = System.IO.File;
 using FileNotFoundException = IOKode.OpinionatedFramework.FileSystem.Exceptions.FileNotFoundException;
 
-namespace Tests.LocalFileSystem;
+namespace IOKode.OpinionatedFramework.Tests.LocalFileSystem;
 
 public class LocalFileSystemTests : IDisposable
 {
@@ -22,10 +20,10 @@ public class LocalFileSystemTests : IDisposable
 
     public LocalFileSystemTests()
     {
-        Container.Clear();
+        Container.Advanced.Clear();
         Container.Services.AddSingleton<IFileSystem>(_ =>
         {
-            var fileSystem = new FileSystem();
+            var fileSystem = new ContractImplementations.FileSystem.FileSystem();
             fileSystem.AddDisk(_diskname, new LocalDisk(Path.GetTempPath()));
 
             return fileSystem;
@@ -215,6 +213,6 @@ public class LocalFileSystemTests : IDisposable
 
     public void Dispose()
     {
-        Container.Clear();
+        Container.Advanced.Clear();
     }
 }

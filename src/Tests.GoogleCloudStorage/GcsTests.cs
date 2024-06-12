@@ -314,7 +314,7 @@ public class GcsTests : IDisposable
 
     public void Dispose()
     {
-        Container.Clear();
+        Container.Advanced.Clear();
         _client.Dispose();
     }
 }
