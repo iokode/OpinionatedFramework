@@ -4,7 +4,9 @@
 name: Generate OpinionatedFramework packages and push to NuGet Gallery
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
 
 jobs:
   build:
