@@ -24,7 +24,7 @@ public class Aes256GcmModeEncrypter : IEncrypter
         var cipheredData = new byte[plainData.Length];
         var result = new byte[nonce.Length + cipheredData.Length + tag.Length];
 
-        using var aes = new AesGcm(_key);
+        using var aes = new AesGcm(_key, AesGcm.TagByteSizes.MaxSize);
         aes.Encrypt(nonce, plainData, cipheredData, tag);
 
         nonce.CopyTo(result.AsSpan(0, nonce.Length));
@@ -42,7 +42,7 @@ public class Aes256GcmModeEncrypter : IEncrypter
             payload.Length - (AesGcm.NonceByteSizes.MaxSize + AesGcm.TagByteSizes.MaxSize));
         byte[] decryptedData = new byte[cipheredData.Length];
 
-        using var aes = new AesGcm(_key);
+        using var aes = new AesGcm(_key, AesGcm.TagByteSizes.MaxSize);
         aes.Decrypt(nonce, cipheredData, tag, decryptedData, null);
 
         return decryptedData;

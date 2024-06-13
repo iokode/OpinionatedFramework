@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Packable.props"/>
+
+    <ItemGroup Label="Package references">
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    </ItemGroup>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
+        <ProjectReference Include="..\ContractImplementations.Aes256GcmModeEncrypter\ContractImplementations.Aes256GcmModeEncrypter.csproj" />
+        <ProjectReference Include="..\ContractImplementations.Bcrypt\ContractImplementations.Bcrypt.csproj" />
+        <ProjectReference Include="..\ContractImplementations.CommandExecutor\ContractImplementations.CommandExecutor.csproj" />
+        <ProjectReference Include="..\ContractImplementations.LoggerEmail\ContractImplementations.LoggerEmail.csproj" />
+        <ProjectReference Include="..\ContractImplementations.MailKit\ContractImplementations.MailKit.csproj" />
+        <ProjectReference Include="..\ContractImplementations.MicrosoftConfiguration\ContractImplementations.MicrosoftConfiguration.csproj" />
+        <ProjectReference Include="..\ContractImplementations.MicrosoftLogging\ContractImplementations.MicrosoftLogging.csproj" />
+        <ProjectReference Include="..\Foundation\Foundation.csproj"/>
+    </ItemGroup>
+</Project>
