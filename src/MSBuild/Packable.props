@@ -10,7 +10,7 @@
         <PackageId>IOKode.OpinionatedFramework.$(MSBuildProjectName)</PackageId>
         <Copyright>Copyright (c) 2023, IOKode OÜ</Copyright>
         <Authors>IOKode, Ivan Montilla</Authors>
-        <Description>OpinionatedFramework is a robust, comprehensive .NET 7+ framework designed to streamline the development of the application/domain layer.</Description>
+        <Description>OpinionatedFramework is a robust, comprehensive .NET 8+ framework designed to streamline the development of the application/domain layer.</Description>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/iokode/OpinionatedFramework</RepositoryUrl>
