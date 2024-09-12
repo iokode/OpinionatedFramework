@@ -7,7 +7,7 @@ namespace IOKode.OpinionatedFramework.Tests.CommandExecutor;
 
 public class UpdateSharedDataMiddleware : CommandMiddleware
 {
-    public override async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
     {
         context.SetInSharedData("number1", 3);
         await nextAsync(context);
@@ -18,7 +18,7 @@ public class CounterMiddleware : CommandMiddleware
 {
     public static int Counter { get; set; } = 0;
 
-    public override async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
     {
         MiddlewareTests.ExecutedMiddlewares.Add("Counter");
         Counter++;
@@ -30,7 +30,7 @@ public class CounterMiddleware2 : CommandMiddleware
 {
     public static int Counter { get; set; } = 0;
 
-    public override async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
     {
         MiddlewareTests.ExecutedMiddlewares.Add("Counter2");
         Counter++;
@@ -42,7 +42,7 @@ public class ExceptionHandlingMiddleware : CommandMiddleware
 {
     public static bool ExceptionHandled { get; set; } = false;
 
-    public override async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
     {
         try
         {
@@ -58,7 +58,7 @@ public class ExceptionHandlingMiddleware : CommandMiddleware
 
 public class AssertContextMiddlewareBeforeCommand : CommandMiddleware
 {
-    public override async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
     {
         Assert.Equal(typeof(SumTwoNumbersCommand), context.CommandType);
         Assert.False(context.HasResult);
@@ -71,7 +71,7 @@ public class AssertContextMiddlewareBeforeCommand : CommandMiddleware
 
 public class AssertContextMiddlewareAfterCommand : CommandMiddleware
 {
-    public override async Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
     {
         await nextAsync(context);
 
@@ -79,5 +79,16 @@ public class AssertContextMiddlewareAfterCommand : CommandMiddleware
         Assert.True(context.HasResult);
         Assert.Equal(8, context.Result);
         Assert.True(context.IsExecuted);
+    }
+}
+
+public class SetIvanMontillaInPipelineDataMiddleware : CommandMiddleware
+{
+    public override async Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
+    {
+        context.SetInPipelineData("Given name", "Ivan");
+        context.SetInPipelineData("Family name", "Montilla");
+
+        await nextAsync(context);
     }
 }

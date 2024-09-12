@@ -2,9 +2,9 @@ using System.Threading.Tasks;
 
 namespace IOKode.OpinionatedFramework.Commands;
 
-public delegate Task InvokeNextMiddlewareDelegate(CommandContext context);
+public delegate Task InvokeNextMiddlewareDelegate(ICommandContext context);
 
 public abstract class CommandMiddleware
 {
-    public abstract Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync);
+    public abstract Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync);
 }

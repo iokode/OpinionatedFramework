@@ -10,7 +10,7 @@ public class VoidCommand : Command
 {
     public bool IsExecuted = false;
 
-    protected override Task ExecuteAsync(CommandContext context)
+    protected override Task ExecuteAsync(ICommandContext context)
     {
         IsExecuted = true;
         return Task.CompletedTask;
@@ -19,32 +19,23 @@ public class VoidCommand : Command
 
 public class ReturningCommand : Command<int>
 {
-    protected override Task<int> ExecuteAsync(CommandContext context)
+    protected override Task<int> ExecuteAsync(ICommandContext context)
     {
         return Task.FromResult(26);
     }
 }
 
-public class SumTwoNumbersCommand : Command<int>
+public class SumTwoNumbersCommand(int a, int b) : Command<int>
 {
-    private readonly int _a;
-    private readonly int _b;
-
-    public SumTwoNumbersCommand(int a, int b)
+    protected override Task<int> ExecuteAsync(ICommandContext context)
     {
-        _a = a;
-        _b = b;
-    }
-
-    protected override Task<int> ExecuteAsync(CommandContext context)
-    {
-        return Task.FromResult(_a + _b);
+        return Task.FromResult(a + b);
     }
 }
 
 public class SumNumbersFromSharedDataCommand : Command<int>
 {
-    protected override Task<int> ExecuteAsync(CommandContext context)
+    protected override Task<int> ExecuteAsync(ICommandContext context)
     {
         int n1 = (int)context.GetFromSharedDataOrDefault("number1")!;
         int n2 = (int)context.GetFromSharedDataOrDefault("number2")!;
@@ -55,7 +46,7 @@ public class SumNumbersFromSharedDataCommand : Command<int>
 
 public class AssertContextCommand : Command
 {
-    protected override Task ExecuteAsync(CommandContext context)
+    protected override Task ExecuteAsync(ICommandContext context)
     {
         Assert.False(context.IsExecuted);
         Assert.Equal(typeof(AssertContextCommand), context.CommandType);
@@ -68,35 +59,26 @@ public class AssertContextCommand : Command
 
 public class ExceptionThrowingCommand : Command
 {
-    protected override Task ExecuteAsync(CommandContext context)
+    protected override Task ExecuteAsync(ICommandContext context)
     {
         throw new Exception("Test exception.");
     }
 }
 
-public class SetGivenAndFamilyNamesInSharedData : Command
+public class SetGivenAndFamilyNamesInSharedData(string givenName, string familyName) : Command
 {
-    private readonly string givenName;
-    private readonly string familyName;
-
-    public SetGivenAndFamilyNamesInSharedData(string givenName, string familyName)
+    protected override Task ExecuteAsync(ICommandContext context)
     {
-        this.givenName = givenName;
-        this.familyName = familyName;
-    }
-    
-    protected override Task ExecuteAsync(CommandContext context)
-    {
-        context.SetInSharedData("Given name", this.givenName);
-        context.SetInSharedData("Family name", this.familyName);
+        context.SetInSharedData("Given name", givenName);
+        context.SetInSharedData("Family name", familyName);
 
         return Task.CompletedTask;
     }
 }
 
-public class RemoveGivenAndFamilyNameFromShareData : Command
+public class RemoveGivenAndFamilyNameFromSharedData : Command
 {
-    protected override Task ExecuteAsync(CommandContext context)
+    protected override Task ExecuteAsync(ICommandContext context)
     {
         context.RemoveFromSharedData("Given name");
         context.RemoveFromSharedData("Family name");
@@ -107,11 +89,11 @@ public class RemoveGivenAndFamilyNameFromShareData : Command
 
 public class AssertIvanMontillaInSharedData : Command
 {
-    protected override Task ExecuteAsync(CommandContext context)
+    protected override Task ExecuteAsync(ICommandContext context)
     {
         Assert.True(context.ExistsInSharedData("Given name"));
         Assert.True(context.ExistsInSharedData("Family name"));
-        
+
         Assert.Equal("Ivan", context.GetFromSharedData<string>("Given name"));
         Assert.Equal("Montilla", context.GetFromSharedData<string>("Family name"));
 
@@ -121,7 +103,7 @@ public class AssertIvanMontillaInSharedData : Command
 
 public class AssertGivenNameAndFamilyNameDoestExistInSharedData : Command
 {
-    protected override Task ExecuteAsync(CommandContext context)
+    protected override Task ExecuteAsync(ICommandContext context)
     {
         Assert.False(context.ExistsInSharedData("Given name"));
         Assert.False(context.ExistsInSharedData("Family name"));
@@ -129,43 +111,27 @@ public class AssertGivenNameAndFamilyNameDoestExistInSharedData : Command
         Assert.Null(context.GetFromSharedDataOrDefault<string>("Given name"));
         Assert.Null(context.GetFromSharedDataOrDefault<string>("Family name"));
 
-        Assert.Throws<KeyNotFoundException>(() =>
-        {
-            context.GetFromSharedData<string>("Given name");
-        });
-        
-        Assert.Throws<KeyNotFoundException>(() =>
-        {
-            context.GetFromSharedData<string>("Family name");
-        });
+        Assert.Throws<KeyNotFoundException>(() => context.GetFromSharedData<string>("Given name"));
+        Assert.Throws<KeyNotFoundException>(() => context.GetFromSharedData<string>("Family name"));
 
         return Task.CompletedTask;
     }
 }
 
-public class ResultingSetGivenAndFamilyNamesInSharedData : Command<int>
+public class ResultingSetGivenAndFamilyNamesInSharedData(string givenName, string familyName) : Command<int>
 {
-    private readonly string givenName;
-    private readonly string familyName;
-
-    public ResultingSetGivenAndFamilyNamesInSharedData(string givenName, string familyName)
+    protected override Task<int> ExecuteAsync(ICommandContext context)
     {
-        this.givenName = givenName;
-        this.familyName = familyName;
-    }
-    
-    protected override Task<int> ExecuteAsync(CommandContext context)
-    {
-        context.SetInSharedData("Given name", this.givenName);
-        context.SetInSharedData("Family name", this.familyName);
+        context.SetInSharedData("Given name", givenName);
+        context.SetInSharedData("Family name", familyName);
 
         return Task.FromResult(0);
     }
 }
 
-public class ResultingRemoveGivenAndFamilyNameFromShareData : Command<int>
+public class ResultingRemoveGivenAndFamilyNameFromSharedData : Command<int>
 {
-    protected override Task<int> ExecuteAsync(CommandContext context)
+    protected override Task<int> ExecuteAsync(ICommandContext context)
     {
         context.RemoveFromSharedData("Given name");
         context.RemoveFromSharedData("Family name");
@@ -174,13 +140,13 @@ public class ResultingRemoveGivenAndFamilyNameFromShareData : Command<int>
     }
 }
 
-public class ResultingAssertIvanMontillaInSharedData : Command<int>
+public class ResultingAssertIvanMontillaIsInSharedData : Command<int>
 {
-    protected override Task<int> ExecuteAsync(CommandContext context)
+    protected override Task<int> ExecuteAsync(ICommandContext context)
     {
         Assert.True(context.ExistsInSharedData("Given name"));
         Assert.True(context.ExistsInSharedData("Family name"));
-        
+
         Assert.Equal("Ivan", context.GetFromSharedData<string>("Given name"));
         Assert.Equal("Montilla", context.GetFromSharedData<string>("Family name"));
 
@@ -190,7 +156,7 @@ public class ResultingAssertIvanMontillaInSharedData : Command<int>
 
 public class ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData : Command<int>
 {
-    protected override Task<int> ExecuteAsync(CommandContext context)
+    protected override Task<int> ExecuteAsync(ICommandContext context)
     {
         Assert.False(context.ExistsInSharedData("Given name"));
         Assert.False(context.ExistsInSharedData("Family name"));
@@ -198,16 +164,62 @@ public class ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData : Comma
         Assert.Null(context.GetFromSharedDataOrDefault<string>("Given name"));
         Assert.Null(context.GetFromSharedDataOrDefault<string>("Family name"));
 
-        Assert.Throws<KeyNotFoundException>(() =>
-        {
-            context.GetFromSharedData<string>("Given name");
-        });
-        
-        Assert.Throws<KeyNotFoundException>(() =>
-        {
-            context.GetFromSharedData<string>("Family name");
-        });
+        Assert.Throws<KeyNotFoundException>(() => context.GetFromSharedData<string>("Given name"));
+        Assert.Throws<KeyNotFoundException>(() => context.GetFromSharedData<string>("Family name"));
 
         return Task.FromResult(0);
+    }
+}
+
+public class AssertGivenNameAndFamilyNameDoestExistInPipelineData : Command
+{
+    protected override Task ExecuteAsync(ICommandContext context)
+    {
+        Assert.False(context.ExistsInPipelineData("Given name"));
+        Assert.False(context.ExistsInPipelineData("Family name"));
+
+        Assert.Null(context.GetFromPipelineDataOrDefault<string>("Given name"));
+        Assert.Null(context.GetFromPipelineDataOrDefault<string>("Family name"));
+
+        Assert.Throws<KeyNotFoundException>(() => context.GetFromPipelineData<string>("Given name"));
+        Assert.Throws<KeyNotFoundException>(() => context.GetFromPipelineData<string>("Family name"));
+
+        return Task.CompletedTask;
+    }
+}
+
+public class SetGivenAndFamilyNamesInPipelineData(string givenName, string familyName) : Command
+{
+    protected override Task ExecuteAsync(ICommandContext context)
+    {
+        context.SetInPipelineData("Given name", givenName);
+        context.SetInPipelineData("Family name", familyName);
+
+        return Task.CompletedTask;
+    }
+}
+
+public class AssertIvanMontillaIsInPipelineData : Command
+{
+    protected override Task ExecuteAsync(ICommandContext context)
+    {
+        Assert.True(context.ExistsInPipelineData("Given name"));
+        Assert.True(context.ExistsInPipelineData("Family name"));
+
+        Assert.Equal("Ivan", context.GetFromPipelineData<string>("Given name"));
+        Assert.Equal("Montilla", context.GetFromPipelineData<string>("Family name"));
+
+        return Task.CompletedTask;
+    }
+}
+
+public class AssertIvanMontillaIsNotInPipelineData : Command
+{
+    protected override Task ExecuteAsync(ICommandContext context)
+    {
+        Assert.False(context.ExistsInPipelineData("Given name"));
+        Assert.False(context.ExistsInPipelineData("Family name"));
+
+        return Task.CompletedTask;
     }
 }

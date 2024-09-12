@@ -19,16 +19,8 @@ public class CommandExecutor : ICommandExecutor
         IEnumerable<KeyValuePair<string, object?>>? sharedData = null)
     {
         this.middlewares = middlewares;
-
-        if (sharedData is Dictionary<string, object?> sharedDataAsDict)
-        {
-            this.sharedData = sharedDataAsDict;
-        }
-        else
-        {
-            this.sharedData = sharedData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ??
-                              new Dictionary<string, object?>();
-        }
+        this.sharedData = sharedData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ??
+                          new Dictionary<string, object?>();
     }
 
     public async Task InvokeAsync<TCommand>(TCommand command, CancellationToken cancellationToken)
@@ -44,7 +36,8 @@ public class CommandExecutor : ICommandExecutor
         Log.Trace("Command '{command}' invoked.", command.GetType());
     }
 
-    public async Task<TResult> InvokeAsync<TCommand, TResult>(TCommand command, CancellationToken cancellationToken)
+    public async Task<TResult> InvokeAsync<TCommand, TResult>(TCommand command,
+        CancellationToken cancellationToken)
         where TCommand : Command<TResult>
     {
         Log.Info("Invoking pipeline for command '{command}'...", command.GetType());

@@ -4,7 +4,7 @@ using Xunit;
 
 namespace IOKode.OpinionatedFramework.Tests.CommandExecutor;
 
-public class ShareDataTests
+public class SharedDataTests
 {
     [Fact]
     public async Task InvokeCommandsThatSetAndRemovesSharedData()
@@ -16,7 +16,7 @@ public class ShareDataTests
         await executor.InvokeAsync(new AssertGivenNameAndFamilyNameDoestExistInSharedData(), default);
         await executor.InvokeAsync(new SetGivenAndFamilyNamesInSharedData("Ivan", "Montilla"), default);
         await executor.InvokeAsync(new AssertIvanMontillaInSharedData(), default);
-        await executor.InvokeAsync(new RemoveGivenAndFamilyNameFromShareData(), CancellationToken.None);
+        await executor.InvokeAsync(new RemoveGivenAndFamilyNameFromSharedData(), CancellationToken.None);
         await executor.InvokeAsync(new AssertGivenNameAndFamilyNameDoestExistInSharedData(), default);
     }
 
@@ -29,8 +29,8 @@ public class ShareDataTests
         // Act & Assert
         await executor.InvokeAsync<ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData, int>(new ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData(), default);
         await executor.InvokeAsync<ResultingSetGivenAndFamilyNamesInSharedData, int>(new ResultingSetGivenAndFamilyNamesInSharedData("Ivan", "Montilla"), default);
-        await executor.InvokeAsync<ResultingAssertIvanMontillaInSharedData, int>(new ResultingAssertIvanMontillaInSharedData(), default);
-        await executor.InvokeAsync<ResultingRemoveGivenAndFamilyNameFromShareData, int>(new ResultingRemoveGivenAndFamilyNameFromShareData(), CancellationToken.None);
+        await executor.InvokeAsync<ResultingAssertIvanMontillaIsInSharedData, int>(new ResultingAssertIvanMontillaIsInSharedData(), default);
+        await executor.InvokeAsync<ResultingRemoveGivenAndFamilyNameFromSharedData, int>(new ResultingRemoveGivenAndFamilyNameFromSharedData(), CancellationToken.None);
         await executor.InvokeAsync<ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData, int>(new ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData(), default);
     }
     
@@ -43,8 +43,8 @@ public class ShareDataTests
         // Act & Assert
         await executor.InvokeAsync<ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData, int>(new ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData(), default);
         await executor.InvokeAsync(new SetGivenAndFamilyNamesInSharedData("Ivan", "Montilla"), default);
-        await executor.InvokeAsync<ResultingAssertIvanMontillaInSharedData, int>(new ResultingAssertIvanMontillaInSharedData(), default);
-        await executor.InvokeAsync<ResultingRemoveGivenAndFamilyNameFromShareData, int>(new ResultingRemoveGivenAndFamilyNameFromShareData(), CancellationToken.None);
+        await executor.InvokeAsync<ResultingAssertIvanMontillaIsInSharedData, int>(new ResultingAssertIvanMontillaIsInSharedData(), default);
+        await executor.InvokeAsync<ResultingRemoveGivenAndFamilyNameFromSharedData, int>(new ResultingRemoveGivenAndFamilyNameFromSharedData(), CancellationToken.None);
         await executor.InvokeAsync(new AssertGivenNameAndFamilyNameDoestExistInSharedData(), default);
     }
 }

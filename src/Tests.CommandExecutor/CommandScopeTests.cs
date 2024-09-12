@@ -105,7 +105,7 @@ public class CommandScopeTests
     
     private class SetSampleServiceInSharedDataMiddleware : CommandMiddleware
     {
-        public override Task ExecuteAsync(CommandContext context, InvokeNextMiddlewareDelegate nextAsync)
+        public override Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
         {
             context.SetInSharedData("Service", Locator.Resolve<SampleService>());
             return Task.CompletedTask;
@@ -114,7 +114,7 @@ public class CommandScopeTests
 
     private class AssertSharedDateServiceIsSameCommand : Command
     {
-        protected override Task ExecuteAsync(CommandContext context)
+        protected override Task ExecuteAsync(ICommandContext context)
         {
             var serviceFromSharedData = context.GetFromSharedDataOrDefault("Service");
             var serviceFromLocator = Locator.Resolve<SampleService>();
@@ -127,7 +127,7 @@ public class CommandScopeTests
 
     private class SampleCommand : Command<(SampleService, SampleService)>
     {
-        protected override Task<(SampleService, SampleService)> ExecuteAsync(CommandContext context)
+        protected override Task<(SampleService, SampleService)> ExecuteAsync(ICommandContext context)
         {
             var service = Locator.Resolve<SampleService>();
             var service2 = Locator.Resolve<SampleService>();
@@ -138,7 +138,7 @@ public class CommandScopeTests
 
     private class GetProviderCommand : Command<IServiceProvider>
     {
-        protected override Task<IServiceProvider> ExecuteAsync(CommandContext context)
+        protected override Task<IServiceProvider> ExecuteAsync(ICommandContext context)
         {
             return Task.FromResult(Locator.ServiceProvider!);
         }
@@ -156,7 +156,7 @@ public class CommandScopeTests
 
     private class SampleCommandWithScopedState : Command<string>
     {
-        protected override async Task<string> ExecuteAsync(CommandContext context)
+        protected override async Task<string> ExecuteAsync(ICommandContext context)
         {
             var scopedStateService = Locator.Resolve<ScopedStateService>();
             var scopedStateToModify = Locator.Resolve<ScopedStateService>();
@@ -190,7 +190,7 @@ public class CommandScopeTests
             }
         }
 
-        protected override async Task<(SampleService, SampleService)> ExecuteAsync(CommandContext context)
+        protected override async Task<(SampleService, SampleService)> ExecuteAsync(ICommandContext context)
         {
             var sync = new InnerSyncClass();
             var async = new InnerAsyncClass();
