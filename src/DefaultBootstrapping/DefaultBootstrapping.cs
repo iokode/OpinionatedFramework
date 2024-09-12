@@ -15,25 +15,27 @@ namespace IOKode.OpinionatedFramework.DefaultBootstrapping;
 
 public static class DefaultBootstrapping
 {
-    public static void Bootstrap(IConfiguration configuration)
+    public static void Bootstrap(IConfiguration configuration, string frameworkConfigSection = "OpinionatedFramework")
     {
+        var frameworkConfig = configuration.GetSection(frameworkConfigSection);
+
         Container.Services.AddTransient<IEncrypter, Aes256GcmModeEncrypter>();
         Container.Services.AddTransient<IPasswordHasher, BcryptPasswordHasher>();
 
         Container.Services.AddDefaultCommandExecutor();
 
-        if (configuration["Email:Logger"] == "true")
+        if (frameworkConfig["Email:Logger"] == "true")
         {
             Container.Services.AddLoggerEmail();
         }
         else
         {
-            Container.Services.AddMailKit(configuration.GetSection("Email:Smtp"));
+            Container.Services.AddMailKit(frameworkConfig.GetSection("Email:Smtp"));
         }
 
         Container.Services.AddMicrosoftLogging(options =>
         {
-            var minimumLevel = configuration["Logging:MinimumLevel"] switch
+            var minimumLevel = frameworkConfig["Logging:MinimumLevel"] switch
             {
                 "Trace" => LogLevel.Trace,
                 "Debug" => LogLevel.Debug,
@@ -49,5 +51,11 @@ public static class DefaultBootstrapping
         });
 
         Container.Services.AddMicrosoftConfiguration(configuration);
+    }
+
+    public static void BootstrapAndInitialize(IConfiguration configuration, string frameworkConfigSection = "OpinionatedFramework")
+    {
+        Bootstrap(configuration, frameworkConfigSection);
+        Container.Initialize();
     }
 }
