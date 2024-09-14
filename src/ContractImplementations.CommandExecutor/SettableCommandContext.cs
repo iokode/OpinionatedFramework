@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using IOKode.OpinionatedFramework.Commands;
 
@@ -10,8 +9,11 @@ internal class SettableCommandContext : ICommandContext
 {
     private Dictionary<string, object?> sharedData = null!;
     private readonly Dictionary<string, object?> pipelineData = new();
+    private readonly ISharedDataAccessor pipelineDataAccessor;
+    private ISharedDataAccessor sharedDataAccessor;
 
-    internal Dictionary<string, object?> SharedData => this.sharedData;
+    public ISharedDataAccessor SharedData => sharedDataAccessor;
+    public ISharedDataAccessor PipelineData => pipelineDataAccessor;
 
     public Type CommandType { get; private init; } = null!;
     public CancellationToken CancellationToken { get; set; }
@@ -19,8 +21,11 @@ internal class SettableCommandContext : ICommandContext
     public bool HasResult { get; private set; }
     public object? Result { get; private set; }
 
-    private SettableCommandContext()
+    private SettableCommandContext(Dictionary<string, object?> initialSharedData)
     {
+        this.sharedData = initialSharedData;
+        this.sharedDataAccessor = new DictionarySharedDataAccessor(this.sharedData);
+        this.pipelineDataAccessor = new DictionarySharedDataAccessor(this.pipelineData);
     }
 
     public void SetAsExecuted() => IsExecuted = true;
@@ -31,69 +36,22 @@ internal class SettableCommandContext : ICommandContext
         Result = result;
     }
 
-    public static SettableCommandContext Create(Type commandType, IEnumerable<KeyValuePair<string, object?>>? initialSharedData,
+    public static SettableCommandContext Create(Type commandType, Dictionary<string, object?> initialSharedData,
         CancellationToken cancellationToken)
     {
-        var context = new SettableCommandContext
+        var context = new SettableCommandContext(initialSharedData)
         {
             CommandType = commandType,
             CancellationToken = cancellationToken,
-            sharedData = initialSharedData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, object?>()
         };
+
+        context.SetSharedDataAccessor();
 
         return context;
     }
 
-    public bool ExistsInSharedData(string key)
+    private void SetSharedDataAccessor()
     {
-        bool exists = this.sharedData.ContainsKey(key);
-        return exists;
-    }
-
-    public object? GetFromSharedData(string key)
-    {
-        object? value = this.sharedData[key];
-        return value;
-    }
-
-    public object? GetFromSharedDataOrDefault(string key)
-    {
-        object? value = this.sharedData.GetValueOrDefault(key);
-        return value;
-    }
-
-    public void SetInSharedData(string key, object? value)
-    {
-        this.sharedData[key] = value;
-    }
-
-    public void RemoveFromSharedData(string key)
-    {
-        this.sharedData.Remove(key);
-    }
-    
-    public bool ExistsInPipelineData(string key)
-    {
-        return this.pipelineData.ContainsKey(key);
-    }
-
-    public object? GetFromPipelineData(string key)
-    {
-        return this.pipelineData[key];
-    }
-
-    public object? GetFromPipelineDataOrDefault(string key)
-    {
-        return this.pipelineData.GetValueOrDefault(key);
-    }
-
-    public void SetInPipelineData(string key, object? value)
-    {
-        this.pipelineData[key] = value;
-    }
-
-    public void RemoveFromPipelineData(string key)
-    {
-        this.pipelineData.Remove(key);
+        this.sharedDataAccessor = new DictionarySharedDataAccessor(this.sharedData);
     }
 }

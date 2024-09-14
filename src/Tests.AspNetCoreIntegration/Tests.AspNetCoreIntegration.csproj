@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\AspNetCoreIntegration\AspNetCoreIntegration.csproj"/>
+        <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
+        <ProjectReference Include="..\ContractImplementations.CommandExecutor\ContractImplementations.CommandExecutor.csproj" />
+        <ProjectReference Include="..\Tests.AspNetCoreIntegration.SessionEntryPoint\Tests.AspNetCoreIntegration.SessionEntryPoint.csproj" />
+    </ItemGroup>
+
+    <ItemGroup Label="Package references">
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.8" />
+    </ItemGroup>
+</Project>

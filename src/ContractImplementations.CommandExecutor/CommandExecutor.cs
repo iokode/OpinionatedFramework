@@ -13,7 +13,7 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 public class CommandExecutor : ICommandExecutor
 {
     private readonly CommandMiddleware[] middlewares;
-    private Dictionary<string, object?>? sharedData;
+    private readonly Dictionary<string, object?> sharedData;
 
     public CommandExecutor(CommandMiddleware[] middlewares,
         IEnumerable<KeyValuePair<string, object?>>? sharedData = null)
@@ -83,7 +83,7 @@ public class CommandExecutor : ICommandExecutor
         }
 
         context.SetAsExecuted();
-        this.sharedData = context.SharedData;
+        // No need to set the shared data again because it uses the same reference.
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public class CommandExecutor : ICommandExecutor
 
         context.SetAsExecuted();
         context.SetResult(result);
-        this.sharedData = context.SharedData;
+        // No need to set the shared data again because it uses the same reference.
 
         return result;
     }
