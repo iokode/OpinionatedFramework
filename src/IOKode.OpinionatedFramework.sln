@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.MicrosoftConfiguratio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DefaultBootstrapping", "DefaultBootstrapping\DefaultBootstrapping.csproj", "{20106B8C-E158-4284-884D-2D1A7822D0B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCoreIntegration", "AspNetCoreIntegration\AspNetCoreIntegration.csproj", "{792E89F9-FF31-4945-BAFD-2CFAC0D575C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -165,6 +167,10 @@ Global
 		{20106B8C-E158-4284-884D-2D1A7822D0B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20106B8C-E158-4284-884D-2D1A7822D0B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20106B8C-E158-4284-884D-2D1A7822D0B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{792E89F9-FF31-4945-BAFD-2CFAC0D575C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{792E89F9-FF31-4945-BAFD-2CFAC0D575C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{792E89F9-FF31-4945-BAFD-2CFAC0D575C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{792E89F9-FF31-4945-BAFD-2CFAC0D575C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

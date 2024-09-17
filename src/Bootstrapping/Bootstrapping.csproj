@@ -2,6 +2,10 @@
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Packable.props"/>
 
+    <PropertyGroup>
+        <TargetType>Library</TargetType>
+    </PropertyGroup>
+    
     <ItemGroup Label="Package references">
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0"/>
     </ItemGroup>

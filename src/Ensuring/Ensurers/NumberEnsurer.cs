@@ -8,6 +8,4 @@ namespace IOKode.OpinionatedFramework.Ensuring.Ensurers;
 /// As part of the Ensure API mechanism, this class is static.
 /// </remarks>
 [Ensurer]
-public static partial class NumberEnsurer
-{
-}
+public static partial class NumberEnsurer;

@@ -9,7 +9,7 @@ public class UpdateSharedDataMiddleware : CommandMiddleware
 {
     public override async Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
     {
-        context.SetInSharedData("number1", 3);
+        context.SharedData.Set("number1", 3);
         await nextAsync(context);
     }
 }
@@ -86,8 +86,8 @@ public class SetIvanMontillaInPipelineDataMiddleware : CommandMiddleware
 {
     public override async Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
     {
-        context.SetInPipelineData("Given name", "Ivan");
-        context.SetInPipelineData("Family name", "Montilla");
+        context.PipelineData.Set("Given name", "Ivan");
+        context.PipelineData.Set("Family name", "Montilla");
 
         await nextAsync(context);
     }

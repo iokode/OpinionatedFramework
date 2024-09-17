@@ -5,19 +5,13 @@ using Microsoft.Extensions.Logging;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.MicrosoftLogging;
 
-public class Logging : ILogging
+public class Logging(ILoggerFactory loggerFactory) : ILogging
 {
-    private readonly ILoggerFactory loggerFactory;
     private ConcurrentDictionary<string, ILogger> loggers = new();
-
-    public Logging(ILoggerFactory loggerFactory)
-    {
-        this.loggerFactory = loggerFactory;
-    }
 
     public ILogger FromCategory(string category)
     {
-        return loggers.GetOrAdd(category, cat => loggerFactory.CreateLogger(cat));
+        return loggers.GetOrAdd(category, loggerFactory.CreateLogger);
     }
 
     public ILogger FromCategory(Type categoryType)

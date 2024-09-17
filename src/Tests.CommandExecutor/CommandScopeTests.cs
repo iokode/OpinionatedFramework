@@ -107,7 +107,7 @@ public class CommandScopeTests
     {
         public override Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
         {
-            context.SetInSharedData("Service", Locator.Resolve<SampleService>());
+            context.SharedData.Set("Service", Locator.Resolve<SampleService>());
             return Task.CompletedTask;
         }
     }
@@ -116,7 +116,7 @@ public class CommandScopeTests
     {
         protected override Task ExecuteAsync(ICommandContext context)
         {
-            var serviceFromSharedData = context.GetFromSharedDataOrDefault("Service");
+            var serviceFromSharedData = context.SharedData.GetOrDefault("Service");
             var serviceFromLocator = Locator.Resolve<SampleService>();
             
             Assert.Same(serviceFromLocator, serviceFromSharedData);
