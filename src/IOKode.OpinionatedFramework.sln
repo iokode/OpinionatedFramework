@@ -61,10 +61,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DefaultBootstrapping", "Def
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCoreIntegration", "AspNetCoreIntegration\AspNetCoreIntegration.csproj", "{792E89F9-FF31-4945-BAFD-2CFAC0D575C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.AspNetCoreIntegration", "Tests.AspNetCoreIntegration\Tests.AspNetCoreIntegration.csproj", "{8F759EF9-62F3-44E3-B1FE-AA0650136179}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.AspNetCoreIntegration.SessionEntryPoint", "Tests.AspNetCoreIntegration.SessionEntryPoint\Tests.AspNetCoreIntegration.SessionEntryPoint.csproj", "{2B0A3DD0-E1CA-4CB2-8883-56329A1201E1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -175,14 +171,6 @@ Global
 		{792E89F9-FF31-4945-BAFD-2CFAC0D575C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{792E89F9-FF31-4945-BAFD-2CFAC0D575C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{792E89F9-FF31-4945-BAFD-2CFAC0D575C2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8F759EF9-62F3-44E3-B1FE-AA0650136179}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8F759EF9-62F3-44E3-B1FE-AA0650136179}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8F759EF9-62F3-44E3-B1FE-AA0650136179}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8F759EF9-62F3-44E3-B1FE-AA0650136179}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2B0A3DD0-E1CA-4CB2-8883-56329A1201E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2B0A3DD0-E1CA-4CB2-8883-56329A1201E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2B0A3DD0-E1CA-4CB2-8883-56329A1201E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2B0A3DD0-E1CA-4CB2-8883-56329A1201E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -209,7 +197,5 @@ Global
 		{A5A2C6D2-7069-4EF7-9391-0FA04924031A} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
 		{AB7AE28D-9F0D-4528-B8FD-FCC4263F2227} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
 		{F034D634-3141-4E98-97F1-BB9DF22C4917} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
-		{8F759EF9-62F3-44E3-B1FE-AA0650136179} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
-		{2B0A3DD0-E1CA-4CB2-8883-56329A1201E1} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
 	EndGlobalSection
 EndGlobal

@@ -52,6 +52,4 @@ public interface ICommandContext
     /// Local data to a command and middleware in the same pipeline.
     /// </summary>
     public ISharedDataAccessor PipelineData { get; }
-
-    public ISessionDataAccessor SessionData { get; }
 }
