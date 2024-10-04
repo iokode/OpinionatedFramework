@@ -30,9 +30,7 @@ public class MicrosoftConfigurationProvider : IConfigurationProvider
                 var section = this.configuration.GetSection(key);
                 if (section.Exists())
                 {
-                    var result = Activator.CreateInstance<T>();
-                    section.Bind(result);
-                    return result;
+                    return section.Get<T>();
                 }
             }
 
