@@ -2,8 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.ConfigureApplication;
-using IOKode.OpinionatedFramework.ContractImplementations.FileSystem;
+using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.FileSystem;
@@ -12,7 +11,7 @@ using Xunit;
 using Directory = System.IO.Directory;
 using File = System.IO.File;
 
-namespace Tests.LocalFileSystem;
+namespace IOKode.OpinionatedFramework.Tests.LocalFileSystem;
 
 public class LocalDirectoryTests : IDisposable
 {
@@ -21,10 +20,10 @@ public class LocalDirectoryTests : IDisposable
 
     public LocalDirectoryTests()
     {
-        Container.Clear();
+        Container.Advanced.Clear();
         Container.Services.AddSingleton<IFileSystem>(_ =>
         {
-            var fileSystem = new FileSystem();
+            var fileSystem = new ContractImplementations.FileSystem.FileSystem();
             fileSystem.AddDisk(_diskname, new LocalDisk(Path.GetTempPath()));
 
             return fileSystem;
@@ -172,7 +171,7 @@ public class LocalDirectoryTests : IDisposable
     public void Dispose()
     {
         DeleteDirectory();
-        Container.Clear();
+        Container.Advanced.Clear();
     }
 
     private void DeleteDirectory()

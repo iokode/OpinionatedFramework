@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Google.Cloud.Storage.V1;
-using IOKode.OpinionatedFramework.ConfigureApplication;
+using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.FileSystem;
 using IOKode.OpinionatedFramework.ContractImplementations.GoogleCloudStorage;
 using IOKode.OpinionatedFramework.Facades;
@@ -314,7 +314,7 @@ public class GcsTests : IDisposable
 
     public void Dispose()
     {
-        Container.Clear();
+        Container.Advanced.Clear();
         _client.Dispose();
     }
 }

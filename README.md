@@ -3,7 +3,7 @@
     <em>Architectural Clarity, Without the Constraints.</em>
 </p>
 
-OpinionatedFramework is a robust, comprehensive .NET 7+ framework designed to streamline the development of the application/domain layer. With a strong focus on architectural principles and modern development practices, OpinionatedFramework assists developers in implementing scalable and maintainable software solutions.
+OpinionatedFramework is a robust, comprehensive .NET 8+ framework designed to streamline the development of the application/domain layer. With a strong focus on architectural principles and modern development practices, OpinionatedFramework assists developers in implementing scalable and maintainable software solutions.
 
 **The heart of OpinionatedFramework is our opinionated approach.** We provide a suite of tools that guide and structure the way you develop your application, making design decisions with experience and best practices in mind. This does not limit flexibility, as our core interfaces have default implementations but allow for custom ones.
 
@@ -21,15 +21,15 @@ Additionally, please note that we have not released any NuGet packages yet. We'r
 ## Why use OpinionatedFramework?
 While the usual practice is to keep the application layer independent of the framework, OpinionatedFramework is an exception to the rule. Here's why:
 
-### Minimal infrastructure coupling
-With OpinionatedFramework, you aren't actually coupled to the infrastructure. Your application layer can remain neutral, giving you the freedom to use your app in a web, mobile, or desktop context without traditional framework dependencies. Need to send emails? You can either use a straightforward SMTP approach or switch to something more custom like MailChimp by simply providing custom implementations of the contracts.
-
 ### Don't reinvent the wheel
 Starting a new project often means creating foundational interfaces like EmailSender or UnitOfWork in the application layer and implementing them in the infrastructure layer. With OpinionatedFramework, you no longer need to do this. We provide these interfaces out of the box, reducing boilerplate and getting you up and running faster.
 
 ### Not coupled to the infrastructure
+With OpinionatedFramework, you aren't actually coupled to the infrastructure. Your application layer can remain neutral, giving you the freedom to use your app in a web, mobile, or desktop context without traditional framework dependencies. Need to send emails? You can either use a straightforward SMTP approach or switch to something more custom like MailChimp by simply providing custom implementations of the contracts.
+
 Our default implementations are conveniently placed in a separate package. This means your application layer won't be forced to depend on it. Your infrastructure layer can choose to use these default implementations or easily substitute its own, giving you both flexibility and control over your project's infrastructure.
 
+### Focus on what really matters
 OpinionatedFramework simplifies the entire development process. It streamlines your project setup, facilitates architectural decisions, and significantly reduces the time you spend on repetitive tasks, allowing you to focus on building what really matters: your application's unique features.
 
 ## Features
@@ -44,6 +44,7 @@ OpinionatedFramework comes bundled with a myriad of features:
 - **Job Queue**: Manage background tasks efficiently.
 - **Job Scheduling**: Plan and schedule tasks effortlessly.
 - **Notifications**: Notify users via different channels like email, SMS, Slack, Teams, etc.
+- **Logging**: Write logs to multiple streams.
 - **Text translations**: Localize your applications easily.
 - **Validation**: Validate preconditions, postconditions and invariants.
 - **Service Container**: Implement a service container without dependency injection, using a static locator with scope in a command execution.
@@ -52,19 +53,20 @@ OpinionatedFramework comes bundled with a myriad of features:
 ## Core interfaces
 Our core interfaces each have a default implementation, but can also be customized according to your specific needs:
 
-| Contract                                                                                                                                                              | Default Implementation                                                                                                                                       |
-|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`ICommandExecutor`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/ICommandExecutor.cs)               | [`CommandExecutor`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.CommandExecutor/CommandExecutor.cs)                 |
-| [`IFileSystem`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/ICommandExecutor.cs)                    | [`FileSystem`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.FileSystem/FileSystem.cs)                                |
-| [`IEmailSender`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IEmailSender.cs)                       | [`MailKitEmailSender`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.MailKit/MailKitEmailSender.cs)                   |
+| Contract                                                                                                                                  | Default Implementation                                                                                                                                            |
+|-------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ICommandExecutor`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/ICommandExecutor.cs)               | [`CommandExecutor`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.CommandExecutor/CommandExecutor.cs)                      |
+| [`IFileSystem`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/ICommandExecutor.cs)                    | [`FileSystem`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.FileSystem/FileSystem.cs)                                     |
+| [`IEmailSender`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IEmailSender.cs)                       | [`MailKitEmailSender`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.MailKit/MailKitEmailSender.cs)                        |
 | [`IEncrypter`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IEncrypter.cs)                           | [`Aes256GcmModeEncrypter`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.Aes256GcmModeEncrypter/Aes256Hmac512Encrypter.cs) |
-| [`IEventDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IEventDispatcher.cs)               | [`EventDispatcher`]                                                                                                                                          |
-| [`IJobEnqueuer`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IJobEnqueuer.cs)                       | [`JobEnqueuer`]                                                                                                                                              |
-| [`IJobScheduler`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IJobScheduler.cs)                     | [`JobScheduler`]                                                                                                                                             |
-| [`INotificationDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/INotificationDispatcher.cs) | [`NotificationDispatcher`]                                                                                                                                   |
-| [`IPasswordHasher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IPasswordHasher.cs)                 | [`PasswordHasher`]                                                                                                                                           |
-| [`ITextTranslator`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/ITextTranslator.cs)                 | [`TextTranslator`]                                                                                                                                           |
-| [`IUnitOfWorkFactory`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IUnitOfWorkFactory.cs)           | [`UnitOfWorkFactory`]                                                                                                                                        |
+| [`IEventDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IEventDispatcher.cs)               | [`EventDispatcher`]                                                                                                                                               |
+| [`IJobEnqueuer`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IJobEnqueuer.cs)                       | [`JobEnqueuer`]                                                                                                                                                   |
+| [`IJobScheduler`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IJobScheduler.cs)                     | [`JobScheduler`]                                                                                                                                                  |
+| [`INotificationDispatcher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/INotificationDispatcher.cs) | [`NotificationDispatcher`]                                                                                                                                        |
+| [`IPasswordHasher`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IPasswordHasher.cs)                 | [`PasswordHasher`]                                                                                                                                                |
+| [`ITextTranslator`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/ITextTranslator.cs)                 | [`TextTranslator`]                                                                                                                                                |
+| [`IUnitOfWorkFactory`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Contracts/IUnitOfWorkFactory.cs)           | [`UnitOfWorkFactory`]                                                                                                                                             |
+| [`ILogging`](https://github.com/iokode/OpinionatedFramework/blob/main/src/Foundation/Logging/ILogging.cs)                                 | [`MicrosoftLogging/Logging`](https://github.com/iokode/OpinionatedFramework/blob/main/src/ContractImplementations.MicrosoftLogging/Logging.cs)                    |
 
 ## How to use
 Detailed documentation on how to use each feature will be available in our [wiki](https://github.com/iokode/OpinionatedFramework/wiki). Stay tuned!

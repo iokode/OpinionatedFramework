@@ -3,8 +3,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.Commands;
-using IOKode.OpinionatedFramework.ConfigureApplication;
+using IOKode.OpinionatedFramework.Facades;
 using Command = IOKode.OpinionatedFramework.Commands.Command;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
@@ -12,41 +13,42 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 public class CommandExecutor : ICommandExecutor
 {
     private readonly CommandMiddleware[] middlewares;
-    private Dictionary<string, object?>? sharedData;
+    private readonly Dictionary<string, object?> sharedData;
 
     public CommandExecutor(CommandMiddleware[] middlewares,
         IEnumerable<KeyValuePair<string, object?>>? sharedData = null)
     {
         this.middlewares = middlewares;
-
-        if (sharedData is Dictionary<string, object?> sharedDataAsDict)
-        {
-            this.sharedData = sharedDataAsDict;
-        }
-        else
-        {
-            this.sharedData = sharedData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, object?>();
-        }
+        this.sharedData = sharedData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ??
+                          new Dictionary<string, object?>();
     }
 
     public async Task InvokeAsync<TCommand>(TCommand command, CancellationToken cancellationToken)
         where TCommand : Command
     {
-        using (Container.CreateScope())
-        {
-            var context = SettableCommandContext.Create(command.GetType(), this.sharedData, cancellationToken);
-            await InvokeMiddlewarePipeline(command, context, 0);
-        }
+        Log.Trace("Invoking pipeline for command '{command}'...", command.GetType());
+
+        Container.Advanced.CreateScope();
+        var context = SettableCommandContext.Create(command.GetType(), this.sharedData, cancellationToken);
+        await InvokeMiddlewarePipeline(command, context, 0);
+        Container.Advanced.DisposeScope();
+
+        Log.Trace("Command '{command}' invoked.", command.GetType());
     }
 
-    public async Task<TResult> InvokeAsync<TCommand, TResult>(TCommand command, CancellationToken cancellationToken)
+    public async Task<TResult> InvokeAsync<TCommand, TResult>(TCommand command,
+        CancellationToken cancellationToken)
         where TCommand : Command<TResult>
     {
-        using (Container.CreateScope())
-        {
-            var context = SettableCommandContext.Create(command.GetType(), sharedData, cancellationToken);
-            return await InvokeMiddlewarePipeline<TCommand, TResult>(command, context, 0);
-        }
+        Log.Info("Invoking pipeline for command '{command}'...", command.GetType());
+
+        Container.Advanced.CreateScope();
+        var context = SettableCommandContext.Create(command.GetType(), sharedData, cancellationToken);
+        var result = await InvokeMiddlewarePipeline<TCommand, TResult>(command, context, 0);
+        Container.Advanced.DisposeScope();
+
+        Log.Trace("Command '{command}' invoked.", command.GetType());
+        return result;
     }
 
     private static MethodInfo GetExecuteMethod<TCommand>()
@@ -81,7 +83,7 @@ public class CommandExecutor : ICommandExecutor
         }
 
         context.SetAsExecuted();
-        this.sharedData = context.ShareData;
+        // No need to set the shared data again because it uses the same reference.
     }
 
     /// <summary>
@@ -107,7 +109,7 @@ public class CommandExecutor : ICommandExecutor
 
         context.SetAsExecuted();
         context.SetResult(result);
-        this.sharedData = context.ShareData;
+        // No need to set the shared data again because it uses the same reference.
 
         return result;
     }

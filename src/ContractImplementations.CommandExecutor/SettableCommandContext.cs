@@ -1,19 +1,31 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using IOKode.OpinionatedFramework.Commands;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 
-internal class SettableCommandContext : CommandContext
+internal class SettableCommandContext : ICommandContext
 {
     private Dictionary<string, object?> sharedData = null!;
+    private readonly Dictionary<string, object?> pipelineData = new();
+    private readonly ISharedDataAccessor pipelineDataAccessor;
+    private ISharedDataAccessor sharedDataAccessor;
 
-    internal Dictionary<string, object?> ShareData => this.sharedData;
+    public ISharedDataAccessor SharedData => sharedDataAccessor;
+    public ISharedDataAccessor PipelineData => pipelineDataAccessor;
 
-    private SettableCommandContext()
+    public Type CommandType { get; private init; } = null!;
+    public CancellationToken CancellationToken { get; set; }
+    public bool IsExecuted { get; private set; }
+    public bool HasResult { get; private set; }
+    public object? Result { get; private set; }
+
+    private SettableCommandContext(Dictionary<string, object?> initialSharedData)
     {
+        this.sharedData = initialSharedData;
+        this.sharedDataAccessor = new DictionarySharedDataAccessor(this.sharedData);
+        this.pipelineDataAccessor = new DictionarySharedDataAccessor(this.pipelineData);
     }
 
     public void SetAsExecuted() => IsExecuted = true;
@@ -24,44 +36,22 @@ internal class SettableCommandContext : CommandContext
         Result = result;
     }
 
-    public static SettableCommandContext Create(Type commandType, IEnumerable<KeyValuePair<string, object?>>? initialSharedData,
+    public static SettableCommandContext Create(Type commandType, Dictionary<string, object?> initialSharedData,
         CancellationToken cancellationToken)
     {
-        var ctx = new SettableCommandContext
+        var context = new SettableCommandContext(initialSharedData)
         {
             CommandType = commandType,
             CancellationToken = cancellationToken,
-            sharedData = initialSharedData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, object?>()
         };
 
-        return ctx;
+        context.SetSharedDataAccessor();
+
+        return context;
     }
 
-    public override bool ExistsInSharedData(string key)
+    private void SetSharedDataAccessor()
     {
-        bool exists = this.sharedData.ContainsKey(key);
-        return exists;
-    }
-
-    public override object? GetFromSharedData(string key)
-    {
-        object? value = this.sharedData[key];
-        return value;
-    }
-
-    public override object? GetFromSharedDataOrDefault(string key)
-    {
-        object? value = this.sharedData.GetValueOrDefault(key);
-        return value;
-    }
-
-    public override void SetInSharedData(string key, object? value)
-    {
-        this.sharedData[key] = value;
-    }
-
-    public override void RemoveFromSharedData(string key)
-    {
-        this.sharedData.Remove(key);
+        this.sharedDataAccessor = new DictionarySharedDataAccessor(this.sharedData);
     }
 }

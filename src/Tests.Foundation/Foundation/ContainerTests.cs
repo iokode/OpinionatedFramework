@@ -1,5 +1,5 @@
 using System;
-using IOKode.OpinionatedFramework.ConfigureApplication;
+using IOKode.OpinionatedFramework.Bootstrapping;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IOKode.OpinionatedFramework.Tests.Foundation.Foundation;
@@ -121,6 +121,6 @@ public class ContainerTests : IDisposable
 
     public void Dispose()
     {
-        Container.Clear();
+        Container.Advanced.Clear();
     }
 }

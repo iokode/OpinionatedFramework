@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Commands;
 using Xunit;
 
 namespace IOKode.OpinionatedFramework.Tests.CommandExecutor;
@@ -64,7 +63,7 @@ public class CommandExecutorTests
     public async Task SharedDataFromConstructor_IsPassedToCommand()
     {
         // Arrange
-        var executor = Helpers.CreateExecutor(null, new Dictionary<string, object>
+        var executor = Helpers.CreateExecutor(null, new Dictionary<string, object?>
         {
             { "number1", 2 },
             { "number2", 3 }
@@ -82,10 +81,9 @@ public class CommandExecutorTests
     public async Task MiddlewareUpdatesSharedData_IsPassedToCommand()
     {
         // Arrange
-        var executor = Helpers.CreateExecutor(new CommandMiddleware[]
-        {
+        var executor = Helpers.CreateExecutor([
             new UpdateSharedDataMiddleware()
-        }, new Dictionary<string, object>
+        ], new Dictionary<string, object?>
         {
             { "number1", 2 },
             { "number2", 3 }
@@ -93,7 +91,7 @@ public class CommandExecutorTests
 
         // Act
         var cmd = new SumNumbersFromSharedDataCommand();
-        int result = await executor.InvokeAsync<SumNumbersFromSharedDataCommand, int>(cmd, default);
+        int result = (await executor.InvokeAsync<SumNumbersFromSharedDataCommand, int>(cmd, default));
 
         // Assert
         Assert.Equal(6, result);

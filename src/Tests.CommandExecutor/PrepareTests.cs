@@ -20,9 +20,9 @@ public class PrepareTests
     private abstract class PreparedCommandBase : Command
     {
         protected bool IsPrepared;
-        protected CommandContext Ctx = null!;
+        protected ICommandContext Ctx = null!;
 
-        protected override Task PrepareAsync(CommandContext context)
+        protected override Task PrepareAsync(ICommandContext context)
         {
             IsPrepared = true;
             Ctx = context;
@@ -32,7 +32,7 @@ public class PrepareTests
 
     private class VoidCommand : PreparedCommandBase
     {
-        protected override Task ExecuteAsync(CommandContext context)
+        protected override Task ExecuteAsync(ICommandContext context)
         {
             Assert.True(IsPrepared);
             Assert.Same(context, Ctx);

@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\ContractImplementations.MicrosoftConfiguration\ContractImplementations.MicrosoftConfiguration.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Package references">
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    </ItemGroup>
+</Project>

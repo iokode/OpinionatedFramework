@@ -1,30 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
 
-    <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <IsPackable>false</IsPackable>
-        <IsTestProject>true</IsTestProject>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
-        <PackageReference Include="xunit" Version="2.4.2" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-        <PackageReference Include="coverlet.collector" Version="3.2.0">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
+        <ProjectReference Include="..\ContractImplementations.FileSystem\ContractImplementations.FileSystem.csproj"/>
+        <ProjectReference Include="..\ContractImplementations.GoogleCloudStorage\ContractImplementations.GoogleCloudStorage.csproj"/>
+        <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
-      <ProjectReference Include="..\ContractImplementations.FileSystem\ContractImplementations.FileSystem.csproj" />
-      <ProjectReference Include="..\ContractImplementations.GoogleCloudStorage\ContractImplementations.GoogleCloudStorage.csproj" />
-      <ProjectReference Include="..\Foundation\Foundation.csproj" />
-    </ItemGroup>
-
 </Project>
