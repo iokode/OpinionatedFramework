@@ -1,14 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <RootNamespace>IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs</RootNamespace>
-        <TargetName>IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs</TargetName>
-    </PropertyGroup>
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Packable.props"/>
 
     <ItemGroup>
       <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>
-
 </Project>
