@@ -3,8 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
 using Hangfire;
-using Hangfire.Storage;
-using IOKode.OpinionatedFramework.ConfigureApplication;
 using IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 using IOKode.OpinionatedFramework.Jobs;
 using Microsoft.Extensions.Configuration;
