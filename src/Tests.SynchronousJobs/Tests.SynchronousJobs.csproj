@@ -3,7 +3,7 @@
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Test.props"/>
 
-    <ItemGroup>
+    <ItemGroup Label="Project references">
       <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
       <ProjectReference Include="..\ContractImplementations.TaskRunJobs\ContractImplementations.TaskRunJobs.csproj" />
       <ProjectReference Include="..\Foundation\Foundation.csproj" />

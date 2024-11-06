@@ -2,7 +2,8 @@
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Packable.props"/>
 
-    <ItemGroup>
+    <ItemGroup Label="Project references">
+      <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
       <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>
 </Project>
