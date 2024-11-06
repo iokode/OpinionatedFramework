@@ -26,7 +26,7 @@ public class TaskRunJobScheduler : IJobScheduler
         }
     }
 
-    private List<TaskRunMutableScheduledJob> registeredJobs = new List<TaskRunMutableScheduledJob>();
+    private List<TaskRunMutableScheduledJob> registeredJobs = new();
 
     public Task<ScheduledJob> ScheduleAsync(IJob job, CronExpression interval, CancellationToken cancellationToken)
     {
@@ -54,7 +54,7 @@ public class TaskRunJobScheduler : IJobScheduler
                     break;
                 }
 
-                await Task.Delay(delay.Value);
+                await Task.Delay(delay.Value, cancellationToken);
             }
         }, cancellationToken);
 
