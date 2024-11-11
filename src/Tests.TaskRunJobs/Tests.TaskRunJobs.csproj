@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup Label="Project references">
+      <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
+      <ProjectReference Include="..\ContractImplementations.MicrosoftLogging\ContractImplementations.MicrosoftLogging.csproj" />
+      <ProjectReference Include="..\ContractImplementations.TaskRunJobs\ContractImplementations.TaskRunJobs.csproj" />
+      <ProjectReference Include="..\Foundation\Foundation.csproj" />
+      <ProjectReference Include="..\Tests.MicrosoftLogging\Tests.MicrosoftLogging.csproj" />
+    </ItemGroup>
+
+</Project>
