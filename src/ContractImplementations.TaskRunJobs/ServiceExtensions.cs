@@ -8,7 +8,7 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
 public static class ServiceExtensions
 {
-    public static void AddDefaultJobScheduler(this IOpinionatedServiceCollection services)
+    public static void AddTaskRunJobScheduler(this IOpinionatedServiceCollection services)
     {
         services.AddSingleton<IJobScheduler>(serviceProvider =>
         {
@@ -18,7 +18,7 @@ public static class ServiceExtensions
         });
     }
 
-    public static void AddDefaultJobEnqueuer(this IOpinionatedServiceCollection services)
+    public static void AddTaskRunJobEnqueuer(this IOpinionatedServiceCollection services)
     {
         services.AddSingleton<IJobEnqueuer>(serviceProvider =>
         {

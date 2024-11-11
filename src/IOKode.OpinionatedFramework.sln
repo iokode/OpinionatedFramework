@@ -63,7 +63,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AspNetCoreIntegrations", "A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractImplementations.TaskRunJobs", "ContractImplementations.TaskRunJobs\ContractImplementations.TaskRunJobs.csproj", "{9F7DB6F3-1AD9-4B31-9D02-1AD49224A4A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.SynchronousJobs", "Tests.SynchronousJobs\Tests.SynchronousJobs.csproj", "{1F0291CD-0C3D-414F-B7D4-8062A8D62F41}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.TaskRunJobs", "Tests.TaskRunJobs\Tests.TaskRunJobs.csproj", "{1F0291CD-0C3D-414F-B7D4-8062A8D62F41}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Helpers", "Tests.Helpers\Tests.Helpers.csproj", "{8E3B899D-50FA-4166-BD78-582E8E2BB16B}"
 EndProject

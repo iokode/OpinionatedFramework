@@ -9,7 +9,7 @@ using IOKode.OpinionatedFramework.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IOKode.OpinionatedFramework.Tests.SynchronousJobs;
+namespace IOKode.OpinionatedFramework.Tests.TaskRunJobs;
 
 public class JobsTest(ITestOutputHelper testOutputHelper)
 {
