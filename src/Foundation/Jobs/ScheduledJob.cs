@@ -24,7 +24,7 @@ public abstract class ScheduledJob
     }
 }
 
-public class MutableScheduledJob : ScheduledJob
+public abstract class MutableScheduledJob : ScheduledJob
 {
     public void ChangeInterval(CronExpression interval)
     {

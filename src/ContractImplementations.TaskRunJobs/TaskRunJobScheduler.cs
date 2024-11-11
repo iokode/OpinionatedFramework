@@ -12,22 +12,6 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
 public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging logging) : IJobScheduler
 {
-    private class TaskRunMutableScheduledJob : MutableScheduledJob
-    {
-        public DateTime LastInvocation { get; set; }
-        public bool IsFinalized { get; private set; }
-
-        public TaskRunMutableScheduledJob(CronExpression interval, IJob job) : base(interval, job)
-        {
-            LastInvocation = DateTime.UtcNow;
-        }
-
-        public void CancelLoop()
-        {
-            IsFinalized = true;
-        }
-    }
-
     private List<TaskRunMutableScheduledJob> registeredJobs = new();
 
     public Task<ScheduledJob> ScheduleAsync(IJob job, CronExpression interval, CancellationToken cancellationToken)
