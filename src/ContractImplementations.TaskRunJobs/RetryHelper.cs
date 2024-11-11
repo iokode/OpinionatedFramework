@@ -7,7 +7,7 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
 internal static class RetryHelper
 {
-    public static async Task RetryOnException(IJob job, int maxAttempts)
+    public static async Task RetryOnExceptionAsync(IJob job, int maxAttempts)
     {
         bool shouldRetry = false;
         int attempt = 0;

@@ -1,15 +1,17 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.Configuration;
 using IOKode.OpinionatedFramework.Jobs;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
-public class TaskRunJobEnqueuer : IJobEnqueuer
+public class TaskRunJobEnqueuer(IConfigurationProvider configuration) : IJobEnqueuer
 {
-    public async Task EnqueueAsync(Queue queue, IJob job, CancellationToken cancellationToken)
+    public Task EnqueueAsync(Queue queue, IJob job, CancellationToken cancellationToken)
     {
-        _ = RetryHelper.RetryOnException(job, 10);
+        _ = RetryHelper.RetryOnExceptionAsync(job, configuration.GetValue<int>("TaskRun:JobEnqueuer:MaxAttempts"));
+        return Task.CompletedTask;
     }
 
     public Task EnqueueWithDelayAsync(Queue queue, IJob job, TimeSpan delay, CancellationToken cancellationToken)
@@ -23,7 +25,7 @@ public class TaskRunJobEnqueuer : IJobEnqueuer
                 return;
             }
 
-            await RetryHelper.RetryOnException(job, 10);
+            await RetryHelper.RetryOnExceptionAsync(job, configuration.GetValue<int>("TaskRun:JobEnqueuer:MaxAttempts"));
         }, cancellationToken);
 
         return Task.CompletedTask;

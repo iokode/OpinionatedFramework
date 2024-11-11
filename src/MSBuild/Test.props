@@ -4,6 +4,10 @@
         <IsTestProject>true</IsTestProject>
     </PropertyGroup>
 
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\Tests.Helpers\Tests.Helpers.csproj"/>
+    </ItemGroup>
+    
     <ItemGroup Label="Test dependencies">
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
         <PackageReference Include="xunit" Version="2.8.1" />

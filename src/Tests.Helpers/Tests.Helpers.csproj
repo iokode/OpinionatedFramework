@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\ContractImplementations.MicrosoftConfiguration\ContractImplementations.MicrosoftConfiguration.csproj"/>
+        <ProjectReference Include="..\Foundation\Foundation.csproj" />
+    </ItemGroup>
+
+    <ItemGroup Label="Package references">
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+        <PackageReference Include="xunit.abstractions" Version="2.0.3" />
+    </ItemGroup>
+</Project>

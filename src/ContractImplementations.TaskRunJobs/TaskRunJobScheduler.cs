@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
+using IOKode.OpinionatedFramework.Configuration;
 using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Jobs;
+using IOKode.OpinionatedFramework.Logging;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
-public class TaskRunJobScheduler : IJobScheduler
+public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging logging) : IJobScheduler
 {
     private class TaskRunMutableScheduledJob : MutableScheduledJob
     {
@@ -38,23 +40,28 @@ public class TaskRunJobScheduler : IJobScheduler
             {
                 var now = DateTime.UtcNow;
                 var nextOccurrence = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastInvocation);
+
+                if (nextOccurrence == null)
+                {
+                    throw new FormatException("The cron expression next occurrence is not found.");
+                }
+                
                 if (now >= nextOccurrence)
                 {
-                    // This call is not awaited because we want a "fire it and forget" behaviour.
-                    // The correct behaviour is invoke it, but not await to be finalized.
-                    _ = RetryHelper.RetryOnException(job, 10);
+                    try
+                    {
+                        await RetryHelper.RetryOnExceptionAsync(job, configuration.GetValue<int>("TaskRun:JobScheduler:MaxAttempts"));
+                    }
+                    catch (AggregateException ex)
+                    {
+                        logging.Error(ex, "An scheduled job reached max attempts.");
+                    }
+
                     scheduledJob.LastInvocation = now;
                 }
 
-                var delay = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastInvocation) - now;
-                if (delay is null)
-                {
-                    scheduledJob.CancelLoop();
-                    this.registeredJobs.Remove(scheduledJob);
-                    break;
-                }
-
-                await Task.Delay(delay.Value, cancellationToken);
+                var delay = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastInvocation)! - now;
+                await Task.Delay(delay.Value);
             }
         }, cancellationToken);
 

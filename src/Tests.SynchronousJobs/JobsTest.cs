@@ -1,20 +1,28 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
 using IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 using IOKode.OpinionatedFramework.Jobs;
+using IOKode.OpinionatedFramework.Tests.Helpers;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace IOKode.OpinionatedFramework.Tests.SynchronousJobs;
 
-public class JobsTest
+public class JobsTest(ITestOutputHelper testOutputHelper)
 {
     [Fact]
     public async Task EnqueueJob_Success()
     {
         // Arrange
-        var jobEnqueuer = new TaskRunJobEnqueuer();
+        var configurationValues = new Dictionary<string, object>
+        {
+            ["TaskRun:JobEnqueuer:MaxAttempts"] = 10
+        };
+        var configuration = new ConfigurationProvider(configurationValues);
+        var jobEnqueuer = new TaskRunJobEnqueuer(configuration);
         var countJob = new CountJob();
 
         // Act
@@ -28,7 +36,13 @@ public class JobsTest
     public async Task ScheduleJob_Success()
     {
         // Arrange
-        var jobScheduler = new TaskRunJobScheduler();
+        var configurationValues = new Dictionary<string, object>
+        {
+            ["TaskRun:JobScheduler:MaxAttempts"] = 10
+        };
+        var configuration = new ConfigurationProvider(configurationValues);
+        var logging = new XUnitLogging(testOutputHelper);
+        var jobScheduler = new TaskRunJobScheduler(configuration, logging);
         var countJob = new CountJob();
 
         // Act
@@ -43,7 +57,13 @@ public class JobsTest
     public async Task RescheduleJob_Success()
     {
         // Arrange
-        var jobScheduler = new TaskRunJobScheduler();
+        var configurationValues = new Dictionary<string, object>
+        {
+            ["TaskRun:JobScheduler:MaxAttempts"] = 10
+        };
+        var configuration = new ConfigurationProvider(configurationValues);
+        var logging = new XUnitLogging(testOutputHelper);
+        var jobScheduler = new TaskRunJobScheduler(configuration, logging);
         var countJob = new CountJob();
 
         // Act
@@ -60,7 +80,13 @@ public class JobsTest
     public async Task UnscheduleJob_Success()
     {
         // Arrange
-        var jobScheduler = new TaskRunJobScheduler();
+        var configurationValues = new Dictionary<string, object>
+        {
+            ["TaskRun:JobScheduler:MaxAttempts"] = 10
+        };
+        var configuration = new ConfigurationProvider(configurationValues);
+        var logging = new XUnitLogging(testOutputHelper);
+        var jobScheduler = new TaskRunJobScheduler(configuration, logging);
         var countJob = new CountJob();
 
         // Act
@@ -77,7 +103,12 @@ public class JobsTest
     public async Task EnqueueJob_FailAndRetry()
     {
         // Arrange
-        var jobEnqueuer = new TaskRunJobEnqueuer();
+        var configurationValues = new Dictionary<string, object>
+        {
+            ["TaskRun:JobEnqueuer:MaxAttempts"] = 10
+        };
+        var configuration = new ConfigurationProvider(configurationValues);
+        var jobEnqueuer = new TaskRunJobEnqueuer(configuration);
         var countJob = new CountFailJob();
 
         // Act
@@ -92,12 +123,18 @@ public class JobsTest
     public async Task ScheduleJob_FailAndRetry()
     {
         // Arrange
-        var jobScheduler = new TaskRunJobScheduler();
+        var configurationValues = new Dictionary<string, object>
+        {
+            ["TaskRun:JobScheduler:MaxAttempts"] = 10
+        };
+        var configuration = new ConfigurationProvider(configurationValues);
+        var logging = new XUnitLogging(testOutputHelper);
+        var jobScheduler = new TaskRunJobScheduler(configuration, logging);
         var countJob = new CountFailJob();
 
         // Act
         await jobScheduler.ScheduleAsync(countJob, CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), default);
-        await Task.Delay(10000);
+        await Task.Delay(10_000);
 
         // Assert
         // The job was executed 5 times (every 2 seconds in 10 seconds) and retried 10 times each execution, so 5*10 = 50.
@@ -108,7 +145,12 @@ public class JobsTest
     public async Task EnqueueJob_FailAndRetryUntilSixthAttempt()
     {
         // Arrange
-        var jobEnqueuer = new TaskRunJobEnqueuer();
+        var configurationValues = new Dictionary<string, object>
+        {
+            ["TaskRun:JobEnqueuer:MaxAttempts"] = 10
+        };
+        var configuration = new ConfigurationProvider(configurationValues);
+        var jobEnqueuer = new TaskRunJobEnqueuer(configuration);
         var countJob = new CountFailUntilSixthAttemptJob();
 
         // Act
@@ -123,7 +165,13 @@ public class JobsTest
     public async Task ScheduleJob_FailAndRetryUntilSixthAttempt()
     {
         // Arrange
-        var jobScheduler = new TaskRunJobScheduler();
+        var configurationValues = new Dictionary<string, object>
+        {
+            ["TaskRun:JobScheduler:MaxAttempts"] = 10
+        };
+        var configuration = new ConfigurationProvider(configurationValues);
+        var logging = new XUnitLogging(testOutputHelper);
+        var jobScheduler = new TaskRunJobScheduler(configuration, logging);
         var countJob = new CountFailUntilSixthAttemptJob();
 
         // Act
