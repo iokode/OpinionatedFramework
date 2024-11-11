@@ -12,11 +12,11 @@ public class ConfigurationProviderFromSecrets<TFromAssembly> : IConfigurationPro
     public ConfigurationProviderFromSecrets()
     {
         var builder = new ConfigurationBuilder().AddUserSecrets<TFromAssembly>();
-        configuration = builder.Build();
+        this.configuration = builder.Build();
     }
 
     public T? GetValue<T>(string key)
     {
-        return configuration.GetValue<T>(key);
+        return this.configuration.GetValue<T>(key);
     }
 }

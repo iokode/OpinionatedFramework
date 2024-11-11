@@ -7,10 +7,9 @@ namespace IOKode.OpinionatedFramework.Tests.Helpers;
 
 public class XUnitLogger(ITestOutputHelper testOutputHelper, LoggerExternalScopeProvider scopeProvider, string categoryName) : ILogger
 {
-    public XUnitLogger(ITestOutputHelper testOutputHelper, LoggerExternalScopeProvider scopeProvider, Type type)
+    private XUnitLogger(ITestOutputHelper testOutputHelper, LoggerExternalScopeProvider scopeProvider, Type type)
         : this(testOutputHelper, scopeProvider, type.FullName!)
     {
-        
     }
     
     public static ILogger CreateLogger(ITestOutputHelper testOutputHelper, string categoryName) => new XUnitLogger(testOutputHelper, new LoggerExternalScopeProvider(), categoryName);
@@ -18,16 +17,16 @@ public class XUnitLogger(ITestOutputHelper testOutputHelper, LoggerExternalScope
 
     public bool IsEnabled(LogLevel logLevel) => logLevel != LogLevel.None;
 
-    public IDisposable BeginScope<TState>(TState state) => scopeProvider.Push(state);
+    public IDisposable BeginScope<TState>(TState state) where TState : notnull => scopeProvider.Push(state);
 
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
         var sb = new StringBuilder();
-        sb.Append("From XUnitLogger:\n")
+        sb.Append("XUnitLogger: ")
           .Append(GetLogLevelString(logLevel))
           .Append(" [")
           .Append(categoryName)
-          .Append("] ")
+          .AppendLine("]: ")
           .Append(formatter(state, exception));
 
         if (exception != null)

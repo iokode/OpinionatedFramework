@@ -10,7 +10,7 @@ public class ConfigurationProvider(IDictionary<string, object> values) : IConfig
 
     public T? GetValue<T>(string key)
     {
-        var exists = values.TryGetValue(key, out var value);
+        var exists = this.values.TryGetValue(key, out var value);
         return exists ? (T) value! : default;
     }
 }
