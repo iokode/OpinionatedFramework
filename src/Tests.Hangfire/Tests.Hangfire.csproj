@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup>
+        <ProjectReference Include="..\ConfigureApplication\ConfigureApplication.csproj" />
+        <ProjectReference Include="..\ContractImplementations.Hangfire\ContractImplementations.Hangfire.csproj" />
+        <ProjectReference Include="..\Foundation\Foundation.csproj" />
+    </ItemGroup>
+
+</Project>
