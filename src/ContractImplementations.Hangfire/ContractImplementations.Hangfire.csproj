@@ -3,14 +3,12 @@
     <Import Project="../MSBuild/Packable.props"/>
 
     <ItemGroup>
+        <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Hangfire.Core" Version="1.8.6" />
-        <PackageReference Include="Hangfire.AspNetCore" Version="1.8.6" />
-        <PackageReference Include="Hangfire.Mongo" Version="1.9.15" />
-        <PackageReference Include="JsonNet.ContractResolvers" Version="2.0.0" />
     </ItemGroup>
 
 </Project>

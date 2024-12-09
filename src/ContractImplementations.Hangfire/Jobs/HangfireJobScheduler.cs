@@ -11,8 +11,8 @@ public class HangfireJobScheduler : IJobScheduler
 {
     public Task<ScheduledJob> ScheduleAsync(IJob job, CronExpression interval, CancellationToken cancellationToken)
     {
-        var scheduledJob = new MutableScheduledJob(interval, job);
-        RecurringJob.AddOrUpdate(scheduledJob.Identifier.ToString(), () => RunAsync(job), interval.ToString);
+        var scheduledJob = new HangfireMutableScheduledJob(interval, job);
+        RecurringJob.AddOrUpdate(scheduledJob.Identifier.ToString(), () => InvokeAsync(job), interval.ToString);
         return Task.FromResult<ScheduledJob>(scheduledJob);
     }
 
@@ -21,8 +21,7 @@ public class HangfireJobScheduler : IJobScheduler
         Ensure.Type.IsAssignableTo(scheduledJob.GetType(), typeof(MutableScheduledJob))
             .ElseThrowsIllegalArgument($"Type must be assignable to {nameof(MutableScheduledJob)} type.", nameof(scheduledJob));
 
-        RecurringJob.RemoveIfExists(scheduledJob.Identifier.ToString());
-        RecurringJob.AddOrUpdate(scheduledJob.Identifier.ToString(), () => RunAsync(scheduledJob.Job), interval.ToString);
+        RecurringJob.AddOrUpdate(scheduledJob.Identifier.ToString(), () => InvokeAsync(scheduledJob.Job), interval.ToString);
         ((MutableScheduledJob) scheduledJob).ChangeInterval(interval);
 
         return Task.CompletedTask;
@@ -34,7 +33,18 @@ public class HangfireJobScheduler : IJobScheduler
         return Task.CompletedTask;
     }
 
-    public async Task RunAsync(IJob job)
+    /// <summary>
+    /// This method is not intended to be called directly in application code.
+    /// Exists to allow Hangfire to serialize and deserialize the job object 
+    /// that it will receive as an argument. This ensures that the job 
+    /// can be processed correctly during execution.
+    /// </summary> 
+    /// <remarks>
+    /// This method must be public because it is used by Hangfire during the deserialization 
+    /// and execution of scheduled tasks. Hangfire requires that methods to be invoked 
+    /// are publicly accessible to resolve them when deserializing the previously generated expression.
+    /// </remarks>
+    public async Task InvokeAsync(IJob job)
     {
         await job.InvokeAsync(default);
     }
