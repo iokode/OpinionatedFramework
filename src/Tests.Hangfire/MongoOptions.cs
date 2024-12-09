@@ -1,4 +1,4 @@
-namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
+namespace IOKode.OpinionatedFramework.Tests.Hangfire;
 
 public class MongoOptions
 {
