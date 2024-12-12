@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
@@ -13,9 +14,14 @@ public class UserRepository : Repository
         return await GetEntitySet<User>().SingleAsync(new ByUsernameSpec(username).ToFilter(), cancellationToken);
     }
     
-    public async Task<User> GetByEmailAddress(string emailAddress, CancellationToken cancellationToken = default)
+    public async Task<User?> GetByEmailAddress(string emailAddress, CancellationToken cancellationToken = default)
     {
-        return await GetEntitySet<User>().SingleAsync(new EqualsFilter("emailAddress", emailAddress), cancellationToken);
+        return await GetEntitySet<User>().SingleOrDefaultAsync(new EqualsFilter("emailAddress", emailAddress), cancellationToken);
+    }
+    
+    public async Task<IEnumerable<User>> GetMultipleByIsActive(CancellationToken cancellationToken = default)
+    {
+        return await GetEntitySet<User>().ManyAsync(new EqualsFilter("isActive", true), cancellationToken);
     }
     
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
