@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup>
+        <ProjectReference Include="..\ContractImplementations.Events\ContractImplementations.Events.csproj" />
+    </ItemGroup>
+
+</Project>

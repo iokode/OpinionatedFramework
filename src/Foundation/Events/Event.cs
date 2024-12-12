@@ -2,7 +2,11 @@ using System;
 
 namespace IOKode.OpinionatedFramework.Events;
 
-public abstract record Event
+public abstract class Event
 {
-    public required DateTimeOffset DispatchedAt { get; init; }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <remarks>Null if event was not dispatched. This property is set by the dispatcher.</remarks>
+    public DateTimeOffset? DispatchedAt { get; private set; }
 }
