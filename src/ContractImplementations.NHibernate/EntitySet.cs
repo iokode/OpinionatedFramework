@@ -127,7 +127,7 @@ public class EntitySet<T> : IEntitySet<T> where T : Entity
         {
             EqualsFilter eq => Restrictions.Eq(eq.FieldName, eq.Value),
             LikeFilter like => Restrictions.Like(like.FieldName, like.Pattern, MatchMode.Anywhere),
-            InFilter inFilter => Restrictions.In(inFilter.FieldName, inFilter.Values.ToArray()),
+            InFilter inFilter => Restrictions.In(inFilter.FieldName, inFilter.Values),
             BetweenFilter betweenFilter => Restrictions.Between(betweenFilter.FieldName, betweenFilter.Low, betweenFilter.High),
             GreaterThanFilter greaterThanFilter => Restrictions.Gt(greaterThanFilter.FieldName, greaterThanFilter.Value),
             LessThanFilter lessThanFilter => Restrictions.Lt(lessThanFilter.FieldName, lessThanFilter.Value),

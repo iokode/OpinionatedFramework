@@ -43,7 +43,7 @@ public class UserRepository : Repository
     
     public async Task<IReadOnlyCollection<User>> GetMultipleByNameAsync(ICollection<string> usernames, CancellationToken cancellationToken = default)
     {
-        return await GetEntitySet<User>().ManyAsync(new InFilter("username", usernames), cancellationToken);
+        return await GetEntitySet<User>().ManyAsync(new InFilter("username", usernames.ToArray<object>()), cancellationToken);
     }
     
     public async Task<IReadOnlyCollection<User>> GetAllAsync(CancellationToken cancellationToken = default)
