@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Ensuring;
@@ -8,16 +9,23 @@ namespace IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 
 public interface IUnitOfWork
 {
+    public bool IsRolledBack { get; }
     
-    public Task BeginTransactionAsync();
+    public Task BeginTransactionAsync(CancellationToken cancellationToken = default);
     
-    public Task CommitTransactionAsync();
+    public Task CommitTransactionAsync(CancellationToken cancellationToken = default);
     
-    public Task RollbackTransactionAsync();
+    public Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
     
     public bool IsTransactionActive { get; }
     
     public Task AddAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity;
+
+    public Task<bool> IsTrackedAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity;
+    
+    public Task StopTrackingAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity;
+
+    public Task<bool> HasChangesAsync(CancellationToken cancellationToken);
     
     /// <summary>
     /// Gets an entity set associated to this unit of work instance.
@@ -25,8 +33,8 @@ public interface IUnitOfWork
     /// <typeparam name="T">The type of the entity.</typeparam>
     /// <returns>The entity set.</returns>
     public IEntitySet<T> GetEntitySet<T>() where T : Entity;
-    
-    public IEntitySet<T> GetUntrackedEntitySet<T>() where T : Entity;
+
+    public Task<ICollection<T>> RawProjection<T>(string query, IList<object> parameters, CancellationToken cancellationToken = default); 
 
     /// <summary>
     /// Gets a repository instance associated to this unit of work instance.

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
 using NHibernate;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
@@ -16,6 +17,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     private readonly ISession session;
     private ITransaction? transaction;
     private readonly ISessionFactory sessionFactory;
+    private bool isRollbacked;
 
     public UnitOfWork(ISessionFactory sessionFactory)
     {
@@ -23,52 +25,103 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         this.sessionFactory = sessionFactory;
     }
 
-    public Task BeginTransactionAsync()
+    public bool IsRolledBack => this.isRollbacked;
+
+    public Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
+        ThrowsIfRolledBack();
+        
         this.transaction = this.session.BeginTransaction();
         return Task.CompletedTask;
     }
 
-    public async Task CommitTransactionAsync()
+    public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
     {
+        ThrowsIfRolledBack();
+
         if (this.transaction is null)
         {
             throw new InvalidOperationException("No transaction is active.");
         }
 
-        await this.transaction.CommitAsync();
+        await this.transaction.CommitAsync(cancellationToken);
+        this.transaction.Dispose();
+        this.transaction = null;
     }
 
-    public async Task RollbackTransactionAsync()
+    public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
     {
+        ThrowsIfRolledBack();
+
         if (this.transaction is null)
         {
             throw new InvalidOperationException("No transaction is active.");
         }
-
-        await this.transaction.RollbackAsync();
+        
+        await this.transaction.RollbackAsync(cancellationToken);
+        this.transaction.Dispose();
+        this.transaction = null;
+        this.session.Clear();
+        await DisposeAsync();
+        this.isRollbacked = true;
     }
 
-    public bool IsTransactionActive => this.transaction is { IsActive: true };
+    public bool IsTransactionActive
+    {
+        get
+        {
+            ThrowsIfRolledBack();
+            return this.transaction is {IsActive: true};
+        }
+    }
 
     public async Task AddAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity
     {
+        ThrowsIfRolledBack();
         await this.session.PersistAsync(entity, cancellationToken);
+    }
+
+    public Task<bool> IsTrackedAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity
+    {
+        ThrowsIfRolledBack();
+        return Task.FromResult(session.Contains(entity));
+    }
+
+    public async Task StopTrackingAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity
+    {
+        ThrowsIfRolledBack();
+        await this.session.EvictAsync(entity, cancellationToken);
+    }
+
+    public async Task<bool> HasChangesAsync(CancellationToken cancellationToken)
+    {
+        ThrowsIfRolledBack();
+        return await this.session.IsDirtyAsync(cancellationToken);
     }
 
     public IEntitySet<T> GetEntitySet<T>() where T : Entity
     {
+        ThrowsIfRolledBack();
         return new EntitySet<T>(this.session);
     }
 
-    public IEntitySet<T> GetUntrackedEntitySet<T>() where T : Entity
+    public async Task<ICollection<T>> RawProjection<T>(string query, IList<object> parameters, CancellationToken cancellationToken = default)
     {
-        // todo
-        throw new NotImplementedException();
+        ThrowsIfRolledBack();
+
+        var q = this.session.CreateSQLQuery(query);
+
+        for (int i = 0; i < parameters.Count; i++)
+        {
+            q.SetParameter(i, parameters[i]);
+        }
+
+        return await q.ListAsync<T>(cancellationToken);
     }
 
     public Repository GetRepository(Type repositoryType)
     {
+        ThrowsIfRolledBack();
         IUnitOfWork.EnsureTypeIsRepository(repositoryType);
 
         if (this.repositories.TryGetValue(repositoryType, out var repo))
@@ -97,18 +150,39 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         return repo;
     }
 
-    public Task SaveChangesAsync(CancellationToken cancellationToken)
+    public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
-        return this.session.FlushAsync(cancellationToken);
+        ThrowsIfRolledBack();
+        bool isTransaction = IsTransactionActive;
+
+        if (!isTransaction)
+        {
+            await BeginTransactionAsync(cancellationToken);
+        }
+        
+        await this.session.FlushAsync(cancellationToken);
+
+        if (!isTransaction)
+        {
+            await CommitTransactionAsync(cancellationToken);
+        }
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (IsTransactionActive)
+        if (this.IsTransactionActive)
         {
             await this.transaction!.RollbackAsync();
         }
         this.transaction?.Dispose();
         this.session.Dispose();
+    }
+
+    private void ThrowsIfRolledBack()
+    {
+        if (IsRolledBack)
+        {
+            throw new UnitOfWorkRolledBackException();
+        }
     }
 }

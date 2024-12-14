@@ -7,7 +7,7 @@ public class EntitySetException : Exception
     public EntitySetException(string message) : base(message)
     {
     }
-    
+
     public EntitySetException(string message, Exception inner) : base(message, inner)
     {
     }

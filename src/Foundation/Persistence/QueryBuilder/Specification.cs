@@ -4,7 +4,7 @@ using IOKode.OpinionatedFramework.Persistence.QueryBuilder.Filters;
 
 namespace IOKode.OpinionatedFramework.Persistence.QueryBuilder;
 
-public abstract class Spec
+public abstract class Specification
 {
     private readonly List<Filter> filters = new();
 
@@ -25,5 +25,10 @@ public abstract class Spec
             1 => this.filters[0],
             _ => new AndFilter(this.filters.ToArray())
         };
+    }
+
+    public static implicit operator Filter(Specification spec)
+    {
+        return spec.ToFilter();
     }
 }

@@ -23,7 +23,24 @@ public class EntitySet<T> : IEntitySet<T> where T : Entity
         _session = session;
     }
 
-    public async Task<T> SingleAsync(Filter filter, CancellationToken cancellationToken = default)
+    public async Task<T> GetByIdAsync(object id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _session.LoadAsync<T>(id, cancellationToken);
+        }
+        catch (ObjectNotFoundException ex)
+        {
+            throw new EntityNotFoundException(id, ex);
+        }
+    }
+    
+    public async Task<T> GetByIdOrDefaultAsync(object id, CancellationToken cancellationToken = default)
+    {
+        return await _session.GetAsync<T>(id, cancellationToken);
+    }
+
+    public async Task<T> SingleAsync(Filter? filter, CancellationToken cancellationToken = default)
     {
         var criteria = _session.CreateCriteria<T>();
         ApplyFilter(criteria, filter);
@@ -44,7 +61,7 @@ public class EntitySet<T> : IEntitySet<T> where T : Entity
         }
     }
 
-    public async Task<T?> SingleOrDefaultAsync(Filter filter, CancellationToken cancellationToken = default)
+    public async Task<T?> SingleOrDefaultAsync(Filter? filter, CancellationToken cancellationToken = default)
     {
         var criteria = _session.CreateCriteria<T>();
         ApplyFilter(criteria, filter);
@@ -59,7 +76,7 @@ public class EntitySet<T> : IEntitySet<T> where T : Entity
         }
     }
 
-    public async Task<T> FirstAsync(Filter filter, CancellationToken cancellationToken = default)
+    public async Task<T> FirstAsync(Filter? filter, CancellationToken cancellationToken = default)
     {
         var criteria = _session.CreateCriteria<T>();
         ApplyFilter(criteria, filter);
@@ -68,13 +85,13 @@ public class EntitySet<T> : IEntitySet<T> where T : Entity
         var list = await criteria.ListAsync<T>(cancellationToken);
         if (list.Count == 0)
         {
-            throw new InvalidOperationException("Sequence contains no elements.");
+            throw new EmptyResultException();
         }
 
         return list[0];
     }
 
-    public async Task<T?> FirstOrDefaultAsync(Filter filter, CancellationToken cancellationToken = default)
+    public async Task<T?> FirstOrDefaultAsync(Filter? filter, CancellationToken cancellationToken = default)
     {
         var criteria = _session.CreateCriteria<T>();
         ApplyFilter(criteria, filter);
@@ -84,7 +101,7 @@ public class EntitySet<T> : IEntitySet<T> where T : Entity
         return list.Count == 0 ? null : list[0];
     }
 
-    public async Task<IReadOnlyCollection<T>> ManyAsync(Filter filter, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<T>> ManyAsync(Filter? filter, CancellationToken cancellationToken = default)
     {
         var criteria = _session.CreateCriteria<T>();
         ApplyFilter(criteria, filter);
@@ -93,8 +110,13 @@ public class EntitySet<T> : IEntitySet<T> where T : Entity
         return (IReadOnlyCollection<T>)list;
     }
 
-    private void ApplyFilter(ICriteria criteria, Filter filter)
+    private void ApplyFilter(ICriteria criteria, Filter? filter)
     {
+        if (filter == null)
+        {
+            return;
+        }
+
         var criterion = BuildCriterion(filter);
         criteria.Add(criterion);
     }

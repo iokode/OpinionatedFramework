@@ -110,4 +110,14 @@ public abstract class NHibernateTestsBase(ITestOutputHelper output) : IAsyncLife
         await _docker.Containers.RemoveContainerAsync(_containerId, new ContainerRemoveParameters());
         _docker.Dispose();
     }
+
+    protected async Task CreateUsersTableQueryAsync()
+    {
+        await _npgsqlClient.ExecuteAsync("CREATE TABLE IF NOT EXISTS Users (id TEXT PRIMARY KEY, name VARCHAR(100) NOT NULL, email VARCHAR(100) NOT NULL, is_active BOOLEAN NOT NULL);");
+    }
+
+    protected async Task DropUsersTableQueryAsync()
+    {
+        await _npgsqlClient.ExecuteAsync("DROP TABLE Users;");
+    }
 }
