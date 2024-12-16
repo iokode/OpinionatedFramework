@@ -34,7 +34,7 @@ public interface IUnitOfWork
     /// <returns>The entity set.</returns>
     public IEntitySet<T> GetEntitySet<T>() where T : Entity;
 
-    public Task<ICollection<T>> RawProjection<T>(string query, IList<object> parameters, CancellationToken cancellationToken = default); 
+    public Task<ICollection<T>> RawProjection<T>(string query, IList<object>? parameters = null, CancellationToken cancellationToken = default); 
 
     /// <summary>
     /// Gets a repository instance associated to this unit of work instance.

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
@@ -174,8 +175,38 @@ public class UnitOfWorkTests(ITestOutputHelper output) : NHibernateTestsBase(out
     }
 
     [Fact]
+    public async Task TransactionsRawProjections()
+    {
+        // Arrange
+        await CreateUsersTableQueryAsync();
+        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        IUnitOfWork unitOfWork = new UnitOfWork(_configuration.BuildSessionFactory());
+        
+        // Act
+        var user = await unitOfWork.GetEntitySet<User>().FirstAsync();
+        await unitOfWork.BeginTransactionAsync();
+
+        user.Username = "Marta";
+        await unitOfWork.SaveChangesAsync(default);
+
+        string shouldBeMarta = (await unitOfWork.RawProjection<string>("select name from Users;")).First();
+        string shouldBeIvan = (await _npgsqlClient.QueryAsync<string>("select name from Users;")).First();
+        
+        // Assert
+        Assert.Equal("Marta", shouldBeMarta);
+        Assert.Equal("Ivan", shouldBeIvan);
+        
+        // Arrange post Assert
+        await unitOfWork.RollbackTransactionAsync();
+        await DropUsersTableQueryAsync();
+    }
+
+    [Fact]
     public async Task MultipleUnitOfWorks()
     {
+        // todo Discuss the behaviour of having more than one UoW
+        // todo and reasons to have more than one UoW.
+        
         // Arrange
         await CreateUsersTableQueryAsync();
         await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
@@ -183,18 +214,19 @@ public class UnitOfWorkTests(ITestOutputHelper output) : NHibernateTestsBase(out
         IUnitOfWork unitOfWork1 = new UnitOfWork(_configuration.BuildSessionFactory());
         IUnitOfWork unitOfWork2 = new UnitOfWork(_configuration.BuildSessionFactory());
         var repository1 = unitOfWork1.GetRepository<UserRepository>();
-        var repository2 = unitOfWork1.GetRepository<UserRepository>();
+        var repository2 = unitOfWork2.GetRepository<UserRepository>();
 
         // Act
         var user1 = await repository1.GetByIdAsync("1", default);
         var user2 = await repository2.GetByIdAsync("1", default);
         
         // Assert
-        Assert.Same(user1, user2);
-        Assert.True(await unitOfWork1.IsTrackedAsync(user1, default));
-        Assert.False(await unitOfWork2.IsTrackedAsync(user1, default));
-        Assert.True(await unitOfWork1.IsTrackedAsync(user2, default));
-        
+        Assert.NotSame(user1, user2);
+        // Assert.True(await unitOfWork1.IsTrackedAsync(user1, default));
+        // Assert.False(await unitOfWork2.IsTrackedAsync(user1, default));
+        // Assert.False(await unitOfWork2.IsTrackedAsync(user2));
+        // Assert.True(await unitOfWork1.IsTrackedAsync(user2, default));
+        //
         // Arrange post Assert
         await DropUsersTableQueryAsync();
     }

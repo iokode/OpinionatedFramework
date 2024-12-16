@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Dapper;
 using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
@@ -16,13 +19,11 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     private readonly Dictionary<Type, Repository> repositories = new();
     private readonly ISession session;
     private ITransaction? transaction;
-    private readonly ISessionFactory sessionFactory;
     private bool isRollbacked;
 
     public UnitOfWork(ISessionFactory sessionFactory)
     {
         this.session = sessionFactory.OpenSession();
-        this.sessionFactory = sessionFactory;
     }
 
     public bool IsRolledBack => this.isRollbacked;
@@ -105,18 +106,17 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         return new EntitySet<T>(this.session);
     }
 
-    public async Task<ICollection<T>> RawProjection<T>(string query, IList<object> parameters, CancellationToken cancellationToken = default)
+    public async Task<ICollection<T>> RawProjection<T>(string query, IList<object>? parameters = null, CancellationToken cancellationToken = default)
     {
         ThrowsIfRolledBack();
 
-        var q = this.session.CreateSQLQuery(query);
-
-        for (int i = 0; i < parameters.Count; i++)
+        if (parameters != null && !parameters.Any())
         {
-            q.SetParameter(i, parameters[i]);
+            parameters = null!;
         }
-
-        return await q.ListAsync<T>(cancellationToken);
+        
+        var transaction = GetTransaction();
+        return (await this.session.Connection.QueryAsync<T>(query, parameters, transaction)).ToArray();
     }
 
     public Repository GetRepository(Type repositoryType)
@@ -183,6 +183,15 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         if (IsRolledBack)
         {
             throw new UnitOfWorkRolledBackException();
+        }
+    }
+    
+    private IDbTransaction GetTransaction()
+    {
+        using(var command = this.session.Connection.CreateCommand())
+        {
+            this.session.Transaction.Enlist(command);
+            return command.Transaction;
         }
     }
 }

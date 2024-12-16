@@ -3,6 +3,7 @@
     <Import Project="../MSBuild/Packable.props"/>
 
     <ItemGroup Label="Package references">
+        <PackageReference Include="Dapper" Version="2.1.35" />
         <PackageReference Include="NHibernate" Version="5.5.*"/>
     </ItemGroup>
 

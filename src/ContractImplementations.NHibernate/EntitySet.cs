@@ -133,6 +133,7 @@ public class EntitySet<T> : IEntitySet<T> where T : Entity
             LessThanFilter lessThanFilter => Restrictions.Lt(lessThanFilter.FieldName, lessThanFilter.Value),
             AndFilter andFilter => BuildJunction(andFilter.Filters, isAnd: true),
             OrFilter orFilter => BuildJunction(orFilter.Filters, isAnd: false),
+            NotFilter notFilter => Restrictions.Not(BuildCriterion(notFilter.Filter)),
             NotEqualsFilter notEqualsFilter => Restrictions.Not(Restrictions.Eq(notEqualsFilter.FieldName, notEqualsFilter.Value)),
             _ => throw new NotSupportedException($"Filter type '{filter.GetType().Name}' is not supported.")
         };
