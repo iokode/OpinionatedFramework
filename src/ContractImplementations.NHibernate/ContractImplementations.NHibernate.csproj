@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Packable.props"/>
+
+    <ItemGroup Label="Package references">
+        <PackageReference Include="Dapper" Version="2.1.35" />
+        <PackageReference Include="NHibernate" Version="5.5.*"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Project dependencies">
+        <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
+        <ProjectReference Include="..\Foundation\Foundation.csproj"/>
+    </ItemGroup>
+</Project>
