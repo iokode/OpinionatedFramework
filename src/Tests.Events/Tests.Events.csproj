@@ -2,8 +2,17 @@
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Test.props"/>
 
-    <ItemGroup>
+    <ItemGroup Label="Project references">
         <ProjectReference Include="..\ContractImplementations.Events\ContractImplementations.Events.csproj" />
+        <ProjectReference Include="..\ContractImplementations.Hangfire\ContractImplementations.Hangfire.csproj" />
+        <ProjectReference Include="..\ContractImplementations.NHibernate\ContractImplementations.NHibernate.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <PackageReference Include="Dapper" Version="2.1.35" />
+        <PackageReference Include="Docker.DotNet" Version="3.125.15" />
+        <PackageReference Include="FluentNHibernate" Version="3.4.0" />
+        <PackageReference Include="Npgsql" Version="9.0.2" />
+        <PackageReference Include="Hangfire.Mongo" Version="1.11.2" />
+    </ItemGroup>
 </Project>
