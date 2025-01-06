@@ -76,7 +76,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         }
     }
 
-    public async Task AddAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity
+    public async Task AddAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity
     {
         ThrowsIfRolledBack();
         await this.session.PersistAsync(entity, cancellationToken);
@@ -86,6 +86,12 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     {
         ThrowsIfRolledBack();
         return Task.FromResult(session.Contains(entity));
+    }
+
+    public Task<TId?> GetEntityIdAsync<TEntity, TId>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity
+    {
+        // todo catch exceptions and create own exceptions
+        return Task.FromResult((TId?)this.session.GetIdentifier(entity));
     }
 
     public async Task StopTrackingAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity

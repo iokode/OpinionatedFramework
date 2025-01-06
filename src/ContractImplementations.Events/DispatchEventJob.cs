@@ -1,26 +1,23 @@
-using System.Linq;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Events;
-using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Jobs;
+using IOKode.OpinionatedFramework.Jobs.Extensions;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Events;
 
-// todo el constructor no deberia recibir el evento por parametro, deberi recibir idealmente primitivos
-public class DispatchEventJob(Event @event) : IJob
+public class DispatchEventJob(string eventId, string eventTypeName) : IJob
 {
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public async Task InvokeAsync(CancellationToken cancellationToken)
     {
-        var eventType = @event.GetType();
-        var handlers = Enumerable.Empty<IEventHandler<Event>>();
+        var eventType = Type.GetType(eventTypeName)!;
+        var handlers = EventHandlers.GetHandlerTypes(eventType);
 
         foreach (var handler in handlers)
         {
-            var handlerJob = new ExecuteHandlerJob();
-            Job.EnqueueAsync(handlerJob, cancellationToken);
+            var handlerJob = new ExecuteHandlerJob(eventId, handler.AssemblyQualifiedName!);
+            await handlerJob.EnqueueAsync(Queue.Create("Events"), cancellationToken);
         }
-
-        return Task.CompletedTask;
     }
 }

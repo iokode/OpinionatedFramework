@@ -19,10 +19,12 @@ public interface IUnitOfWork
     
     public bool IsTransactionActive { get; }
     
-    public Task AddAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity;
+    public Task AddAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity;
 
     public Task<bool> IsTrackedAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity;
     
+    public Task<TId?> GetEntityIdAsync<TEntity, TId>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity;
+
     public Task StopTrackingAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity;
 
     public Task<bool> HasChangesAsync(CancellationToken cancellationToken);
