@@ -12,7 +12,6 @@ using Hangfire;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using IOKode.OpinionatedFramework.Bootstrapping;
-using IOKode.OpinionatedFramework.ContractImplementations.Events;
 using IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 using IOKode.OpinionatedFramework.Events;
@@ -87,7 +86,10 @@ public class EventsTestsBase(ITestOutputHelper output) : IAsyncLifetime
 
         _npgsqlClient = new NpgsqlConnection(dbPostgresConnectionString);
         await _npgsqlClient.OpenAsync();
-        _hangfireServer = new BackgroundJobServer();
+        _hangfireServer = new BackgroundJobServer(new BackgroundJobServerOptions()
+        {
+            Queues = new[] { "events", "default" },
+        });
 
         async Task pullPostgresImage()
         {
@@ -180,7 +182,7 @@ public class EventsTestsBase(ITestOutputHelper output) : IAsyncLifetime
                 {
                     return false;
                 }
-            }, timeout: 30_000, pollingInterval: 1_000);
+            }, timeout: 60_000, pollingInterval: 1_000);
 
             if (!postgresServerIsReady)
             {
@@ -243,7 +245,7 @@ public class EventsTestsBase(ITestOutputHelper output) : IAsyncLifetime
             CREATE TABLE Events (
                 id TEXT PRIMARY KEY,
                 event_type TEXT NOT NULL,
-                dispatched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                dispatched_at TIMESTAMP,
                 payload JSONB NOT NULL
             );
             """);

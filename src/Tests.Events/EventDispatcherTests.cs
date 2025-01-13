@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -5,6 +6,7 @@ using IOKode.OpinionatedFramework.ContractImplementations.Events;
 using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
+using IOKode.OpinionatedFramework.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -23,7 +25,7 @@ public class EventDispatcherTests(ITestOutputHelper output) : EventsTestsBase(ou
 
         var enqueuer = Locator.Resolve<IJobEnqueuer>();
         var uowFactory = Locator.Resolve<IUnitOfWorkFactory>();
-        var dispatcher = new EventDispatcher(uowFactory, enqueuer);
+        var dispatcher = new EventDispatcher(uowFactory, enqueuer, new ConfigurationProvider(new Dictionary<string, object>()));
         var @event = new Event1(3, "test");
 
         // Act
@@ -33,10 +35,10 @@ public class EventDispatcherTests(ITestOutputHelper output) : EventsTestsBase(ou
         var eventDispatched = events.OfType<Event1>().Single();
 
         // Assert
-        Assert.True(isEvent1Executed);
         Assert.Equal(3, eventDispatched.Prop1);
         Assert.Equal("test", eventDispatched.Prop2);
         Assert.NotNull(eventDispatched.DispatchedAt);
+        Assert.True(isEvent1Executed);
         
         // Post assert
         await DropEventsTableQueryAsync();

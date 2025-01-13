@@ -23,11 +23,11 @@ public class EventMap : ClassMap<Event>
         var eventType = typeof(Event);
         var eventPayloadType = typeof(EventPayloadAccessor);
 
-        var eventTypeParams = Expression.Parameter(eventType, "x");
-        var eventPayloadTypeParams = Expression.Parameter(eventPayloadType, "x");
-        Expression expression = Expression.PropertyOrField(eventPayloadTypeParams, nameof(EventPayloadAccessor.Payload));
+        var eventTypeParam = Expression.Parameter(eventType, "x");
+        var eventPayloadTypeParam = Expression.Parameter(eventPayloadType, "x");
+        Expression expression = Expression.PropertyOrField(eventPayloadTypeParam, nameof(EventPayloadAccessor.Payload));
 
-        return (Expression<Func<Event, object>>) Expression.Lambda(typeof(Func<Event, object>), expression, eventTypeParams);
+        return (Expression<Func<Event, object>>) Expression.Lambda(typeof(Func<Event, object>), expression, eventTypeParam);
     }
 }
 

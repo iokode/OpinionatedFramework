@@ -35,7 +35,7 @@ class PayloadGetter : IGetter
 
         const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
         var properties = eventType.GetProperties(flags)
-            .Where(property => eventBaseType.GetProperty(property.Name) == null)
+            .Where(property => property.DeclaringType != eventBaseType)
             .ToDictionary(property => property.Name, property => property.GetValue(target));
 
         var json = JsonConvert.SerializeObject(properties);
@@ -60,7 +60,7 @@ class PayloadSetter : ISetter
         var deserializeObject = JsonConvert.DeserializeObject(json, target.GetType());
 
         const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
-        var properties = deserializeObject!.GetType().GetProperties(flags);
+        var properties = deserializeObject!.GetType().GetProperties(flags).Where(property => property.DeclaringType != typeof(Event));
         foreach (var property in properties)
         {
             var setMethod = property.DeclaringType!.GetProperty(property.Name, flags)!.GetSetMethod(true)!;
