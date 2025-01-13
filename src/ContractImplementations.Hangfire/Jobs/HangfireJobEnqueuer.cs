@@ -31,7 +31,7 @@ public class HangfireJobEnqueuer : IJobEnqueuer
     /// and execution of enqueued tasks. Hangfire requires that methods to be invoked 
     /// are publicly accessible to resolve them when deserializing the previously generated expression.
     /// </remarks>
-    public async Task InvokeJob(IJob job)
+    public static async Task InvokeJob(IJob job)
     {
         await job.InvokeAsync(default);
     }

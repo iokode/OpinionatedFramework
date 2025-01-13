@@ -44,7 +44,7 @@ public class HangfireJobScheduler : IJobScheduler
     /// and execution of scheduled tasks. Hangfire requires that methods to be invoked 
     /// are publicly accessible to resolve them when deserializing the previously generated expression.
     /// </remarks>
-    public async Task InvokeAsync(IJob job)
+    public static async Task InvokeAsync(IJob job)
     {
         await job.InvokeAsync(default);
     }
