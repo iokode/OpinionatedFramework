@@ -14,7 +14,7 @@ using NHibernate;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 
-public class UnitOfWork : IUnitOfWork, IAsyncDisposable
+public class UnitOfWork : IUnitOfWork
 {
     private readonly Dictionary<Type, Repository> repositories = new();
     private readonly ISession session;

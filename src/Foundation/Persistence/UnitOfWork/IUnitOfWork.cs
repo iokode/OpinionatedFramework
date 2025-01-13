@@ -7,7 +7,7 @@ using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
 
 namespace IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 
-public interface IUnitOfWork
+public interface IUnitOfWork : IAsyncDisposable
 {
     public bool IsRolledBack { get; }
     
