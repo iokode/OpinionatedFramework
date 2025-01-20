@@ -19,9 +19,9 @@ public static class EmailExtensions
     /// <summary>
     /// Enqueue the email.
     /// </summary>
-    public static async Task QueueAsync(this Email email, Queue queue, CancellationToken cancellationToken = default)
+    public static async Task EnqueueAsync(this Email email, Queue queue, CancellationToken cancellationToken = default)
     {
         var enqueuer = Locator.Resolve<IJobEnqueuer>();
-        await enqueuer.EnqueueAsync(queue, new AsyncDelegateJob(async () => await email.SendAsync()), cancellationToken);
+        await enqueuer.EnqueueAsync(queue, new SendEmailJobArguments(email), cancellationToken);
     }
 }
