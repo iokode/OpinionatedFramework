@@ -171,7 +171,7 @@ public class UnitOfWork : IUnitOfWork
 
     public async ValueTask DisposeAsync()
     {
-        if (this.IsTransactionActive)
+        if (!this.IsRolledBack && this.IsTransactionActive)
         {
             await this.transaction!.RollbackAsync();
         }
