@@ -42,6 +42,4 @@ public class NHibernateTestsFixture : IAsyncLifetime
 }
 
 [CollectionDefinition(nameof(NHibernateTestsFixtureCollection))]
-public class NHibernateTestsFixtureCollection : ICollectionFixture<NHibernateTestsFixture>
-{
-}
+public class NHibernateTestsFixtureCollection : ICollectionFixture<NHibernateTestsFixture>;
