@@ -10,8 +10,9 @@ public class EventMap : ClassMap<Event>
     public EventMap()
     {
         Not.LazyLoad();
-        Table("Events");
-        Id<string>(column: "id").GeneratedBy.UuidHex("N");
+        Schema("opinionated_framework");
+        Table("events");
+        Id<Guid>(column: "id").GeneratedBy.GuidComb();
         Map(x => x.DispatchedAt).Column("dispatched_at").Nullable();
         Map(PayloadPropertyExpression()).Column("payload").Access.Using<EventPayloadAccessor>().CustomType<JsonBType>();
 

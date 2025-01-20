@@ -8,7 +8,7 @@ using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Events;
 
-public class ExecuteHandlerJob(string eventId, Type handlerType) : IJob
+public class ExecuteHandlerJob(Guid eventId, Type handlerType) : IJob
 {
     public async Task InvokeAsync(CancellationToken cancellationToken)
     {
@@ -23,7 +23,7 @@ public class ExecuteHandlerJob(string eventId, Type handlerType) : IJob
     }
 }
 
-public record ExecuteHandlerJobArguments(string EventId, Type HandlerType) : JobArguments<ExecuteHandlerJob>
+public record ExecuteHandlerJobArguments(Guid EventId, Type HandlerType) : JobArguments<ExecuteHandlerJob>
 {
     public override ExecuteHandlerJob CreateJob() => new(EventId, HandlerType);
 }

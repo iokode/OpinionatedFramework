@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Events;
@@ -7,7 +8,7 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.Events;
 
 public class EventsRepository : Repository
 {
-    public async Task<Event> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<Event> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await GetEntitySet<Event>().GetByIdAsync(id, cancellationToken);
     }

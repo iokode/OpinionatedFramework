@@ -14,8 +14,9 @@ public class EventsTestsBase(EventsTestsFixture fixture) : IClassFixture<EventsT
         npgsqlClient.Open();
         await fixture.NpgsqlClient.ExecuteAsync(
             """
-            CREATE TABLE Events (
-                id TEXT PRIMARY KEY,
+            CREATE SCHEMA IF NOT EXISTS opinionated_framework;
+            CREATE TABLE opinionated_framework.events (
+                id UUID PRIMARY KEY,
                 event_type TEXT NOT NULL,
                 dispatched_at TIMESTAMP,
                 payload JSONB NOT NULL
@@ -27,7 +28,7 @@ public class EventsTestsBase(EventsTestsFixture fixture) : IClassFixture<EventsT
     protected async Task DropEventsTableQueryAsync()
     {
         npgsqlClient.Open();
-        await npgsqlClient.ExecuteAsync("DROP TABLE Events;");
+        await npgsqlClient.ExecuteAsync("DROP TABLE opinionated_framework.events;");
         npgsqlClient.Close();
     }
 }

@@ -20,14 +20,14 @@ public class EventDispatcher(IUnitOfWorkFactory uowFactory, IJobEnqueuer jobEnqu
         }
 
         typeof(Event).GetProperty(nameof(Event.DispatchedAt))!.SetValue(@event, DateTime.UtcNow);
-        string id;
+        Guid id;
 
         await using (var uow = uowFactory.Create())
         {
             var repository = uow.GetRepository<EventsRepository>();
             await repository.AddAsync(@event, cancellationToken);
             await uow.SaveChangesAsync(cancellationToken);
-            id = (await uow.GetEntityIdAsync<Event, string>(@event, cancellationToken))!;
+            id = (await uow.GetEntityIdAsync<Event, Guid>(@event, cancellationToken))!;
         }
 
         var handlerTypes = EventHandlers.GetHandlerTypes(@event.GetType());
