@@ -40,7 +40,7 @@ public class EventsTestsFixture : IAsyncLifetime
                     mapCfg.FluentMappings.Add<EventMap>();
                     var assembly = Assembly.GetExecutingAssembly();
                     var eventSubclasses = assembly.GetTypes()
-                        .Where(t => t.IsSubclassOf(typeof(Event)) && !t.IsAbstract);
+                        .Where(type => type.IsSubclassOf(typeof(Event)) && !type.IsAbstract);
 
                     foreach (var subclass in eventSubclasses)
                     {
@@ -57,8 +57,12 @@ public class EventsTestsFixture : IAsyncLifetime
         });
         Container.Initialize();
 
-        HangfireServer = new BackgroundJobServer();
+        HangfireServer = new BackgroundJobServer(new BackgroundJobServerOptions
+        {
+            Queues = ["eventing"]
+        });
         NpgsqlClient = new NpgsqlConnection(postgresConnectionString);
+        await Task.Delay(3000);
     }
 
     public async Task DisposeAsync()

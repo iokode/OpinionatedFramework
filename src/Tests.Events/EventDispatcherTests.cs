@@ -26,7 +26,10 @@ public class EventDispatcherTests(ITestOutputHelper output, EventsTestsFixture f
 
         var enqueuer = Locator.Resolve<IJobEnqueuer>();
         var uowFactory = Locator.Resolve<IUnitOfWorkFactory>();
-        var dispatcher = new EventDispatcher(uowFactory, enqueuer, new ConfigurationProvider(new Dictionary<string, object>()));
+        var dispatcher = new EventDispatcher(uowFactory, enqueuer, new ConfigurationProvider(new Dictionary<string, object>
+        {
+            {"Events:QueueName", "eventing"}
+        }));
         var @event = new Event1(3, "test");
 
         // Act
@@ -53,7 +56,8 @@ public class EventDispatcherTests(ITestOutputHelper output, EventsTestsFixture f
 
 public class EventHandler1 : IEventHandler<Event1>
 {
-    public static bool IsExecuted = false;
+    public static bool IsExecuted;
+
     public Task HandleAsync(Event1 @event, CancellationToken cancellationToken)
     {
         IsExecuted = true;
@@ -63,7 +67,8 @@ public class EventHandler1 : IEventHandler<Event1>
 
 public class EventHandler2 : IEventHandler<Event1>
 {
-    public static bool IsExecuted = false;
+    public static bool IsExecuted;
+
     public Task HandleAsync(Event1 @event, CancellationToken cancellationToken)
     {
         IsExecuted = true;

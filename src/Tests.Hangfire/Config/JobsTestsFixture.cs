@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Docker.DotNet;
 using Hangfire;
-using Hangfire.Mongo;
 using Hangfire.PostgreSql;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
@@ -22,25 +21,21 @@ public class JobsTestsFixture : IAsyncLifetime
 {
     private DockerClient docker => DockerHelper.DockerClient;
 
-    public readonly MongoContainer MongoContainer = new();
     public readonly PostgresContainer PostgresContainer = new();
     public BackgroundJobServer? HangfireServer = null;
 
     public Func<ITestOutputHelper> TestOutputHelperFactory { get; set; }
-    
+
     public async Task InitializeAsync()
     {
-        // await MongoContainer.InitializeAsync();
         await PostgresContainer.InitializeAsync();
-        var mongoOptions = MongoHelper.DefaultOptions;
-        var storageOptions = MongoHelper.DefaultStorageOptions;
-        
+
         GlobalConfiguration.Configuration
             .UseRecommendedSerializerSettings()
-            //.UseMongoStorage(mongoOptions.ConnectionString, mongoOptions.Database, storageOptions)
             .UsePostgreSqlStorage(cfgPostgres => cfgPostgres.UseNpgsqlConnection(PostgresHelper.DefaultConnectionString))
             .UseFilter(new JobsChecker());
         HangfireServer = new BackgroundJobServer();
+        await Task.Delay(3000);
 
         Container.Services.AddTransient<IJobEnqueuer, HangfireJobEnqueuer>();
         Container.Services.AddTransient<ILogging>(_ => new XUnitLogging(TestOutputHelperFactory()));
@@ -57,13 +52,10 @@ public class JobsTestsFixture : IAsyncLifetime
             HangfireServer.Dispose();
         }
 
-        // await MongoContainer.DisposeAsync();
         await PostgresContainer.DisposeAsync();
         docker.Dispose();
     }
 }
 
 [CollectionDefinition(nameof(JobsTestsFixtureCollection))]
-public class JobsTestsFixtureCollection : ICollectionFixture<JobsTestsFixture>
-{
-}
+public class JobsTestsFixtureCollection : ICollectionFixture<JobsTestsFixture>;
