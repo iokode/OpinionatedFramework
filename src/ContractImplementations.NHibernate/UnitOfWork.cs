@@ -112,15 +112,10 @@ public class UnitOfWork : IUnitOfWork
         return new EntitySet<T>(this.session);
     }
 
-    public async Task<ICollection<T>> RawProjection<T>(string query, IList<object>? parameters = null, CancellationToken cancellationToken = default)
+    public async Task<ICollection<T>> RawProjection<T>(string query, object? parameters = null, CancellationToken cancellationToken = default)
     {
         ThrowsIfRolledBack();
 
-        if (parameters != null && !parameters.Any())
-        {
-            parameters = null!;
-        }
-        
         var transaction = GetTransaction();
         return (await this.session.Connection.QueryAsync<T>(query, parameters, transaction)).ToArray();
     }
