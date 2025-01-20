@@ -44,6 +44,7 @@ public enum AlphaOptions
 /// <summary>
 /// Defines options that determine how a numeric string should be checked for certain characteristics.
 /// </summary>
+[Flags]
 public enum NumericOptions
 {
     /// <summary>
