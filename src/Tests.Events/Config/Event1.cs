@@ -1,13 +1,13 @@
 using IOKode.OpinionatedFramework.Events;
 
-namespace IOKode.OpinionatedFramework.Tests.Events;
+namespace IOKode.OpinionatedFramework.Tests.Events.Config;
 
 public class Event1 : Event
 {
-    public int Prop1 { get; private set; }
-    public string Prop2 { get; private set; }
-    private int Prop3 { get; set; }
-    public int Prop4 { get; set; }
+    public int Prop1 { get; }
+    public string Prop2 { get; }
+    private int Prop3 { get; }
+    public int Prop4 { get; }
 
     private Event1() {}
 

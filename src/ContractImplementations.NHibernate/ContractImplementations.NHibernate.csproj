@@ -4,7 +4,9 @@
 
     <ItemGroup Label="Package references">
         <PackageReference Include="Dapper" Version="2.1.35" />
+        <PackageReference Include="FluentNHibernate" Version="3.4.0" />
         <PackageReference Include="NHibernate" Version="5.5.*"/>
+        <PackageReference Include="Npgsql" Version="9.0.2" />
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">

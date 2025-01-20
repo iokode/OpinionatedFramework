@@ -4,24 +4,25 @@ using Dapper;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 using IOKode.OpinionatedFramework.Persistence.QueryBuilder.Exceptions;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
+using IOKode.OpinionatedFramework.Tests.NHibernate.Config;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace IOKode.OpinionatedFramework.Tests.NHibernate;
 
-public class EntitySetTests(ITestOutputHelper output) : NHibernateTestsBase(output)
+[Collection(nameof(NHibernateTestsFixtureCollection))]
+public class EntitySetTests(NHibernateTestsFixture fixture) : NHibernateTestsBase(fixture)
 {
     [Fact]
     public async Task GetById_Success()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
         await CreateUsersTableQueryAsync();
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', false);");
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('3', 'Javier', 'javier@example.com', false);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', false);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('3', 'Javier', 'javier@example.com', false);");
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act and Assert
@@ -53,11 +54,11 @@ public class EntitySetTests(ITestOutputHelper output) : NHibernateTestsBase(outp
     public async Task Single_Success()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
         await CreateUsersTableQueryAsync();
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act
@@ -76,12 +77,12 @@ public class EntitySetTests(ITestOutputHelper output) : NHibernateTestsBase(outp
     public async Task Single_Fail()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
         await CreateUsersTableQueryAsync();
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Ivan', 'ivan@example.com', true);");
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act and Assert
@@ -96,11 +97,11 @@ public class EntitySetTests(ITestOutputHelper output) : NHibernateTestsBase(outp
     public async Task SingleOrDefault_Success()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
         await CreateUsersTableQueryAsync();
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
 
         // Act
         var repository = unitOfWork.GetRepository<UserRepository>();
@@ -121,12 +122,12 @@ public class EntitySetTests(ITestOutputHelper output) : NHibernateTestsBase(outp
     public async Task SingleOrDefault_Fail()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
         await CreateUsersTableQueryAsync();
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Ivan', 'ivan@example.com', true);");
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act and Assert
@@ -143,12 +144,12 @@ public class EntitySetTests(ITestOutputHelper output) : NHibernateTestsBase(outp
     public async Task First_Success()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
         await CreateUsersTableQueryAsync();
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', true);");
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act
@@ -167,11 +168,11 @@ public class EntitySetTests(ITestOutputHelper output) : NHibernateTestsBase(outp
     public async Task First_Fail()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
         await CreateUsersTableQueryAsync();
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', false);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', false);");
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act and Assert
@@ -185,12 +186,12 @@ public class EntitySetTests(ITestOutputHelper output) : NHibernateTestsBase(outp
     public async Task FirstOrDefault_Success()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
         await CreateUsersTableQueryAsync();
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Ivan', 'ivan2@example.com', false);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Ivan', 'ivan2@example.com', false);");
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act
@@ -211,12 +212,12 @@ public class EntitySetTests(ITestOutputHelper output) : NHibernateTestsBase(outp
     public async Task Many_Success()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
         await CreateUsersTableQueryAsync();
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', false);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', false);");
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act
@@ -237,12 +238,12 @@ public class EntitySetTests(ITestOutputHelper output) : NHibernateTestsBase(outp
     public async Task GetAll()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
         await CreateUsersTableQueryAsync();
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', false);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', false);");
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act

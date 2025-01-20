@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using FluentNHibernate.Mapping;
 using IOKode.OpinionatedFramework.Events;
 
-namespace IOKode.OpinionatedFramework.Tests.Events;
+namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Npgsql;
 
 public class EventMap : ClassMap<Event>
 {
@@ -11,7 +11,7 @@ public class EventMap : ClassMap<Event>
     {
         Not.LazyLoad();
         Table("Events");
-        Id<string>(column: "id").GeneratedBy.UuidString();
+        Id<string>(column: "id").GeneratedBy.UuidHex("N");
         Map(x => x.DispatchedAt).Column("dispatched_at").Nullable();
         Map(PayloadPropertyExpression()).Column("payload").Access.Using<EventPayloadAccessor>().CustomType<JsonBType>();
 

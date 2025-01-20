@@ -3,27 +3,29 @@ using Dapper;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 using IOKode.OpinionatedFramework.Persistence.QueryBuilder.Filters;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
+using IOKode.OpinionatedFramework.Tests.NHibernate.Config;
 using Xunit;
 using Xunit.Abstractions;
 using NotFilter = IOKode.OpinionatedFramework.Persistence.QueryBuilder.Filters.NotFilter;
 
 namespace IOKode.OpinionatedFramework.Tests.NHibernate;
 
-public class FilterTests(ITestOutputHelper output) : NHibernateTestsBase(output)
+[Collection(nameof(NHibernateTestsFixtureCollection))]
+public class FilterTests(NHibernateTestsFixture fixture) : NHibernateTestsBase(fixture)
 {
     private async Task InsertUsers()
     {
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', false);");
-        await _npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('3', 'Javier', 'javier@example.com', false);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', false);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('3', 'Javier', 'javier@example.com', false);");
     }
 
     [Fact]
     public async Task EqualsFilter()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
         await CreateUsersTableQueryAsync();
@@ -45,8 +47,8 @@ public class FilterTests(ITestOutputHelper output) : NHibernateTestsBase(output)
     public async Task NotEqualsFilter()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
         await CreateUsersTableQueryAsync();
@@ -70,8 +72,8 @@ public class FilterTests(ITestOutputHelper output) : NHibernateTestsBase(output)
     public async Task InFilter()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
         await CreateUsersTableQueryAsync();
@@ -95,8 +97,8 @@ public class FilterTests(ITestOutputHelper output) : NHibernateTestsBase(output)
     public async Task LikeFilter()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
         await CreateUsersTableQueryAsync();
@@ -120,8 +122,8 @@ public class FilterTests(ITestOutputHelper output) : NHibernateTestsBase(output)
     public async Task BetweenFilter()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
         await CreateUsersTableQueryAsync();
@@ -145,8 +147,8 @@ public class FilterTests(ITestOutputHelper output) : NHibernateTestsBase(output)
     public async Task GreaterThanFilter()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
         await CreateUsersTableQueryAsync();
@@ -170,8 +172,8 @@ public class FilterTests(ITestOutputHelper output) : NHibernateTestsBase(output)
     public async Task LessThanFilter()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
         await CreateUsersTableQueryAsync();
@@ -195,8 +197,8 @@ public class FilterTests(ITestOutputHelper output) : NHibernateTestsBase(output)
     public async Task AndFilter()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
         await CreateUsersTableQueryAsync();
@@ -220,8 +222,8 @@ public class FilterTests(ITestOutputHelper output) : NHibernateTestsBase(output)
     public async Task OrFilter()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
         await CreateUsersTableQueryAsync();
@@ -247,8 +249,8 @@ public class FilterTests(ITestOutputHelper output) : NHibernateTestsBase(output)
     public async Task NotFilter()
     {
         // Arrange
-        var sessionFactory = _configuration.BuildSessionFactory();
-        IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        var sessionFactory = configuration.BuildSessionFactory();
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
         await CreateUsersTableQueryAsync();

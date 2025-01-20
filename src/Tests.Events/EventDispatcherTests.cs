@@ -6,21 +6,22 @@ using IOKode.OpinionatedFramework.ContractImplementations.Events;
 using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
+using IOKode.OpinionatedFramework.Tests.Events.Config;
 using IOKode.OpinionatedFramework.Tests.Helpers;
+using IOKode.OpinionatedFramework.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace IOKode.OpinionatedFramework.Tests.Events;
 
-public class EventDispatcherTests(ITestOutputHelper output) : EventsTestsBase(output)
+public class EventDispatcherTests(ITestOutputHelper output, EventsTestsFixture fixture) : EventsTestsBase(fixture)
 {
-    public static bool isEvent1Executed = false;
-    
     [Fact]
     public async Task DispatchEvent()
     {
         // Arrange
         EventHandlers.Register<Event1, EventHandler1>();
+        EventHandlers.Register<Event1, EventHandler2>();
         await CreateEventsTableQueryAsync();
 
         var enqueuer = Locator.Resolve<IJobEnqueuer>();
@@ -29,27 +30,43 @@ public class EventDispatcherTests(ITestOutputHelper output) : EventsTestsBase(ou
         var @event = new Event1(3, "test");
 
         // Act
+        output.WriteLine("Pre Act");
         await dispatcher.DispatchAsync(@event, default);
-        await Task.Delay(20000);
-        var events = await uowFactory.Create().GetEntitySet<Event>().ManyAsync();
+        await PollingUtility.WaitUntilTrueAsync(() => EventHandler1.IsExecuted && EventHandler2.IsExecuted, 30_000, 1000);
+        await using var uow = uowFactory.Create();
+        var events = await uow.GetEntitySet<Event>().ManyAsync();
         var eventDispatched = events.OfType<Event1>().Single();
 
         // Assert
+        output.WriteLine("Pre assert");
         Assert.Equal(3, eventDispatched.Prop1);
         Assert.Equal("test", eventDispatched.Prop2);
         Assert.NotNull(eventDispatched.DispatchedAt);
-        Assert.True(isEvent1Executed);
-        
+        Assert.True(EventHandler1.IsExecuted);
+        Assert.True(EventHandler2.IsExecuted);
+
         // Post assert
+        output.WriteLine("Post assert");
         await DropEventsTableQueryAsync();
     }
-    
-    public class EventHandler1 : IEventHandler<Event1>
+}
+
+public class EventHandler1 : IEventHandler<Event1>
+{
+    public static bool IsExecuted = false;
+    public Task HandleAsync(Event1 @event, CancellationToken cancellationToken)
     {
-        public Task HandleAsync(Event1 @event, CancellationToken cancellationToken)
-        {
-            isEvent1Executed = true;
-            return Task.CompletedTask;
-        }
+        IsExecuted = true;
+        return Task.CompletedTask;
+    }
+}
+
+public class EventHandler2 : IEventHandler<Event1>
+{
+    public static bool IsExecuted = false;
+    public Task HandleAsync(Event1 @event, CancellationToken cancellationToken)
+    {
+        IsExecuted = true;
+        return Task.CompletedTask;
     }
 }
