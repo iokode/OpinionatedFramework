@@ -15,16 +15,7 @@ namespace IOKode.OpinionatedFramework.Tests.Helpers.Containers;
 
 public static class MongoHelper
 {
-    public static async Task<string> PullRunAndWaitMongoContainerAsync(DockerClient docker, MongoOptions mongoOptions, ITestOutputHelper? output = null)
-    {
-        await PullMongoImage(docker, output);
-        var mongoContainerId = await RunMongoContainer(docker, output);
-        await WaitUntilMongoServerIsReady(docker, mongoContainerId, mongoOptions, output);
-
-        return mongoContainerId;
-    }
-
-    public static async Task WaitUntilMongoServerIsReady(DockerClient docker, string mongoContainerId, MongoOptions mongoOptions, ITestOutputHelper? output)
+    public static async Task WaitUntilMongoServerIsReady(DockerClient docker, string mongoContainerId, MongoOptions mongoOptions, ITestOutputHelper? output = null)
     {
         bool serverIsReady = await PollingUtility.WaitUntilTrueAsync(async () =>
         {
@@ -40,7 +31,7 @@ public static class MongoHelper
             try
             {
                 using var client = new MongoClient(mongoOptions.ConnectionString);
-                var database = client.GetDatabase(mongoOptions.Database);
+                var database = client.GetDatabase(mongoOptions.DatabaseName);
                 var collection = database.GetCollection<BsonDocument>("InitializeTestCollection");
 
                 await collection.EstimatedDocumentCountAsync();
@@ -61,7 +52,7 @@ public static class MongoHelper
         }
     }
 
-    public static async Task<string> RunMongoContainer(DockerClient docker, ITestOutputHelper? output)
+    public static async Task<string> RunMongoContainer(DockerClient docker, ITestOutputHelper? output = null)
     {
         var container = await docker.Containers.CreateContainerAsync(new CreateContainerParameters
         {
@@ -86,7 +77,7 @@ public static class MongoHelper
         return mongoContainerId;
     }
 
-    public static async Task PullMongoImage(DockerClient docker, ITestOutputHelper? output)
+    public static async Task PullMongoImage(DockerClient docker, ITestOutputHelper? output = null)
     {
         await docker.Images.CreateImageAsync(new ImagesCreateParameters
         {
@@ -97,7 +88,7 @@ public static class MongoHelper
 
     public static readonly MongoOptions DefaultOptions = new()
     {
-        Database = "IOKodeHangfireTests",
+        DatabaseName = "IOKodeHangfireTests",
         ConnectionString = "mongodb://root:Secret_123@localhost:27017"
     };
     

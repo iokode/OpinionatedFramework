@@ -48,7 +48,7 @@ public static class PostgresHelper
         }
     }
 
-    public static async Task<string> RunPostgresContainer(DockerClient docker, ITestOutputHelper? output)
+    public static async Task<string> RunPostgresContainer(DockerClient docker, ITestOutputHelper? output = null)
     {
         var container = await docker.Containers.CreateContainerAsync(new CreateContainerParameters()
         {

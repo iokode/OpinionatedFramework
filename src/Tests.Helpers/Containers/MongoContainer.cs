@@ -2,23 +2,21 @@ using System;
 using System.Threading.Tasks;
 using Docker.DotNet;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace IOKode.OpinionatedFramework.Tests.Helpers.Containers;
 
-public class MongoContainer(DockerClient docker, ITestOutputHelper? output = null) : IAsyncLifetime
+public class MongoContainer : IAsyncLifetime
 {
+    private readonly DockerClient docker = DockerHelper.DockerClient;
     public string ContainerId = null!;
-    private DockerClient docker => DockerHelper.DockerClient;
-    
-    public MongoContainer() : this(DockerHelper.DockerClient)
-    {
-    }
-    
+
     public async Task InitializeAsync()
     {
         var mongoOptions = MongoHelper.DefaultOptions;
-        ContainerId = await MongoHelper.PullRunAndWaitMongoContainerAsync(docker, mongoOptions);
+
+        await MongoHelper.PullMongoImage(docker);
+        ContainerId = await MongoHelper.RunMongoContainer(docker);
+        await MongoHelper.WaitUntilMongoServerIsReady(docker, ContainerId, mongoOptions);
     }
 
     public async Task DisposeAsync()
@@ -26,6 +24,7 @@ public class MongoContainer(DockerClient docker, ITestOutputHelper? output = nul
         try
         {
             await DockerHelper.RemoveContainer(docker, ContainerId);
+            docker.Dispose();
         }
         catch (ObjectDisposedException){}
     }
