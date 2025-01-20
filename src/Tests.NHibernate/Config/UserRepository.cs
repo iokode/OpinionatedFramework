@@ -7,7 +7,7 @@ using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
 using IOKode.OpinionatedFramework.Persistence.QueryBuilder.Filters;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Config;
 
 public class UserRepository : Repository
 {
@@ -53,7 +53,8 @@ public class UserRepository : Repository
     
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
-        var repeatedUsernames = await UnitOfWork.RawProjection<dynamic?>("select name from Users where name = ?;", [user.Username], cancellationToken);
+        // todo possible leak on @p0 instead of ?
+        var repeatedUsernames = await UnitOfWork.RawProjection<dynamic?>("select name from Users where name = @p0;", new { p0 = user.Username}, cancellationToken);
         if (repeatedUsernames.Any())
         {
             throw new ArgumentException("User already exists.");

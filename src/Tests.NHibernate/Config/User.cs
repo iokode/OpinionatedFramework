@@ -2,7 +2,7 @@ using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Ensuring.Ensurers;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Config;
 
 public class User : Entity
 {

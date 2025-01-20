@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
 using IOKode.OpinionatedFramework.Configuration;
 using IOKode.OpinionatedFramework.Ensuring;
+using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Logging;
 
@@ -12,12 +14,14 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
 public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging logging) : IJobScheduler
 {
-    private List<TaskRunMutableScheduledJob> registeredJobs = new();
+    private List<object> registeredJobs = new();
 
-    public Task<ScheduledJob> ScheduleAsync(IJob job, CronExpression interval, CancellationToken cancellationToken)
+    public Task<ScheduledJob<TJob>> ScheduleAsync<TJob>(CronExpression interval, JobArguments<TJob>? jobArguments, CancellationToken cancellationToken = default) where TJob : IJob
     {
-        var scheduledJob = new TaskRunMutableScheduledJob(interval, job);
+        var scheduledJob = new TaskRunMutableScheduledJob<TJob>(interval, jobArguments);
         this.registeredJobs.Add(scheduledJob);
+        var job = Job.Create(jobArguments);
+
         Task.Run(async () =>
         {
             while (!scheduledJob.IsFinalized)
@@ -49,31 +53,31 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
             }
         }, cancellationToken);
 
-        return Task.FromResult((ScheduledJob) scheduledJob);
+        return Task.FromResult((ScheduledJob<TJob>) scheduledJob);
     }
-
-    public Task RescheduleAsync(ScheduledJob scheduledJob, CronExpression interval, CancellationToken cancellationToken)
+    
+    public Task RescheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CronExpression interval, CancellationToken cancellationToken = default) where TJob : IJob
     {
-        Ensure.Type.IsAssignableTo(scheduledJob.GetType(), typeof(MutableScheduledJob))
-            .ElseThrowsIllegalArgument($"Type must be assignable to {nameof(MutableScheduledJob)} type.", nameof(scheduledJob));
+        Ensure.Type.IsAssignableTo(scheduledJob.GetType(), typeof(MutableScheduledJob<TJob>))
+            .ElseThrowsIllegalArgument($"Type must be assignable to {nameof(MutableScheduledJob<TJob>)} type.", nameof(scheduledJob));
 
-        var mutableScheduledJob = this.registeredJobs.Find(j => j.Identifier == scheduledJob.Identifier);
+        var mutableScheduledJob = this.registeredJobs.Cast<TaskRunMutableScheduledJob<TJob>>().FirstOrDefault(job => job.Identifier == scheduledJob.Identifier);
         Ensure.Object.NotNull(mutableScheduledJob)
-            .ElseThrowsIllegalArgument($"The {nameof(ScheduledJob.Identifier)} value was not found on the schedule jobs.", nameof(scheduledJob));
+            .ElseThrowsIllegalArgument($"The {nameof(ScheduledJob<TJob>.Identifier)} value was not found on the schedule jobs.", nameof(scheduledJob));
 
         mutableScheduledJob!.ChangeInterval(interval);
-        ((MutableScheduledJob) scheduledJob).ChangeInterval(interval);
+        ((MutableScheduledJob<TJob>) scheduledJob).ChangeInterval(interval);
 
         return Task.CompletedTask;
     }
 
-    public Task UnscheduleAsync(ScheduledJob scheduledJob, CancellationToken cancellationToken)
+    public Task UnscheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CancellationToken cancellationToken = default) where TJob : IJob
     {
         var identifier = scheduledJob.Identifier;
 
-        var mutableScheduledJob = this.registeredJobs.Find(j => j.Identifier == identifier);
+        var mutableScheduledJob = this.registeredJobs.Cast<TaskRunMutableScheduledJob<TJob>>().FirstOrDefault(job => job.Identifier == identifier);
         Ensure.Object.NotNull(mutableScheduledJob)
-            .ElseThrowsIllegalArgument($"The {nameof(ScheduledJob.Identifier)} value was not found on the schedule jobs.", nameof(scheduledJob));
+            .ElseThrowsIllegalArgument($"The {nameof(ScheduledJob<TJob>.Identifier)} value was not found on the schedule jobs.", nameof(scheduledJob));
 
         mutableScheduledJob!.CancelLoop();
         this.registeredJobs.Remove(mutableScheduledJob);

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
@@ -25,14 +24,13 @@ public class EntitySet<T> : IEntitySet<T> where T : Entity
 
     public async Task<T> GetByIdAsync(object id, CancellationToken cancellationToken = default)
     {
-        try
+        var entity = await _session.GetAsync<T>(id, cancellationToken);
+        if (entity == null)
         {
-            return await _session.LoadAsync<T>(id, cancellationToken);
+            throw new EntityNotFoundException(id);
         }
-        catch (ObjectNotFoundException ex)
-        {
-            throw new EntityNotFoundException(id, ex);
-        }
+
+        return entity;
     }
     
     public async Task<T> GetByIdOrDefaultAsync(object id, CancellationToken cancellationToken = default)

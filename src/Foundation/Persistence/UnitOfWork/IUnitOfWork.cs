@@ -7,7 +7,7 @@ using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
 
 namespace IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 
-public interface IUnitOfWork
+public interface IUnitOfWork : IAsyncDisposable
 {
     public bool IsRolledBack { get; }
     
@@ -19,10 +19,12 @@ public interface IUnitOfWork
     
     public bool IsTransactionActive { get; }
     
-    public Task AddAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity;
+    public Task AddAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity;
 
     public Task<bool> IsTrackedAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity;
     
+    public Task<TId?> GetEntityIdAsync<TEntity, TId>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity;
+
     public Task StopTrackingAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity;
 
     public Task<bool> HasChangesAsync(CancellationToken cancellationToken);
@@ -34,7 +36,7 @@ public interface IUnitOfWork
     /// <returns>The entity set.</returns>
     public IEntitySet<T> GetEntitySet<T>() where T : Entity;
 
-    public Task<ICollection<T>> RawProjection<T>(string query, IList<object>? parameters = null, CancellationToken cancellationToken = default); 
+    public Task<ICollection<T>> RawProjection<T>(string query, object? parameters = null, CancellationToken cancellationToken = default); 
 
     /// <summary>
     /// Gets a repository instance associated to this unit of work instance.

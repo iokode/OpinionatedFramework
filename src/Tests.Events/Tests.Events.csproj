@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\ContractImplementations.Events\ContractImplementations.Events.csproj" />
+        <ProjectReference Include="..\ContractImplementations.Hangfire\ContractImplementations.Hangfire.csproj" />
+        <ProjectReference Include="..\ContractImplementations.NHibernate\ContractImplementations.NHibernate.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Hangfire.PostgreSql" Version="1.20.10" />
+    </ItemGroup>
+</Project>

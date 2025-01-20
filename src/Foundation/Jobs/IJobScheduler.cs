@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
@@ -13,34 +12,49 @@ namespace IOKode.OpinionatedFramework.Jobs;
 public interface IJobScheduler
 {
     /// <summary>
-    /// Schedules a job to run at intervals specified by a <see cref="CronExpression"/>.
+    /// Schedules a job to run at the specified interval.
     /// </summary>
-    /// <param name="job">The job to be scheduled.</param>
-    /// <param name="interval">The cron expression representing the interval for the job to run.</param>
-    /// <param name="cancellationToken">A token to cancel the scheduling process, but it does NOT cancel the job once it is scheduled.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation of scheduling. The task result contains a <see cref="ScheduledJob"/> representing the scheduled job.</returns>
-    Task<ScheduledJob> ScheduleAsync(IJob job, CronExpression interval, CancellationToken cancellationToken = default);
+    /// <typeparam name="TJob">The type of the job to be scheduled, which must implement <see cref="IJob"/>.</typeparam>
+    /// <param name="interval">The cron expression representing the schedule interval for the job.</param>
+    /// <param name="cancellationToken">A token to cancel the asynchronous operation, if needed.</param>
+    /// <returns>
+    /// A task representing the asynchronous operation of scheduling the job.
+    /// The result contains details of the scheduled job.
+    /// </returns>
+    Task<ScheduledJob<TJob>> ScheduleAsync<TJob>(CronExpression interval, CancellationToken cancellationToken = default) where TJob : IJob
+    {
+        return ScheduleAsync<TJob>(interval, null, cancellationToken);
+    }
 
     /// <summary>
-    /// Reschedules an existing scheduled job to run at a new interval.
+    /// Schedules a job to run at the specified interval, providing optional arguments for the job.
     /// </summary>
-    /// <param name="scheduledJob">The job to be rescheduled.</param>
-    /// <param name="interval">The new cron expression representing the interval for the job to run.</param>
-    /// <param name="cancellationToken">A token to cancel the rescheduling process, but it does NOT cancel the job itself once it is rescheduled.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation of rescheduling.</returns>
-    /// <exception cref="ArgumentException">Thrown if the <paramref name="scheduledJob"/> was created with a different
-    ///     <see cref="IJobScheduler"/> implementation than the one being used to reschedule it, or if it was not generated
-    ///     by the <see cref="ScheduleAsync"/> method (e.g., manually instantiated).</exception>
-    Task RescheduleAsync(ScheduledJob scheduledJob, CronExpression interval, CancellationToken cancellationToken = default);
+    /// <typeparam name="TJob">The type of the job to be scheduled, which must implement <see cref="IJob"/>.</typeparam>
+    /// <param name="interval">The cron expression representing the schedule interval for the job.</param>
+    /// <param name="jobArguments">Optional arguments for creating the job instance. If null, a default instance of the job will be used.</param>
+    /// <param name="cancellationToken">A token to cancel the asynchronous operation, if needed.</param>
+    /// <returns>
+    /// A task representing the asynchronous operation of enqueuing the job.
+    /// The result contains details of the scheduled job.
+    /// </returns>
+    Task<ScheduledJob<TJob>> ScheduleAsync<TJob>(CronExpression interval, JobArguments<TJob>? jobArguments, CancellationToken cancellationToken = default) where TJob : IJob;
 
     /// <summary>
-    /// Unschedules an existing scheduled job.
+    /// Reschedules an already scheduled job to run at a new specified interval.
     /// </summary>
-    /// <param name="scheduledJob">The job to be unscheduled.</param>
-    /// <param name="cancellationToken">A token to cancel the unscheduling process, but it does NOT cancel the job itself if it is already running.</param>
-    /// <returns>A <see cref="Task"/> that represents the asynchronous operation of unscheduling.</returns>
-    /// <exception cref="ArgumentException">Thrown if the <paramref name="scheduledJob"/> was created with a different
-    ///     <see cref="IJobScheduler"/> implementation than the one being used to unschedule it, or if it was not generated
-    ///     by the <see cref="ScheduleAsync"/> method (e.g., manually instantiated).</exception>
-    Task UnscheduleAsync(ScheduledJob scheduledJob, CancellationToken cancellationToken = default);
+    /// <typeparam name="TJob">The type of the job to be rescheduled, which must implement <see cref="IJob"/>.</typeparam>
+    /// <param name="scheduledJob">The job that has already been scheduled and needs rescheduling.</param>
+    /// <param name="interval">The new cron expression representing the updated schedule interval for the job.</param>
+    /// <param name="cancellationToken">A token to cancel the asynchronous operation, if needed.</param>
+    /// <returns>A task representing the asynchronous operation of rescheduling the job.</returns>
+    Task RescheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CronExpression interval, CancellationToken cancellationToken = default) where TJob : IJob;
+
+    /// <summary>
+    /// Unschedules a previously scheduled job, effectively removing it from the schedule.
+    /// </summary>
+    /// <typeparam name="TJob">The type of the job to be unscheduled, which must implement <see cref="IJob"/>.</typeparam>
+    /// <param name="scheduledJob">The instance of the previously scheduled job to be unscheduled.</param>
+    /// <param name="cancellationToken">A token to cancel the asynchronous operation, if needed.</param>
+    /// <returns>A task representing the asynchronous operation of unscheduling the job.</returns>
+    Task UnscheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CancellationToken cancellationToken = default) where TJob : IJob;
 }

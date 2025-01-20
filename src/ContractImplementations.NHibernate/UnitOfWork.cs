@@ -14,7 +14,7 @@ using NHibernate;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 
-public class UnitOfWork : IUnitOfWork, IAsyncDisposable
+public class UnitOfWork : IUnitOfWork
 {
     private readonly Dictionary<Type, Repository> repositories = new();
     private readonly ISession session;
@@ -76,7 +76,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         }
     }
 
-    public async Task AddAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity
+    public async Task AddAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity
     {
         ThrowsIfRolledBack();
         await this.session.PersistAsync(entity, cancellationToken);
@@ -86,6 +86,12 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     {
         ThrowsIfRolledBack();
         return Task.FromResult(session.Contains(entity));
+    }
+
+    public Task<TId?> GetEntityIdAsync<TEntity, TId>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity
+    {
+        // todo catch exceptions and create own exceptions
+        return Task.FromResult((TId?)this.session.GetIdentifier(entity));
     }
 
     public async Task StopTrackingAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity
@@ -106,15 +112,10 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         return new EntitySet<T>(this.session);
     }
 
-    public async Task<ICollection<T>> RawProjection<T>(string query, IList<object>? parameters = null, CancellationToken cancellationToken = default)
+    public async Task<ICollection<T>> RawProjection<T>(string query, object? parameters = null, CancellationToken cancellationToken = default)
     {
         ThrowsIfRolledBack();
 
-        if (parameters != null && !parameters.Any())
-        {
-            parameters = null!;
-        }
-        
         var transaction = GetTransaction();
         return (await this.session.Connection.QueryAsync<T>(query, parameters, transaction)).ToArray();
     }
@@ -170,7 +171,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if (this.IsTransactionActive)
+        if (!this.IsRolledBack && this.IsTransactionActive)
         {
             await this.transaction!.RollbackAsync();
         }

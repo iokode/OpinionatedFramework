@@ -5,12 +5,12 @@
 
     <ItemGroup>
         <ProjectReference Include="..\ContractImplementations.Hangfire\ContractImplementations.Hangfire.csproj" />
+        <ProjectReference Include="..\ContractImplementations.LoggerEmail\ContractImplementations.LoggerEmail.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Docker.DotNet" Version="3.125.15" />
-      <PackageReference Include="Hangfire.Mongo" Version="1.11.2" />
+      <PackageReference Include="Hangfire.PostgreSql" Version="1.20.10" />
     </ItemGroup>
 
 </Project>

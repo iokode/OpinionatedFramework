@@ -249,7 +249,7 @@ public partial class FacadesGenerator
 
         namespace IOKode.OpinionatedFramework.Facades;
 
-        public static class {{ Name }}
+        public static partial class {{ Name }}
         {
             {{~ for method in Methods ~}}
             {{~ if method.Has ~}}

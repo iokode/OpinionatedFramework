@@ -1,8 +1,12 @@
 using System;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 
 namespace IOKode.OpinionatedFramework.Events;
 
-public abstract record Event
+public abstract class Event : Entity
 {
-    public required DateTimeOffset DispatchedAt { get; init; }
+    /// <remarks>Null if event was not dispatched. This property is set by the dispatcher.</remarks>
+    public DateTime? DispatchedAt { get; private set; }
+
+    public bool IsDispatched => DispatchedAt != null;
 }
