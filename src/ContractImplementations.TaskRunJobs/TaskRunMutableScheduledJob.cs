@@ -4,12 +4,12 @@ using IOKode.OpinionatedFramework.Jobs;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
-internal class TaskRunMutableScheduledJob : MutableScheduledJob
+internal class TaskRunMutableScheduledJob<TJob> : MutableScheduledJob<TJob> where TJob : IJob
 {
     public DateTime LastInvocation { get; set; }
     public bool IsFinalized { get; private set; }
 
-    public TaskRunMutableScheduledJob(CronExpression interval, IJob job) : base(interval, job)
+    public TaskRunMutableScheduledJob(CronExpression interval, JobArguments<TJob>? jobArguments = null) : base(interval, jobArguments)
     {
         LastInvocation = DateTime.UtcNow;
     }
