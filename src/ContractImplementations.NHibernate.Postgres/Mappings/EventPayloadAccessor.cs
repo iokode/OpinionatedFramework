@@ -7,7 +7,7 @@ using IOKode.OpinionatedFramework.Events;
 using NHibernate.Engine;
 using NHibernate.Properties;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
+namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.Mappings;
 
 class EventPayloadAccessor : IPropertyAccessor
 {

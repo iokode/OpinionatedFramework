@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using FluentNHibernate.Mapping;
 using IOKode.OpinionatedFramework.Events;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Npgsql;
+namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.Mappings;
 
 public class EventMap : ClassMap<Event>
 {

@@ -8,7 +8,7 @@ using NHibernate.UserTypes;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Npgsql;
+namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.Mappings;
 
 public class JsonBType : IUserType
 {
