@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using IOKode.OpinionatedFramework.Persistence.QueryBuilder.Filters;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters;
 
-namespace IOKode.OpinionatedFramework.Persistence.QueryBuilder;
+namespace IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
 
 public abstract class Specification
 {

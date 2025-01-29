@@ -1,6 +1,6 @@
 using System;
 
-namespace IOKode.OpinionatedFramework.Persistence.QueryBuilder.Exceptions;
+namespace IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
 
 public class EntitySetException : Exception
 {

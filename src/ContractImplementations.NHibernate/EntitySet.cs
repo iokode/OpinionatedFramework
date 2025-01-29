@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
-using IOKode.OpinionatedFramework.Persistence.QueryBuilder.Exceptions;
-using IOKode.OpinionatedFramework.Persistence.QueryBuilder.Filters;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters;
 using NHibernate;
 using NHibernate.Criterion;
 using NHNonUniqueResultException = NHibernate.NonUniqueResultException;
-using NonUniqueResultException = IOKode.OpinionatedFramework.Persistence.QueryBuilder.Exceptions.NonUniqueResultException;
+using NonUniqueResultException = IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions.NonUniqueResultException;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 

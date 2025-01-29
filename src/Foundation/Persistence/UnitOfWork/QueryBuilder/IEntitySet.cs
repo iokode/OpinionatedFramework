@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
-using Filter = IOKode.OpinionatedFramework.Persistence.QueryBuilder.Filters.Filter;
+using Filter = IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters.Filter;
 
-namespace IOKode.OpinionatedFramework.Persistence.QueryBuilder;
+namespace IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
 
 public interface IEntitySet<T> where T : Entity
 {

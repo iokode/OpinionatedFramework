@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Ensuring;
-using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
 
 namespace IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 
