@@ -9,7 +9,10 @@
     <ItemGroup Label="Package references">
         <PackageReference Include="Cronos" Version="0.7.1"/>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0"/>
-        <PackageReference Include="IOKode.OpinionatedFramework.Ensuring" Version="1.1.0"/>
+    </ItemGroup>
+    
+    <ItemGroup Label="ProjectReferences">
+        <ProjectReference Include="..\Ensuring\Ensuring.csproj" />
     </ItemGroup>
 
     <ItemGroup Label="Analyzers and source generators">
