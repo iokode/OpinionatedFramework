@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -47,7 +48,7 @@ internal static class SourceGenerationHelper
         string nameSpace = string.Empty;
 
         SyntaxNode potentialNamespaceParent = syntax.Parent;
-    
+
         while (potentialNamespaceParent is not null &&
                potentialNamespaceParent is not NamespaceDeclarationSyntax &&
                potentialNamespaceParent is not FileScopedNamespaceDeclarationSyntax)
@@ -58,7 +59,7 @@ internal static class SourceGenerationHelper
         if (potentialNamespaceParent is BaseNamespaceDeclarationSyntax namespaceParent)
         {
             nameSpace = namespaceParent.Name.ToString();
-        
+
             while (namespaceParent.Parent is NamespaceDeclarationSyntax parent)
             {
                 nameSpace = $"{namespaceParent.Name}.{nameSpace}";
@@ -72,7 +73,7 @@ internal static class SourceGenerationHelper
     public static IEnumerable<string> GetUsingDirectives(BaseTypeDeclarationSyntax syntax)
     {
         var rootSyntaxNode = syntax.Parent;
-        while (rootSyntaxNode is not null && 
+        while (rootSyntaxNode is not null &&
                rootSyntaxNode is not CompilationUnitSyntax)
         {
             rootSyntaxNode = rootSyntaxNode.Parent;
@@ -117,5 +118,60 @@ internal static class SourceGenerationHelper
                 (false, false) => string.Compare(namespace1, namespace2, StringComparison.Ordinal)
             };
         }
+    }
+
+    public static string ToPascalCase(this string source)
+    {
+        return ConvertToCapitalizedCasing(source, true);
+    }
+
+    public static string ToCamelCase(this string source)
+    {
+        return ConvertToCapitalizedCasing(source, false);
+    }
+
+    private static string ConvertToCapitalizedCasing(string input, bool firstLetterUppercase)
+    {
+        var stringBuilder = new StringBuilder();
+        bool shouldCapitalize = firstLetterUppercase;
+        bool isFirstLetter = true;
+        var currentCategory = UnicodeCategory.OtherSymbol;
+
+        foreach (var currentCharacter in input)
+        {
+            var previousCategory = currentCategory;
+            currentCategory = char.GetUnicodeCategory(currentCharacter); // C89l => c_89_l
+
+            if (!isFirstLetter && previousCategory != currentCategory)
+            {
+                shouldCapitalize = (previousCategory, currentCategory) switch
+                {
+                    (UnicodeCategory.DecimalDigitNumber, UnicodeCategory.LowercaseLetter) => true,
+                    (var x, UnicodeCategory.LowercaseLetter) when IsSpecialCharacter(x) => true,
+                    (_, UnicodeCategory.UppercaseLetter) => true,
+                    _ => false
+                };
+            }
+
+            if (IsSpecialCharacter(currentCategory))
+            {
+                continue;
+            }
+
+            stringBuilder.Append(shouldCapitalize
+                ? char.ToUpperInvariant(currentCharacter)
+                : char.ToLowerInvariant(currentCharacter));
+            shouldCapitalize = false;
+            isFirstLetter = false;
+        }
+
+        return stringBuilder.ToString();
+    }
+
+    private static bool IsSpecialCharacter(UnicodeCategory category)
+    {
+        return category is not UnicodeCategory.DecimalDigitNumber
+            and not UnicodeCategory.UppercaseLetter
+            and not UnicodeCategory.LowercaseLetter;
     }
 }
