@@ -1,4 +1,4 @@
-using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
 
 namespace IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 

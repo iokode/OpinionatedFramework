@@ -6,17 +6,19 @@
         <LangVersion>11</LangVersion>
         <PackageScribanIncludeSource>true</PackageScribanIncludeSource>
         <IncludeSymbols>false</IncludeSymbols>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <IsRoslynComponent>true</IsRoslynComponent>
     </PropertyGroup>
 
     <ItemGroup Label="Source generation references">
-        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0"/>
     </ItemGroup>
 
     <ItemGroup Label="Scriban dependencies">
-        <PackageReference Include="Scriban" Version="5.4.6" Pack="true" IncludeAssets="Build" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.CSharp" Version="4.5.0"/>
-        <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4"/>
+        <PackageReference Include="Scriban" Version="5.12.1" Pack="true" IncludeAssets="Build" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.CSharp" Version="4.7.0"/>
+        <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.0"/>
     </ItemGroup>
 
     <ItemGroup Label="Source generation settings">

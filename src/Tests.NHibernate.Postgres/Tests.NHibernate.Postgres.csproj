@@ -1,14 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Test.props"/>
 
     <ItemGroup Label="Project references">
-        <ProjectReference Include="..\ContractImplementations.Events\ContractImplementations.Events.csproj" />
-        <ProjectReference Include="..\ContractImplementations.Hangfire\ContractImplementations.Hangfire.csproj" />
         <ProjectReference Include="..\ContractImplementations.NHibernate.Postgres\ContractImplementations.NHibernate.Postgres.csproj" />
+        <ProjectReference Include="..\SourceGenerators.SqlQueryObjects\SourceGenerators.SqlQueryObjects.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <AdditionalFiles Include="**\*.sql"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Hangfire.PostgreSql" Version="1.20.10" />
+      <None Update="Config\user.hbm.xml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
+
 </Project>

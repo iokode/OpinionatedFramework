@@ -73,11 +73,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Helpers", "Tests.Help
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractImplementations.NHibernate", "ContractImplementations.NHibernate\ContractImplementations.NHibernate.csproj", "{2D5F7A2E-0304-48B4-B01F-0AFF38566552}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.NHibernate", "Tests.NHibernate\Tests.NHibernate.csproj", "{1126989E-9E38-4573-8592-7A8C8E688022}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.NHibernate.Postgres", "Tests.NHibernate.Postgres\Tests.NHibernate.Postgres.csproj", "{1126989E-9E38-4573-8592-7A8C8E688022}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractImplementations.Events", "ContractImplementations.Events\ContractImplementations.Events.csproj", "{E1759342-B297-44A6-AAA2-BD53C21263B2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Events", "Tests.Events\Tests.Events.csproj", "{72C022EF-BBCD-48D6-B34A-36C18FEB57A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerators.SqlQueryObjects", "SourceGenerators.SqlQueryObjects\SourceGenerators.SqlQueryObjects.csproj", "{58D644BA-637E-46F8-B634-398A6016E769}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractImplementations.NHibernate.Postgres", "ContractImplementations.NHibernate.Postgres\ContractImplementations.NHibernate.Postgres.csproj", "{A536F45D-A800-4F78-8195-5D15004FB1E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -221,6 +225,14 @@ Global
 		{72C022EF-BBCD-48D6-B34A-36C18FEB57A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72C022EF-BBCD-48D6-B34A-36C18FEB57A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72C022EF-BBCD-48D6-B34A-36C18FEB57A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58D644BA-637E-46F8-B634-398A6016E769}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58D644BA-637E-46F8-B634-398A6016E769}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58D644BA-637E-46F8-B634-398A6016E769}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58D644BA-637E-46F8-B634-398A6016E769}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A536F45D-A800-4F78-8195-5D15004FB1E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A536F45D-A800-4F78-8195-5D15004FB1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A536F45D-A800-4F78-8195-5D15004FB1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A536F45D-A800-4F78-8195-5D15004FB1E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -256,5 +268,7 @@ Global
 		{1126989E-9E38-4573-8592-7A8C8E688022} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
 		{E1759342-B297-44A6-AAA2-BD53C21263B2} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
 		{72C022EF-BBCD-48D6-B34A-36C18FEB57A9} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
+		{58D644BA-637E-46F8-B634-398A6016E769} = {F231FFD4-12A2-49F4-9B02-85AEC3AEFFA9}
+		{A536F45D-A800-4F78-8195-5D15004FB1E6} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
 	EndGlobalSection
 EndGlobal
