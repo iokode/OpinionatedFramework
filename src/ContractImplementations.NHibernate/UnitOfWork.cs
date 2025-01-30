@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Dapper;
-using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
+using IOKode.OpinionatedFramework.Persistence.Queries;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
 using NHibernate;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
@@ -116,8 +115,9 @@ public class UnitOfWork : IUnitOfWork
     {
         ThrowsIfRolledBack();
 
-        var transaction = GetTransaction();
-        return (await this.session.Connection.QueryAsync<T>(query, parameters, transaction)).ToArray();
+        var queryExecutor = Locator.Resolve<IQueryExecutor>();
+        var results = await queryExecutor.QueryAsync<T>(query, parameters, GetTransaction(), cancellationToken);
+        return results;
     }
 
     public Repository GetRepository(Type repositoryType)
