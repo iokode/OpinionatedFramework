@@ -2,7 +2,7 @@
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Test.props"/>
 
-    <ItemGroup Label="Package references">
-        <PackageReference Include="IOKode.OpinionatedFramework.Ensuring" Version="1.1.0"/>
+    <ItemGroup Label="Project referencies">
+      <ProjectReference Include="..\Ensuring\Ensuring.csproj" />
     </ItemGroup>
 </Project>
