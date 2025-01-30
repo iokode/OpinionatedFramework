@@ -2,12 +2,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
-using IOKode.OpinionatedFramework.Persistence.QueryBuilder.Exceptions;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
-using IOKode.OpinionatedFramework.Tests.NHibernate.Config;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
+using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using Xunit;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres;
 
 [Collection(nameof(NHibernateTestsFixtureCollection))]
 public class EntitySetTests(NHibernateTestsFixture fixture) : NHibernateTestsBase(fixture)

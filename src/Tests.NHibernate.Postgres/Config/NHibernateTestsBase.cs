@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Dapper;
 using Npgsql;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate.Config;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 
 public abstract class NHibernateTestsBase(NHibernateTestsFixture fixture)
 {

@@ -8,8 +8,8 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
-using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
-using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Npgsql;
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.Mappings;
 using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.Tests.Helpers.Containers;
 using Npgsql;
@@ -30,7 +30,7 @@ public class EventsTestsFixture : IAsyncLifetime
         await PostgresContainer.InitializeAsync();
         string postgresConnectionString = PostgresHelper.DefaultConnectionString;
 
-        Container.Services.AddNHibernate(cfg =>
+        Container.Services.AddNHibernateWithPostgres(cfg =>
         {
             Fluently.Configure(cfg)
                 .Database(PostgreSQLConfiguration.PostgreSQL83

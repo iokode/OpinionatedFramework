@@ -1,14 +1,13 @@
 using System.Threading.Tasks;
 using Dapper;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
-using IOKode.OpinionatedFramework.Persistence.QueryBuilder.Filters;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
-using IOKode.OpinionatedFramework.Tests.NHibernate.Config;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters;
+using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using Xunit;
-using Xunit.Abstractions;
-using NotFilter = IOKode.OpinionatedFramework.Persistence.QueryBuilder.Filters.NotFilter;
+using NotFilter = IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters.NotFilter;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres;
 
 [Collection(nameof(NHibernateTestsFixtureCollection))]
 public class FilterTests(NHibernateTestsFixture fixture) : NHibernateTestsBase(fixture)

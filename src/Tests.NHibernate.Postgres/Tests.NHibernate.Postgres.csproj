@@ -4,7 +4,9 @@
     <Import Project="../MSBuild/Test.props"/>
 
     <ItemGroup Label="Project references">
-        <ProjectReference Include="..\ContractImplementations.NHibernate\ContractImplementations.NHibernate.csproj" />
+        <ProjectReference Include="..\ContractImplementations.NHibernate.Postgres\ContractImplementations.NHibernate.Postgres.csproj" />
+        <ProjectReference Include="..\SourceGenerators.SqlQueryObjects\SourceGenerators.SqlQueryObjects.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <AdditionalFiles Include="**\*.sql"/>
     </ItemGroup>
 
     <ItemGroup>

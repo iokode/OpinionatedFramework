@@ -5,7 +5,7 @@
     <ItemGroup Label="Project references">
         <ProjectReference Include="..\ContractImplementations.Events\ContractImplementations.Events.csproj" />
         <ProjectReference Include="..\ContractImplementations.Hangfire\ContractImplementations.Hangfire.csproj" />
-        <ProjectReference Include="..\ContractImplementations.NHibernate\ContractImplementations.NHibernate.csproj" />
+        <ProjectReference Include="..\ContractImplementations.NHibernate.Postgres\ContractImplementations.NHibernate.Postgres.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,10 +1,15 @@
 using System.Threading.Tasks;
 using Docker.DotNet;
+using FluentNHibernate.Cfg;
+using FluentNHibernate.Cfg.Db;
+using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 using IOKode.OpinionatedFramework.Tests.Helpers.Containers;
 using Npgsql;
 using Xunit;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate.Config;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 
 public class NHibernateTestsFixture : IAsyncLifetime
 {
@@ -16,16 +21,23 @@ public class NHibernateTestsFixture : IAsyncLifetime
     
     public async Task InitializeAsync()
     {
+        NpgsqlConnection.GlobalTypeMapper.MapComposite<AddressDto>("public.address_type");
         await PostgresContainer.InitializeAsync();
         string connectionString = PostgresHelper.DefaultConnectionString;
         
-        Configuration = new global::NHibernate.Cfg.Configuration();
-        Configuration.Properties.Add("connection.connection_string", connectionString);
-        Configuration.Properties.Add("dialect", "NHibernate.Dialect.PostgreSQL83Dialect");
-        Configuration.AddXmlFile("Config/user.hbm.xml");
-
         NpgsqlClient = new NpgsqlConnection(connectionString);
         await NpgsqlClient.OpenAsync();
+        Container.Services.AddNHibernateWithPostgres(cfg =>
+        {
+            Configuration = cfg;
+            cfg.AddXmlFile("Config/user.hbm.xml");
+            Fluently.Configure(cfg)
+                .Database(PostgreSQLConfiguration.PostgreSQL83
+                    .ConnectionString(connectionString))
+                .BuildConfiguration();
+        });
+        Container.Initialize();
+        UserTypeMapper.AddUserType<Address, AddressType>();
     }
 
     public async Task DisposeAsync()

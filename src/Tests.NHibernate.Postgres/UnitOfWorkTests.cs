@@ -5,10 +5,10 @@ using Dapper;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
-using IOKode.OpinionatedFramework.Tests.NHibernate.Config;
+using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using Xunit;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres;
 
 [Collection(nameof(NHibernateTestsFixtureCollection))]
 public class UnitOfWorkTests(NHibernateTestsFixture fixture) : NHibernateTestsBase(fixture)
@@ -194,12 +194,12 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture) : NHibernateTestsBa
         user.Username = "Marta";
         await unitOfWork.SaveChangesAsync(default);
 
-        string shouldBeMarta = (await unitOfWork.RawProjection<string>("select name from Users;")).First();
-        string shouldBeIvan = (await npgsqlClient.QueryAsync<string>("select name from Users;")).First();
+        var martaDto = (await unitOfWork.RawProjection<TransactionRawProjectionDto>("select name from Users;")).First();
+        var ivanDto = (await npgsqlClient.QueryAsync<TransactionRawProjectionDto>("select name from Users;")).First();
 
         // Assert
-        Assert.Equal("Marta", shouldBeMarta);
-        Assert.Equal("Ivan", shouldBeIvan);
+        Assert.Equal("Marta", martaDto.Name);
+        Assert.Equal("Ivan", ivanDto.Name);
 
         // Arrange post Assert
         await unitOfWork.RollbackTransactionAsync();
@@ -235,4 +235,9 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture) : NHibernateTestsBa
         // Arrange post Assert
         await DropUsersTableQueryAsync();
     }
+}
+
+public record TransactionRawProjectionDto
+{
+    public string Name { get; init; }
 }

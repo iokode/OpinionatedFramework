@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Persistence.QueryBuilder;
-using IOKode.OpinionatedFramework.Persistence.QueryBuilder.Filters;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate.Config;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 
 public class UserRepository : Repository
 {
@@ -53,8 +53,7 @@ public class UserRepository : Repository
     
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
-        // todo possible leak on @p0 instead of ?
-        var repeatedUsernames = await UnitOfWork.RawProjection<dynamic?>("select name from Users where name = @p0;", new { p0 = user.Username}, cancellationToken);
+        var repeatedUsernames = await UnitOfWork.RawProjection<dynamic?>("select name from Users where name = :p0;", new { p0 = user.Username}, cancellationToken);
         if (repeatedUsernames.Any())
         {
             throw new ArgumentException("User already exists.");
