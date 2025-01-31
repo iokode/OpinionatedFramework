@@ -3,7 +3,7 @@
     <Import Project="../MSBuild/Packable.props"/>
 
     <PropertyGroup Label="Package settings">
-        <Version>1.2.1</Version>
+        <Version>$(EnsuringVersion)</Version>
         <Description>This library, part of the OpinionatedFramework, offers a set of robust tools for enforcing preconditions, postconditions, and invariants in your .NET code. It's designed to boost code reliability and maintainability by offering a fluent, readable way to handle validation tasks.</Description>
         <PackageTags>ensuring validation preconditions postconditions contract-design assertions</PackageTags>
     </PropertyGroup>
