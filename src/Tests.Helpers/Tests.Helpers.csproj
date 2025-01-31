@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Packable.props"/>
 
     <ItemGroup Label="Project references">
         <ProjectReference Include="..\ContractImplementations.MicrosoftConfiguration\ContractImplementations.MicrosoftConfiguration.csproj"/>
