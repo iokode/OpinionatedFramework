@@ -7,11 +7,12 @@ using IOKode.OpinionatedFramework.Ensuring.Ensurers;
 using IOKode.OpinionatedFramework.Persistence.Queries;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres;
 
 [Collection(nameof(NHibernateTestsFixtureCollection))]
-public class QueryExecutorTests(NHibernateTestsFixture fixture) : NHibernateTestsBase(fixture)
+public class QueryExecutorTests(NHibernateTestsFixture fixture, ITestOutputHelper outputHelper) : NHibernateTestsBase(fixture, outputHelper)
 {
     [Fact]
     public async Task QueryWithComplexValueObject()
@@ -23,7 +24,7 @@ public class QueryExecutorTests(NHibernateTestsFixture fixture) : NHibernateTest
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, country_code) VALUES (1, 'EST');");
 
         // Act
-        var result = await queryExecutor.QuerySingleAsync<UserResult>("select * from users where id = 1", null);
+        var result = await queryExecutor.QuerySingleAsync<UserResult>("select * from users where id = 1");
 
         // Assert
         Assert.NotNull(result);

@@ -5,12 +5,13 @@ using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using Xunit;
+using Xunit.Abstractions;
 using NotFilter = IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters.NotFilter;
 
 namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres;
 
 [Collection(nameof(NHibernateTestsFixtureCollection))]
-public class FilterTests(NHibernateTestsFixture fixture) : NHibernateTestsBase(fixture)
+public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outputHelper) : NHibernateTestsBase(fixture, outputHelper)
 {
     private async Task InsertUsers()
     {

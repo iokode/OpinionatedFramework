@@ -3,11 +3,12 @@ using System.Threading.Tasks;
 using Dapper;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres;
 
 [Collection(nameof(NHibernateTestsFixtureCollection))]
-public class QueryObjectTests(NHibernateTestsFixture fixture) : NHibernateTestsBase(fixture)
+public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper outputHelper) : NHibernateTestsBase(fixture, outputHelper)
 {
     [Fact]
     public async Task Single()

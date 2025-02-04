@@ -1,11 +1,20 @@
 using System.Threading.Tasks;
 using Dapper;
 using Npgsql;
+using Xunit.Abstractions;
 
 namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 
-public abstract class NHibernateTestsBase(NHibernateTestsFixture fixture)
+public abstract class NHibernateTestsBase
 {
+    private readonly NHibernateTestsFixture fixture;
+
+    public NHibernateTestsBase(NHibernateTestsFixture fixture, ITestOutputHelper outputHelper)
+    {
+        fixture.TestOutputHelperFactory = () => outputHelper;
+        this.fixture = fixture;
+    }
+    
     protected NpgsqlConnection npgsqlClient => fixture.NpgsqlClient;
     protected global::NHibernate.Cfg.Configuration configuration => fixture.Configuration;
 

@@ -7,11 +7,13 @@ using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres;
 
 [Collection(nameof(NHibernateTestsFixtureCollection))]
-public class UnitOfWorkTests(NHibernateTestsFixture fixture) : NHibernateTestsBase(fixture)
+public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper outputHelper)
+    : NHibernateTestsBase(fixture, outputHelper)
 {
     [Fact]
     public async Task IdentityMap_SameInstance()
@@ -67,17 +69,17 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture) : NHibernateTestsBa
         // Act & Assert
         Assert.False(await unitOfWork.HasChangesAsync(default));
 
-        var user = new User {Username = "Ivan", EmailAddress = "ivan@example.com", IsActive = true};
+        var user = new User { Username = "Ivan", EmailAddress = "ivan@example.com", IsActive = true };
         await repository.AddAsync(user, default);
 
         Assert.True(await unitOfWork.HasChangesAsync(default));
         Assert.True(await unitOfWork.IsTrackedAsync(user, default));
 
-        var shouldNull = await npgsqlClient.QuerySingleOrDefaultAsync<(string, string, string, bool)?>("SELECT * FROM Users;");
+        var shouldNull = await npgsqlClient.QuerySingleOrDefaultAsync<(string, string, string, bool)?>("SELECT * FROM users;");
         Assert.Null(shouldNull);
 
         await unitOfWork.SaveChangesAsync(default);
-        var shouldSaved = await npgsqlClient.QuerySingleOrDefaultAsync<(string, string, string, bool)>("SELECT * FROM Users;");
+        var shouldSaved = await npgsqlClient.QuerySingleOrDefaultAsync<(string, string, string, bool)>("SELECT * FROM users;");
         Assert.Equal("Ivan", shouldSaved.Item2);
         await Assert.ThrowsAsync<ArgumentException>(async () => { await repository.AddAsync(user, default); });
 
@@ -101,7 +103,7 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture) : NHibernateTestsBa
         // Act & Assert
         Assert.False(await unitOfWork.HasChangesAsync(default));
 
-        var user = new User {Username = "Ivan", EmailAddress = "ivan@example.com", IsActive = true};
+        var user = new User { Username = "Ivan", EmailAddress = "ivan@example.com", IsActive = true };
         await repository.AddAsync(user, default);
 
         Assert.True(await unitOfWork.HasChangesAsync(default));
@@ -141,7 +143,7 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture) : NHibernateTestsBa
 
         var repository = unitOfWork.GetRepository<UserRepository>();
 
-        var user = new User {Username = "Ivan", EmailAddress = "ivan@example.com", IsActive = true};
+        var user = new User { Username = "Ivan", EmailAddress = "ivan@example.com", IsActive = true };
         await repository.AddAsync(user, default);
         await unitOfWork.SaveChangesAsync(default);
 
@@ -167,7 +169,7 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture) : NHibernateTestsBa
         await using IUnitOfWork unitOfWork = new UnitOfWork(configuration.BuildSessionFactory());
 
         var repository = unitOfWork.GetRepository<UserRepository>();
-        var user = new User {Username = "Ivan", EmailAddress = "ivan@example.com", IsActive = true};
+        var user = new User { Username = "Ivan", EmailAddress = "ivan@example.com", IsActive = true };
 
         // Act and Assert
         await repository.AddAsync(user, default);
@@ -184,7 +186,7 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture) : NHibernateTestsBa
     {
         // Arrange
         await CreateUsersTableQueryAsync();
-        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         await using IUnitOfWork unitOfWork = new UnitOfWork(configuration.BuildSessionFactory());
 
         // Act
@@ -194,8 +196,8 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture) : NHibernateTestsBa
         user.Username = "Marta";
         await unitOfWork.SaveChangesAsync(default);
 
-        var martaDto = (await unitOfWork.RawProjection<TransactionRawProjectionDto>("select name from Users;")).First();
-        var ivanDto = (await npgsqlClient.QueryAsync<TransactionRawProjectionDto>("select name from Users;")).First();
+        var martaDto = (await unitOfWork.RawProjection<TransactionRawProjectionDto>("select name from users;")).First();
+        var ivanDto = (await npgsqlClient.QueryAsync<TransactionRawProjectionDto>("select name from users;")).First();
 
         // Assert
         Assert.Equal("Marta", martaDto.Name);

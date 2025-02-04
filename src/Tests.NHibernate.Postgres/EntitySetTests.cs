@@ -6,11 +6,12 @@ using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres;
 
 [Collection(nameof(NHibernateTestsFixtureCollection))]
-public class EntitySetTests(NHibernateTestsFixture fixture) : NHibernateTestsBase(fixture)
+public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper outputHelper) : NHibernateTestsBase(fixture, outputHelper)
 {
     [Fact]
     public async Task GetById_Success()
