@@ -15,42 +15,48 @@ public class UserRepository : Repository
     {
         return await GetEntitySet<User>().GetByIdAsync(id, cancellationToken);
     }
-    
+
     public async Task<User> GetByIdOrDefaultAsync(string id, CancellationToken cancellationToken = default)
     {
         return await GetEntitySet<User>().GetByIdOrDefaultAsync(id, cancellationToken);
     }
-    
+
     public async Task<User> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
     {
         return await GetEntitySet<User>().SingleAsync(new ByUsernameSpecification(username), cancellationToken);
     }
-    
-    public async Task<User?> GetByEmailAddressOrDefaultAsync(string emailAddress, CancellationToken cancellationToken = default)
+
+    public async Task<User?> GetByEmailAddressOrDefaultAsync(string emailAddress,
+        CancellationToken cancellationToken = default)
     {
-        return await GetEntitySet<User>().SingleOrDefaultAsync(new EqualsFilter("emailAddress", emailAddress), cancellationToken);
+        return await GetEntitySet<User>()
+            .SingleOrDefaultAsync(new EqualsFilter("emailAddress", emailAddress), cancellationToken);
     }
-    
+
     public async Task<User> GetFirstActiveAsync(CancellationToken cancellationToken = default)
     {
         return await GetEntitySet<User>().FirstAsync(new EqualsFilter("isActive", true), cancellationToken);
     }
-    
-    public async Task<User?> GetFirstByNameOrDefaultAsync(string username, CancellationToken cancellationToken = default)
+
+    public async Task<User?> GetFirstByNameOrDefaultAsync(string username,
+        CancellationToken cancellationToken = default)
     {
-        return await GetEntitySet<User>().FirstOrDefaultAsync(new EqualsFilter("username", username), cancellationToken);
+        return await GetEntitySet<User>()
+            .FirstOrDefaultAsync(new EqualsFilter("username", username), cancellationToken);
     }
-    
-    public async Task<IReadOnlyCollection<User>> GetMultipleByNameAsync(ICollection<string> usernames, CancellationToken cancellationToken = default)
+
+    public async Task<IReadOnlyCollection<User>> GetMultipleByNameAsync(ICollection<string> usernames,
+        CancellationToken cancellationToken = default)
     {
-        return await GetEntitySet<User>().ManyAsync(new InFilter("username", usernames.ToArray<object>()), cancellationToken);
+        return await GetEntitySet<User>()
+            .ManyAsync(new InFilter("username", usernames.ToArray<object>()), cancellationToken);
     }
-    
+
     public async Task<IReadOnlyCollection<User>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await GetEntitySet<User>().ManyAsync(cancellationToken: cancellationToken);
     }
-    
+
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
         var repeatedUsernames = await UnitOfWork.RawProjection<dynamic?>("select name from Users where name = :p0;", new { p0 = user.Username}, cancellationToken);
@@ -58,6 +64,7 @@ public class UserRepository : Repository
         {
             throw new ArgumentException("User already exists.");
         }
+
         await UnitOfWork.AddAsync(user, cancellationToken);
     }
 }

@@ -117,7 +117,7 @@ public partial class QueryObjectsGenerator
                 """
                 {{ QueryContent }}
                 """;
-                
+
             public static async Task<{{ if IsSingleResult }}{{ QueryResultClassName }}{{ else if IsSingleOrDefaultResult }}{{ QueryResultClassName }}?{{ else }}IReadOnlyCollection<{{ QueryResultClassName }}>{{ end }}> InvokeAsync({{ for parameter in QueryParameters }}{{ parameter.Type }} {{ parameter.CamelCaseName }},{{ end }} CancellationToken cancellationToken)
             {
                 var queryExecutor = Locator.Resolve<IQueryExecutor>();
@@ -127,7 +127,7 @@ public partial class QueryObjectsGenerator
                     {{ parameter.Name }} = {{ parameter.CamelCaseName }},
                     {{~ end ~}}
                 };
-        
+
                 {{~ if IsSingleResult ~}}
                 var queryResult = await queryExecutor.QuerySingleAsync<_QueryResult>(Query, parameters, null, cancellationToken);
                 var result = _MapQueryResult(queryResult);

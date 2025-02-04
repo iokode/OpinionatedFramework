@@ -27,18 +27,18 @@ public static class UserTypeMapper
     public static void AddType<TApplicationType, TNhUserType>() where TNhUserType : IType
     {
         Add(typeof(TApplicationType), typeof(TNhUserType));
-    } 
+    }
 
     public static void AddUserType<TApplicationType, TNhUserType>() where TNhUserType : IUserType
     {
         Add(typeof(TApplicationType), typeof(TNhUserType));
     }
-    
+
     public static void AddUserCollectionType<TApplicationType, TNhUserType>() where TNhUserType : IUserCollectionType
     {
         Add(typeof(TApplicationType), typeof(TNhUserType));
     }
-    
+
     public static Type? GetNhUserType(Type applicationType)
     {
         return Maps.Find(x => x.ApplicationType == applicationType).NhUserType;
