@@ -2,18 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using IOKode.OpinionatedFramework.Commands;
+using IOKode.OpinionatedFramework.Common;
+using IOKode.OpinionatedFramework.Internals;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 
 internal class SettableCommandContext : ICommandContext
 {
-    private Dictionary<string, object?> sharedData = null!;
+    private readonly Dictionary<string, object?> sharedData;
     private readonly Dictionary<string, object?> pipelineData = new();
     private readonly ISharedDataAccessor pipelineDataAccessor;
     private ISharedDataAccessor sharedDataAccessor;
 
-    public ISharedDataAccessor SharedData => sharedDataAccessor;
-    public ISharedDataAccessor PipelineData => pipelineDataAccessor;
+    public ISharedDataAccessor SharedData => this.sharedDataAccessor;
+    public ISharedDataAccessor PipelineData => this.pipelineDataAccessor;
 
     public Type CommandType { get; private init; } = null!;
     public CancellationToken CancellationToken { get; set; }

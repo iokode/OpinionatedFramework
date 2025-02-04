@@ -10,7 +10,7 @@ public class UpdateSharedDataMiddleware : CommandMiddleware
     public override async Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
     {
         context.SharedData.Set("number1", 3);
-        await nextAsync(context);
+        await nextAsync();
     }
 }
 
@@ -22,7 +22,7 @@ public class CounterMiddleware : CommandMiddleware
     {
         MiddlewareTests.ExecutedMiddlewares.Add("Counter");
         Counter++;
-        await nextAsync(context);
+        await nextAsync();
     }
 }
 
@@ -34,7 +34,7 @@ public class CounterMiddleware2 : CommandMiddleware
     {
         MiddlewareTests.ExecutedMiddlewares.Add("Counter2");
         Counter++;
-        await nextAsync(context);
+        await nextAsync();
     }
 }
 
@@ -46,7 +46,7 @@ public class ExceptionHandlingMiddleware : CommandMiddleware
     {
         try
         {
-            await nextAsync(context);
+            await nextAsync();
         }
         catch (Exception ex)
         {
@@ -65,7 +65,7 @@ public class AssertContextMiddlewareBeforeCommand : CommandMiddleware
         Assert.Null(context.Result);
         Assert.False(context.IsExecuted);
 
-        await nextAsync(context);
+        await nextAsync();
     }
 }
 
@@ -73,7 +73,7 @@ public class AssertContextMiddlewareAfterCommand : CommandMiddleware
 {
     public override async Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
     {
-        await nextAsync(context);
+        await nextAsync();
 
         Assert.Equal(typeof(SumTwoNumbersCommand), context.CommandType);
         Assert.True(context.HasResult);
@@ -89,6 +89,6 @@ public class SetIvanMontillaInPipelineDataMiddleware : CommandMiddleware
         context.PipelineData.Set("Given name", "Ivan");
         context.PipelineData.Set("Family name", "Montilla");
 
-        await nextAsync(context);
+        await nextAsync();
     }
 }

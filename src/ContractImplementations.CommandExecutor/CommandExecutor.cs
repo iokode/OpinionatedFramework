@@ -30,7 +30,7 @@ public class CommandExecutor : ICommandExecutor
 
         Container.Advanced.CreateScope();
         var context = SettableCommandContext.Create(command.GetType(), this.sharedData, cancellationToken);
-        await InvokeMiddlewarePipeline(command, context, 0);
+        await InvokeMiddlewarePipelineAsync(command, context, 0);
         Container.Advanced.DisposeScope();
 
         Log.Trace("Command '{command}' invoked.", command.GetType());
@@ -44,7 +44,7 @@ public class CommandExecutor : ICommandExecutor
 
         Container.Advanced.CreateScope();
         var context = SettableCommandContext.Create(command.GetType(), sharedData, cancellationToken);
-        var result = await InvokeMiddlewarePipeline<TCommand, TResult>(command, context, 0);
+        var result = await InvokeMiddlewarePipelineAsync<TCommand, TResult>(command, context, 0);
         Container.Advanced.DisposeScope();
 
         Log.Trace("Command '{command}' invoked.", command.GetType());
@@ -114,7 +114,7 @@ public class CommandExecutor : ICommandExecutor
         return result;
     }
 
-    private async Task InvokeMiddlewarePipeline<TCommand>(TCommand command, SettableCommandContext context, int index)
+    private async Task InvokeMiddlewarePipelineAsync<TCommand>(TCommand command, SettableCommandContext context, int index)
     {
         if (index >= middlewares.Length)
         {
@@ -124,10 +124,10 @@ public class CommandExecutor : ICommandExecutor
 
         var middleware = middlewares[index];
         await middleware.ExecuteAsync(context,
-            ctx => InvokeMiddlewarePipeline(command, (SettableCommandContext)ctx, index + 1));
+            () => InvokeMiddlewarePipelineAsync(command, context, index + 1));
     }
 
-    private async Task<TResult> InvokeMiddlewarePipeline<TCommand, TResult>(TCommand command,
+    private async Task<TResult> InvokeMiddlewarePipelineAsync<TCommand, TResult>(TCommand command,
         SettableCommandContext context, int index)
         where TCommand : Command<TResult>
     {
@@ -139,9 +139,9 @@ public class CommandExecutor : ICommandExecutor
 
         var middleware = middlewares[index];
         await middleware.ExecuteAsync(context,
-            async ctx =>
+            async () =>
             {
-                result = await InvokeMiddlewarePipeline<TCommand, TResult>(command, (SettableCommandContext)ctx,
+                result = await InvokeMiddlewarePipelineAsync<TCommand, TResult>(command, context,
                     index + 1);
             });
 

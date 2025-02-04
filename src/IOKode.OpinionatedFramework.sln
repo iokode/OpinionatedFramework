@@ -83,6 +83,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerators.SqlQueryOb
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractImplementations.NHibernate.Postgres", "ContractImplementations.NHibernate.Postgres\ContractImplementations.NHibernate.Postgres.csproj", "{A536F45D-A800-4F78-8195-5D15004FB1E6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Internals", "Internals\Internals.csproj", "{91A7B6D4-815F-4E17-97BF-C4B41D3183BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -233,6 +235,10 @@ Global
 		{A536F45D-A800-4F78-8195-5D15004FB1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A536F45D-A800-4F78-8195-5D15004FB1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A536F45D-A800-4F78-8195-5D15004FB1E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91A7B6D4-815F-4E17-97BF-C4B41D3183BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91A7B6D4-815F-4E17-97BF-C4B41D3183BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91A7B6D4-815F-4E17-97BF-C4B41D3183BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91A7B6D4-815F-4E17-97BF-C4B41D3183BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
