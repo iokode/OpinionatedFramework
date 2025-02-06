@@ -34,7 +34,6 @@ public class QueryExecutor(
         Log.Trace("Invoking query pipeline...");
 
         await InvokeMiddlewarePipelineAsync<TResult>(context, 0);
-
         return context.Results.Cast<TResult>().ToList();
     }
 
