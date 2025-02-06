@@ -66,6 +66,7 @@ public class QueryExecutor(
         }
 
         context.Results = (await sqlQuery.ListAsync<object>(context.CancellationToken)).ToArray();
+        context.IsQueryExecuted = true;
     }
 
     /// <summary>
