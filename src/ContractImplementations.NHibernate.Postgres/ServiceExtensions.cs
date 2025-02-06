@@ -7,7 +7,7 @@ public static class ServiceExtensions
 {
     public static void AddNHibernateWithPostgres(this IOpinionatedServiceCollection services, Action<global::NHibernate.Cfg.Configuration> configuration)
     {
-        var queryExecutorConfig = new PostgresQueryExecutionConfiguration();
+        var queryExecutorConfig = new QueryExecutionPostgresConfiguration();
         services.AddNHibernate(configuration, queryExecutorConfig);
     }
 }

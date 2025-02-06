@@ -2,7 +2,7 @@ using NHibernate.Transform;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 
-public class DefaultQueryExecutorConfiguration : IQueryExecutorConfiguration
+public class QueryExecutorDefaultConfiguration : IQueryExecutorConfiguration
 {
     public IResultTransformer GetResultTransformer<TResult>()
     {

@@ -10,7 +10,7 @@ public static class ServiceExtensions
 {
     public static void AddNHibernate(this IOpinionatedServiceCollection services, Action<global::NHibernate.Cfg.Configuration> configuration)
     {
-        AddNHibernate(services, configuration, new DefaultQueryExecutorConfiguration());
+        AddNHibernate(services, configuration, new QueryExecutorDefaultConfiguration());
     }
 
     public static void AddNHibernate(this IOpinionatedServiceCollection services, Action<global::NHibernate.Cfg.Configuration> configuration, IQueryExecutorConfiguration queryExecutorConfiguration)
