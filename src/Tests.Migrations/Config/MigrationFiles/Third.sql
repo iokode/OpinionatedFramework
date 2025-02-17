@@ -2,6 +2,9 @@
 -- @version 3
 -- @tag iokode
 
+-- @down
+drop table if exists iokode.users;
+
 -- @up
 create table iokode.users
 (
@@ -10,6 +13,3 @@ create table iokode.users
 
     primary key (id)
 );
-
--- @down
-drop table if exists iokode.users;

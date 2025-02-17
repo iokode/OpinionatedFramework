@@ -1,6 +1,6 @@
 -- @migration
 -- @version 2
--- @namespace IOKode.OpinionatedFramework.Tests.Migrations.Config.MigrationFiles
+-- @namespace MigrationFiles
 
 -- @up
 create table iokode.products

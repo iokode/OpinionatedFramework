@@ -22,7 +22,7 @@ public class MigrationsTests(PostgresContainer fixture) : IClassFixture<Postgres
         // Arrange
         var assembly = Assembly.GetExecutingAssembly();
         const string migration1Name = "IOKode.OpinionatedFramework.Tests.Migrations.Config.MigrationFiles.CreateSchemaMigration";
-        const string migration2Name = "IOKode.OpinionatedFramework.Tests.Migrations.Config.MigrationFiles.SecondMigration";
+        const string migration2Name = "MigrationFiles.SecondMigration";
         const string migration3Name = "IOKode.OpinionatedFramework.Tests.Migrations.Config.MigrationFiles.ThirdMigration";
 
         // Act
