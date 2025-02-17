@@ -84,4 +84,9 @@ public static class PostgresHelper
     }
 
     public static readonly string DefaultConnectionString = "Server=localhost; Database=testdb; User Id=iokode; Password=secret; Timeout=60; Connection Lifetime=90;";
+
+    private static string? connectionString;
+    public static string ConnectionString => connectionString ??= GetEnvConnectionString() ?? DefaultConnectionString;
+
+    public static string? GetEnvConnectionString() => Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING");
 }

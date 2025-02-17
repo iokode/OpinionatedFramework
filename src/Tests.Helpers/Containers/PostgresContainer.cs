@@ -12,7 +12,7 @@ public class PostgresContainer : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        var connectionString = PostgresHelper.DefaultConnectionString;
+        var connectionString = PostgresHelper.ConnectionString;
 
         await PostgresHelper.PullPostgresImage(docker);
         ContainerId = await PostgresHelper.RunPostgresContainer(docker);
