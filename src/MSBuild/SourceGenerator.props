@@ -23,8 +23,8 @@
 
     <ItemGroup Label="Source generation settings">
         <None Include="$(OutputPath)\$(TargetName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
-        <Compile Include="..\SourceGenerationHelper.cs"/>
-        <Compile Include="..\RequiredMemberAttribute.cs"/>
-        <Compile Include="..\SetsRequiredMembersAttribute.cs"/>
+        <Compile Include="..\SourceGenerators.Shared\SourceGenerationHelper.cs"/>
+        <Compile Include="..\SourceGenerators.Shared\RequiredMemberAttribute.cs"/>
+        <Compile Include="..\SourceGenerators.Shared\SetsRequiredMembersAttribute.cs"/>
     </ItemGroup>
 </Project>
