@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\ContractImplementations.NHibernate.Postgres\ContractImplementations.NHibernate.Postgres.csproj" />
+        <ProjectReference Include="..\SourceGenerators.Migrations\SourceGenerators.Migrations.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <AdditionalFiles Include="**\*.sql"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentMigrator.Runner.Postgres" Version="6.2.0" />
+    </ItemGroup>
+
+</Project>

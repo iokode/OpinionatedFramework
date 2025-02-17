@@ -24,5 +24,7 @@
     <ItemGroup Label="Source generation settings">
         <None Include="$(OutputPath)\$(TargetName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
         <Compile Include="..\SourceGenerationHelper.cs"/>
+        <Compile Include="..\RequiredMemberAttribute.cs"/>
+        <Compile Include="..\SetsRequiredMembersAttribute.cs"/>
     </ItemGroup>
 </Project>
