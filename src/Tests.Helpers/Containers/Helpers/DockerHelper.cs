@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -13,5 +14,9 @@ public static class DockerHelper
     }
 
     private static DockerClient? dockerClient = null!;
-    public static DockerClient DockerClient => dockerClient ??= new DockerClientConfiguration().CreateClient();
+    public static DockerClient DockerClient => dockerClient ??= GetEnvDockerUri() is string dockerUri
+        ? new DockerClientConfiguration(new Uri(dockerUri)).CreateClient()
+        : new DockerClientConfiguration().CreateClient();
+
+    public static string? GetEnvDockerUri() => Environment.GetEnvironmentVariable("DOCKER_URI");
 }
