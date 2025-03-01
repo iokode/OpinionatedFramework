@@ -31,10 +31,28 @@ public class QueryExecutor(
             Transaction = dbTransaction,
             IsQueryExecuted = false,
         };
+
+        ExtractDirectivesFromQuery(context);
+        
         Log.Trace("Invoking query pipeline...");
 
         await InvokeMiddlewarePipelineAsync<TResult>(context, 0);
         return context.Results.Cast<TResult>().ToList();
+    }
+
+    private void ExtractDirectivesFromQuery(NHibernateQueryExecutorContext context)
+    {
+        var lines = context.RawQuery.Split('\n');
+        
+        foreach (string line in lines)
+        {
+            string trimmedLine = line.Trim();
+            if (trimmedLine.StartsWith("-- @"))
+            {
+                string directive = trimmedLine[4..].Trim();
+                context.Directives.Add(directive);
+            }
+        }
     }
 
     private async Task InvokeMiddlewarePipelineAsync<TResult>(NHibernateQueryExecutorContext context, int index)

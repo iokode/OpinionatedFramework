@@ -20,6 +20,7 @@ public static class ServiceExtensions
         var sessionFactory = config.BuildSessionFactory();
 
         services.AddTransient<IUnitOfWorkFactory>(_ => new UnitOfWorkFactory(sessionFactory));
-        services.AddTransient<IQueryExecutor>(_ => new QueryExecutor(sessionFactory, queryExecutorConfiguration));
+        services.AddTransient<IQueryExecutorFactory, QueryExecutorFactory>(_ => new QueryExecutorFactory(sessionFactory, queryExecutorConfiguration));
+        services.AddTransient<IQueryExecutor>(sp => sp.GetRequiredService<IQueryExecutorFactory>().Create());
     }
 }

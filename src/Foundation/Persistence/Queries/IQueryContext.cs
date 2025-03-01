@@ -39,7 +39,8 @@ public interface IQueryContext
     /// <summary>
     /// The raw SQL query as a text string sourced from the associated .sql file.
     /// </summary>
-    public string RawQuery { get; }
+    /// <remarks>It can be modified from a query middleware.</remarks>
+    public string RawQuery { get; set; }
 
     /// <summary>
     /// Retrieves the collection of results obtained after executing the query.
