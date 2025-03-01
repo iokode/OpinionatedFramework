@@ -5,7 +5,7 @@ using NHibernate.UserTypes;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 
-internal struct UserTypeMap
+public struct UserTypeMap
 {
     public Type ApplicationType { get; init; }
     public Type NhUserType { get; init; }
@@ -13,11 +13,13 @@ internal struct UserTypeMap
 
 public static class UserTypeMapper
 {
-    private static readonly List<UserTypeMap> Maps = new();
+    private static readonly List<UserTypeMap> maps = new();
+
+    public static IReadOnlyList<UserTypeMap> Maps => maps;
 
     public static void Add(Type applicationType, Type nhUserType)
     {
-        Maps.Add(new UserTypeMap
+        maps.Add(new UserTypeMap
         {
             ApplicationType = applicationType,
             NhUserType = nhUserType
@@ -41,6 +43,6 @@ public static class UserTypeMapper
 
     public static Type? GetNhUserType(Type applicationType)
     {
-        return Maps.Find(x => x.ApplicationType == applicationType).NhUserType;
+        return maps.Find(x => x.ApplicationType == applicationType).NhUserType;
     }
 }

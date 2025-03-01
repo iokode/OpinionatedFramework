@@ -83,6 +83,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerators.SqlQueryOb
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContractImplementations.NHibernate.Postgres", "ContractImplementations.NHibernate.Postgres\ContractImplementations.NHibernate.Postgres.csproj", "{A536F45D-A800-4F78-8195-5D15004FB1E6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerators.Migrations", "SourceGenerators.Migrations\SourceGenerators.Migrations.csproj", "{61AD44FB-7770-4A83-83C4-15E0832B32C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Migrations", "Tests.Migrations\Tests.Migrations.csproj", "{12431F47-D3D3-4ADB-86CB-0560EEEC2DD5}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Internals", "Internals\Internals.csproj", "{91A7B6D4-815F-4E17-97BF-C4B41D3183BC}"
 EndProject
 Global
@@ -239,6 +243,14 @@ Global
 		{91A7B6D4-815F-4E17-97BF-C4B41D3183BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91A7B6D4-815F-4E17-97BF-C4B41D3183BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91A7B6D4-815F-4E17-97BF-C4B41D3183BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61AD44FB-7770-4A83-83C4-15E0832B32C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61AD44FB-7770-4A83-83C4-15E0832B32C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61AD44FB-7770-4A83-83C4-15E0832B32C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61AD44FB-7770-4A83-83C4-15E0832B32C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12431F47-D3D3-4ADB-86CB-0560EEEC2DD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12431F47-D3D3-4ADB-86CB-0560EEEC2DD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12431F47-D3D3-4ADB-86CB-0560EEEC2DD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12431F47-D3D3-4ADB-86CB-0560EEEC2DD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -276,5 +288,7 @@ Global
 		{72C022EF-BBCD-48D6-B34A-36C18FEB57A9} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
 		{58D644BA-637E-46F8-B634-398A6016E769} = {F231FFD4-12A2-49F4-9B02-85AEC3AEFFA9}
 		{A536F45D-A800-4F78-8195-5D15004FB1E6} = {C33ED8EA-76EF-4985-9055-12D9B668E210}
+		{61AD44FB-7770-4A83-83C4-15E0832B32C5} = {F231FFD4-12A2-49F4-9B02-85AEC3AEFFA9}
+		{12431F47-D3D3-4ADB-86CB-0560EEEC2DD5} = {756C3C1A-72CD-4CCE-BD8D-977F2980D1B6}
 	EndGlobalSection
 EndGlobal
