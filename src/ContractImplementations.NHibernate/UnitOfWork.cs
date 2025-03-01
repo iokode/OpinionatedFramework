@@ -30,7 +30,7 @@ public class UnitOfWork : IUnitOfWork
     public Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         ThrowsIfRolledBack();
-        
+
         this.transaction = this.session.BeginTransaction();
         return Task.CompletedTask;
     }
@@ -57,7 +57,7 @@ public class UnitOfWork : IUnitOfWork
         {
             throw new InvalidOperationException("No transaction is active.");
         }
-        
+
         await this.transaction.RollbackAsync(cancellationToken);
         this.transaction.Dispose();
         this.transaction = null;
@@ -71,11 +71,12 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             ThrowsIfRolledBack();
-            return this.transaction is {IsActive: true};
+            return this.transaction is { IsActive: true };
         }
     }
 
-    public async Task AddAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity
+    public async Task AddAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
+        where TEntity : Entity
     {
         ThrowsIfRolledBack();
         await this.session.PersistAsync(entity, cancellationToken);
@@ -87,7 +88,8 @@ public class UnitOfWork : IUnitOfWork
         return Task.FromResult(session.Contains(entity));
     }
 
-    public Task<TId?> GetEntityIdAsync<TEntity, TId>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity
+    public Task<TId?> GetEntityIdAsync<TEntity, TId>(TEntity entity, CancellationToken cancellationToken = default)
+        where TEntity : Entity
     {
         // todo catch exceptions and create own exceptions
         return Task.FromResult((TId?)this.session.GetIdentifier(entity));
@@ -111,7 +113,7 @@ public class UnitOfWork : IUnitOfWork
         return new EntitySet<T>(this.session);
     }
 
-    public async Task<ICollection<T>> RawProjection<T>(string query, object? parameters = null, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<T>> RawProjection<T>(string query, object? parameters = null, CancellationToken cancellationToken = default)
     {
         ThrowsIfRolledBack();
 
@@ -160,7 +162,7 @@ public class UnitOfWork : IUnitOfWork
         {
             await BeginTransactionAsync(cancellationToken);
         }
-        
+
         await this.session.FlushAsync(cancellationToken);
 
         if (!isTransaction)
@@ -175,6 +177,7 @@ public class UnitOfWork : IUnitOfWork
         {
             await this.transaction!.RollbackAsync();
         }
+
         this.transaction?.Dispose();
         this.session.Dispose();
     }
@@ -186,13 +189,12 @@ public class UnitOfWork : IUnitOfWork
             throw new UnitOfWorkRolledBackException();
         }
     }
-    
-    private IDbTransaction GetTransaction()
+
+    private IDbTransaction? GetTransaction()
     {
-        using(var command = this.session.Connection.CreateCommand())
-        {
-            this.session.Transaction.Enlist(command);
-            return command.Transaction;
-        }
+        // http://ayende.com/blog/1583/i-hate-this-code
+        using var command = this.session.Connection.CreateCommand();
+        this.session.GetCurrentTransaction()?.Enlist(command);
+        return command.Transaction;
     }
 }

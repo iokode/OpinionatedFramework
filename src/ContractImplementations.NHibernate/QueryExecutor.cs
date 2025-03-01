@@ -6,34 +6,87 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Persistence.Queries;
 using NHibernate;
 using NHibernate.Type;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 
-public class QueryExecutor(ISessionFactory sessionFactory, IQueryExecutorConfiguration configuration) : IQueryExecutor
+public class QueryExecutor(
+    ISessionFactory sessionFactory,
+    IQueryExecutorConfiguration configuration,
+    params QueryMiddleware[] middlewares) : IQueryExecutor
 {
-    public async Task<ICollection<TResult>> QueryAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<TResult>> QueryAsync<TResult>(string query, object? parameters,
+        IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
     {
-        using var session = dbTransaction == null
+        var context = new NHibernateQueryExecutorContext
+        {
+            CancellationToken = cancellationToken,
+            Directives = new List<string>(),
+            Parameters = parameters,
+            RawQuery = query,
+            Results = new List<object>(),
+            Transaction = dbTransaction,
+            IsQueryExecuted = false,
+        };
+
+        ExtractDirectivesFromQuery(context);
+        
+        Log.Trace("Invoking query pipeline...");
+
+        await InvokeMiddlewarePipelineAsync<TResult>(context, 0);
+        return context.Results.Cast<TResult>().ToList();
+    }
+
+    private void ExtractDirectivesFromQuery(NHibernateQueryExecutorContext context)
+    {
+        var lines = context.RawQuery.Split('\n');
+        
+        foreach (string line in lines)
+        {
+            string trimmedLine = line.Trim();
+            if (trimmedLine.StartsWith("-- @"))
+            {
+                string directive = trimmedLine[4..].Trim();
+                context.Directives.Add(directive);
+            }
+        }
+    }
+
+    private async Task InvokeMiddlewarePipelineAsync<TResult>(NHibernateQueryExecutorContext context, int index)
+    {
+        if (index >= middlewares.Length)
+        {
+            await ExecuteQueryAsync<TResult>(context);
+            return;
+        }
+
+        var middleware = middlewares[index];
+        await middleware.ExecuteAsync(context, () => InvokeMiddlewarePipelineAsync<TResult>(context, index + 1));
+    }
+
+    private async Task ExecuteQueryAsync<TResult>(NHibernateQueryExecutorContext context)
+    {
+        using var session = context.Transaction == null
             ? sessionFactory.OpenStatelessSession()
-            : sessionFactory.OpenStatelessSession(dbTransaction.Connection as DbConnection);
-        
-        var sqlQuery = session.CreateSQLQuery(query);
-        
+            : sessionFactory.OpenStatelessSession(context.Transaction.Connection as DbConnection);
+
+        var sqlQuery = session.CreateSQLQuery(context.RawQuery);
+
         AddScalarsForType<TResult>(sqlQuery);
         sqlQuery.SetResultTransformer(configuration.GetResultTransformer<TResult>());
-        
-        if (parameters != null)
+
+        if (context.Parameters != null)
         {
-            AddParameters(sqlQuery, parameters);
+            AddParameters(sqlQuery, context.Parameters);
         }
-        
-        var results = await sqlQuery.ListAsync<TResult>(cancellationToken);
-        return results;
+
+        context.Results = (await sqlQuery.ListAsync<object>(context.CancellationToken)).ToArray();
+        context.IsQueryExecuted = true;
     }
-    
+
     /// <summary>
     /// Loops through properties of TResult, adding .AddScalar for each
     /// using either a custom IUserType for certain property types
@@ -51,7 +104,7 @@ public class QueryExecutor(ISessionFactory sessionFactory, IQueryExecutorConfigu
             // That means your SQL must do `SELECT Column AS property_name ...`
             // for each property you want to map.
             string alias = configuration.TransformAlias(prop.Name);
-            
+
             var nhType = GetNHTypeFor(prop.PropertyType);
             query.AddScalar(alias, nhType);
         }
@@ -73,7 +126,7 @@ public class QueryExecutor(ISessionFactory sessionFactory, IQueryExecutorConfigu
         }
 
         // Fallback: Use NHibernateUtil to resolve built-in types or throw an exception for unsupported types.
-        return NHibernateUtil.GuessType(propertyType) ?? 
+        return NHibernateUtil.GuessType(propertyType) ??
                throw new InvalidOperationException($"Unsupported type: {propertyType.FullName}");
     }
 

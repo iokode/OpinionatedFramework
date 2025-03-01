@@ -9,5 +9,6 @@
     <ItemGroup Label="Project references">
         <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj"/>
+        <ProjectReference Include="..\Internals\Internals.csproj"/>
     </ItemGroup>
 </Project>

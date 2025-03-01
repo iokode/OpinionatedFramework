@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using IOKode.OpinionatedFramework.Commands;
+using IOKode.OpinionatedFramework.Common;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
+namespace IOKode.OpinionatedFramework.Internals;
 
-internal class DictionarySharedDataAccessor : ISharedDataAccessor
+public class DictionarySharedDataAccessor : ISharedDataAccessor
 {
-    internal readonly Dictionary<string, object?> dict;
+    private readonly Dictionary<string, object?> dict;
 
     public DictionarySharedDataAccessor(Dictionary<string, object?> dict)
     {

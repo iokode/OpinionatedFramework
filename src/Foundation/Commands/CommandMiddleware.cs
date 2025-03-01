@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 namespace IOKode.OpinionatedFramework.Commands;
 
-public delegate Task InvokeNextMiddlewareDelegate(ICommandContext context);
+public delegate Task InvokeNextMiddlewareDelegate();
 
 public abstract class CommandMiddleware
 {

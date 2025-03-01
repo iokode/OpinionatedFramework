@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Docker.DotNet;
 using FluentNHibernate.Cfg;
@@ -5,9 +6,13 @@ using FluentNHibernate.Cfg.Db;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
+using IOKode.OpinionatedFramework.Logging;
+using IOKode.OpinionatedFramework.Tests.Helpers;
 using IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 
@@ -22,6 +27,7 @@ public class NHibernateTestsFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         NpgsqlConnection.GlobalTypeMapper.MapComposite<AddressDto>("public.address_type");
+        Container.Services.AddTransient<ILogging>(_ => new XUnitLogging(TestOutputHelperFactory()));
         await PostgresContainer.InitializeAsync();
         string connectionString = PostgresHelper.ConnectionString;
         
@@ -51,6 +57,8 @@ public class NHibernateTestsFixture : IAsyncLifetime
         
         docker.Dispose();
     }
+    
+    public Func<ITestOutputHelper> TestOutputHelperFactory { get; set; }
 }
 
 [CollectionDefinition(nameof(NHibernateTestsFixtureCollection))]

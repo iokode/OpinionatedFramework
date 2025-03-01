@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Packable.props"/>
+
+    <PropertyGroup Label="Base settings">
+        <RootNamespace>IOKode.OpinionatedFramework.Internals</RootNamespace>
+        <Description>This package contains helpers and utility classes for contract implementers. It is not intended for application consumers, so it is distributed as a separate package.</Description>
+    </PropertyGroup>
+
+    <ItemGroup Label="ProjectReferences">
+        <ProjectReference Include="..\Foundation\Foundation.csproj"/>
+    </ItemGroup>
+</Project>

@@ -24,7 +24,7 @@ public interface IQueryExecutor
     /// <returns>
     /// A task representing the asynchronous operation. The task result contains a collection of TResult objects.
     /// </returns>
-    public Task<ICollection<TResult>> QueryAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default);
+    public Task<IReadOnlyCollection<TResult>> QueryAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes an asynchronous query and retrieves a collection of results of type TResult.
@@ -36,7 +36,7 @@ public interface IQueryExecutor
     /// <returns>
     /// A task representing the asynchronous operation. The task result contains an enumerable collection of TResult objects.
     /// </returns>
-    public Task<ICollection<TResult>> QueryAsync<TResult>(string query, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyCollection<TResult>> QueryAsync<TResult>(string query, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
     {
         return QueryAsync<TResult>(query, null, dbTransaction, cancellationToken);
     }

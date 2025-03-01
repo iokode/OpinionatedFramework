@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 
-namespace IOKode.OpinionatedFramework.Commands;
+namespace IOKode.OpinionatedFramework.Common;
 
+/// <summary>
+/// Provides functionality for accessing and managing shared data within a key-value store.
+/// </summary>
 public interface ISharedDataAccessor
 {
     /// <summary>

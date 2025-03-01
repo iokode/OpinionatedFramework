@@ -3,7 +3,7 @@ using NHibernate.Transform;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 
-public class PostgresQueryExecutionConfiguration : IQueryExecutorConfiguration
+public class QueryExecutionPostgresConfiguration : IQueryExecutorConfiguration
 {
     public IResultTransformer GetResultTransformer<TResult>()
     {
