@@ -1,0 +1,48 @@
+<Solution>
+  <Folder Name="/AspNetCoreIntegrations/" />
+  <Folder Name="/ContractsImplementations/">
+    <Project Path="ContractImplementations.Aes256GcmModeEncrypter/ContractImplementations.Aes256GcmModeEncrypter.csproj" />
+    <Project Path="ContractImplementations.Bcrypt/ContractImplementations.Bcrypt.csproj" />
+    <Project Path="ContractImplementations.CommandExecutor/ContractImplementations.CommandExecutor.csproj" />
+    <Project Path="ContractImplementations.Events/ContractImplementations.Events.csproj" />
+    <Project Path="ContractImplementations.FileSystem/ContractImplementations.FileSystem.csproj" />
+    <Project Path="ContractImplementations.GoogleCloudStorage/ContractImplementations.GoogleCloudStorage.csproj" />
+    <Project Path="ContractImplementations.Hangfire/ContractImplementations.Hangfire.csproj" />
+    <Project Path="ContractImplementations.LocalFileSystem/ContractImplementations.LocalFileSystem.csproj" />
+    <Project Path="ContractImplementations.LoggerEmail/ContractImplementations.LoggerEmail.csproj" />
+    <Project Path="ContractImplementations.MailKit/ContractImplementations.MailKit.csproj" />
+    <Project Path="ContractImplementations.MicrosoftConfiguration/ContractImplementations.MicrosoftConfiguration.csproj" />
+    <Project Path="ContractImplementations.MicrosoftLogging/ContractImplementations.MicrosoftLogging.csproj" />
+    <Project Path="ContractImplementations.NHibernate.Postgres/ContractImplementations.NHibernate.Postgres.csproj" />
+    <Project Path="ContractImplementations.NHibernate/ContractImplementations.NHibernate.csproj" />
+    <Project Path="ContractImplementations.TaskRunJobs/ContractImplementations.TaskRunJobs.csproj" />
+  </Folder>
+  <Folder Name="/SourceGenerators/">
+    <Project Path="SourceGenerators.Ensuring/SourceGenerators.Ensuring.csproj" />
+    <Project Path="SourceGenerators.Facades/SourceGenerators.Facades.csproj" />
+    <Project Path="SourceGenerators.Migrations/SourceGenerators.Migrations.csproj" />
+    <Project Path="SourceGenerators.SqlQueryObjects/SourceGenerators.SqlQueryObjects.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests.Aes256GcmModeEncrypter/Tests.Aes256GcmModeEncrypter.csproj" />
+    <Project Path="Tests.CommandExecutor/Tests.CommandExecutor.csproj" />
+    <Project Path="Tests.Ensuring/Tests.Ensuring.csproj" />
+    <Project Path="Tests.Events/Tests.Events.csproj" />
+    <Project Path="Tests.Foundation/Tests.Foundation.csproj" />
+    <Project Path="Tests.GoogleCloudStorage/Tests.GoogleCloudStorage.csproj" />
+    <Project Path="Tests.Hangfire/Tests.Hangfire.csproj" />
+    <Project Path="Tests.Helpers/Tests.Helpers.csproj" />
+    <Project Path="Tests.LocalFileSystem/Tests.LocalFileSystem.csproj" />
+    <Project Path="Tests.MailKit/Tests.MailKit.csproj" />
+    <Project Path="Tests.MicrosoftConfiguration/Tests.MicrosoftConfiguration.csproj" />
+    <Project Path="Tests.MicrosoftLogging/Tests.MicrosoftLogging.csproj" />
+    <Project Path="Tests.Migrations/Tests.Migrations.csproj" />
+    <Project Path="Tests.NHibernate.Postgres/Tests.NHibernate.Postgres.csproj" />
+    <Project Path="Tests.TaskRunJobs/Tests.TaskRunJobs.csproj" />
+  </Folder>
+  <Project Path="Bootstrapping/Bootstrapping.csproj" />
+  <Project Path="DefaultBootstrapping/DefaultBootstrapping.csproj" />
+  <Project Path="Ensuring/Ensuring.csproj" />
+  <Project Path="Foundation/Foundation.csproj" />
+  <Project Path="Internals/Internals.csproj" />
+</Solution>
