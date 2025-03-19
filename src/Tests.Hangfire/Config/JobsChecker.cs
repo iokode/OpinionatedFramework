@@ -17,8 +17,8 @@ public class JobsChecker : IServerFilter
 
     private void CheckEmailSend(PerformedContext context)
     {
-        var sendEmailJobArguments = context.BackgroundJob.Job.Args.Cast<SendEmailJobArguments>().FirstOrDefault();
-        if (sendEmailJobArguments is {Email.Subject: "Email sending test."})
+        var jobCreator = context.BackgroundJob.Job.Args.Cast<SendEmailJobCreator>().FirstOrDefault();
+        if (jobCreator is {Email.Subject: "Email sending test."})
         {
             FoundationJobsTest.IsExecutedSendEmailJob = true;
         }

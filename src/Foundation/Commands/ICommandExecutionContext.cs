@@ -7,7 +7,7 @@ namespace IOKode.OpinionatedFramework.Commands;
 /// <summary>
 /// Represents the context in which a command is executed.
 /// </summary>
-public interface ICommandContext
+public interface ICommandExecutionContext
 {
     /// <summary>
     /// Gets the type of the command that is being executed.
@@ -52,4 +52,9 @@ public interface ICommandContext
     /// Local data to a command and middleware in the same pipeline.
     /// </summary>
     public ISharedDataAccessor PipelineData { get; }
+
+    /// <summary>
+    /// Unique identifier of the pipeline.
+    /// </summary>
+    public Guid TraceID { get; }
 }

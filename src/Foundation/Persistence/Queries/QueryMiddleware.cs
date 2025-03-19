@@ -6,5 +6,5 @@ public delegate Task InvokeNextMiddlewareDelegate();
 
 public abstract class QueryMiddleware
 {
-    public abstract Task ExecuteAsync(IQueryContext context, InvokeNextMiddlewareDelegate nextAsync);
+    public abstract Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync);
 }

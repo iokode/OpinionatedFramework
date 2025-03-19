@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
+using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Tests.Helpers;
@@ -11,8 +12,16 @@ using Xunit.Abstractions;
 
 namespace IOKode.OpinionatedFramework.Tests.TaskRunJobs;
 
-public class JobsTest(ITestOutputHelper testOutputHelper)
+public class JobsTest : IDisposable
 {
+    private readonly ITestOutputHelper testOutputHelper;
+
+    public JobsTest(ITestOutputHelper testOutputHelper)
+    {
+        this.testOutputHelper = testOutputHelper;
+        Container.Initialize();
+    }
+    
     [Fact]
     public async Task EnqueueJob_Success()
     {
@@ -25,7 +34,7 @@ public class JobsTest(ITestOutputHelper testOutputHelper)
         var jobEnqueuer = new TaskRunJobEnqueuer(configuration);
 
         // Act
-        await jobEnqueuer.EnqueueAsync<EnqueueJob>(Queue.Default, default);
+        await jobEnqueuer.EnqueueAsync(Queue.Default, new EnqueueJobCreator());
 
         // Assert
         Assert.Equal(1, EnqueueJob.Counter);
@@ -44,7 +53,7 @@ public class JobsTest(ITestOutputHelper testOutputHelper)
         var jobScheduler = new TaskRunJobScheduler(configuration, logging);
 
         // Act
-        await jobScheduler.ScheduleAsync<ScheduleJob>(CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), default);
+        await jobScheduler.ScheduleAsync(CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), new ScheduleJobCreator());
         await Task.Delay(10000);
 
         // Assert
@@ -64,9 +73,9 @@ public class JobsTest(ITestOutputHelper testOutputHelper)
         var jobScheduler = new TaskRunJobScheduler(configuration, logging);
 
         // Act
-        var scheduledJob = await jobScheduler.ScheduleAsync<RescheduleJob>(CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), default);
+        var scheduledJob = await jobScheduler.ScheduleAsync(CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), new RescheduleJobCreator());
         await Task.Delay(6000);
-        await jobScheduler.RescheduleAsync(scheduledJob, CronExpression.Parse("0/4 * * * * *", CronFormat.IncludeSeconds), default);
+        await jobScheduler.RescheduleAsync(scheduledJob, CronExpression.Parse("0/4 * * * * *", CronFormat.IncludeSeconds), CancellationToken.None);
         await Task.Delay(4000);
 
         // Assert
@@ -86,9 +95,9 @@ public class JobsTest(ITestOutputHelper testOutputHelper)
         var jobScheduler = new TaskRunJobScheduler(configuration, logging);
 
         // Act
-        var scheduledJob = await jobScheduler.ScheduleAsync<UnscheduleJob>(CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), default);
+        var scheduledJob = await jobScheduler.ScheduleAsync(CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), new UnscheduleJobCreator());
         await Task.Delay(6000);
-        await jobScheduler.UnscheduleAsync(scheduledJob, default);
+        await jobScheduler.UnscheduleAsync(scheduledJob, CancellationToken.None);
         await Task.Delay(4000);
 
         // Assert
@@ -107,7 +116,7 @@ public class JobsTest(ITestOutputHelper testOutputHelper)
         var jobEnqueuer = new TaskRunJobEnqueuer(configuration);
 
         // Act
-        await jobEnqueuer.EnqueueAsync<EnqueueFailAndRetryJob>(Queue.Default, default);
+        await jobEnqueuer.EnqueueAsync(Queue.Default, new EnqueueFailAndRetryJobCreator());
         await Task.Delay(2000);
 
         // Assert
@@ -127,7 +136,7 @@ public class JobsTest(ITestOutputHelper testOutputHelper)
         var jobScheduler = new TaskRunJobScheduler(configuration, logging);
 
         // Act
-        await jobScheduler.ScheduleAsync<ScheduleFailAndRetryJob>(CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), default);
+        await jobScheduler.ScheduleAsync(CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), new ScheduleFailAndRetryJobCreator());
         await Task.Delay(10_000);
 
         // Assert
@@ -147,7 +156,7 @@ public class JobsTest(ITestOutputHelper testOutputHelper)
         var jobEnqueuer = new TaskRunJobEnqueuer(configuration);
 
         // Act
-        await jobEnqueuer.EnqueueAsync<EnqueueFailAndRetryUntilSixthAttemptJob>(Queue.Default, default);
+        await jobEnqueuer.EnqueueAsync(Queue.Default, new EnqueueFailAndRetryUntilSixthAttemptJobCreator());
         await Task.Delay(2000);
 
         // Assert
@@ -167,86 +176,182 @@ public class JobsTest(ITestOutputHelper testOutputHelper)
         var jobScheduler = new TaskRunJobScheduler(configuration, logging);
 
         // Act
-        await jobScheduler.ScheduleAsync<ScheduleFailAndRetryUntilSixthAttemptJob>(CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), default);
+        await jobScheduler.ScheduleAsync(CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), new ScheduleFailAndRetryUntilSixthAttemptJobCreator());
         await Task.Delay(10000);
 
         // Assert
         // The job first was retried 5 times and after that executed with success 5 times (every 2 seconds in 10 seconds), so 5+5 = 10.
         Assert.Equal(10, ScheduleFailAndRetryUntilSixthAttemptJob.Counter);
     }
+
+    public void Dispose()
+    {
+        Container.Advanced.Clear();
+    }
 }
 
-public class EnqueueJob : IJob
+public class EnqueueJobCreator : JobCreator<EnqueueJob>
+{
+    public override EnqueueJob CreateJob()
+    {
+        return new EnqueueJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "EnqueueJob";
+    }
+}
+
+public class EnqueueJob : Job
 {
     public static int Counter;
 
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         Counter++;
         return Task.CompletedTask;
     }
 }
 
-public class ScheduleJob : IJob
+public class ScheduleJobCreator : JobCreator<ScheduleJob>
+{
+    public override ScheduleJob CreateJob()
+    {
+        return new ScheduleJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "ScheduleJob";
+    }
+}
+
+public class ScheduleJob : Job
 {
     public static int Counter;
 
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         Counter++;
         return Task.CompletedTask;
     }
 }
 
-public class RescheduleJob : IJob
+public class RescheduleJobCreator : JobCreator<RescheduleJob>
+{
+    public override RescheduleJob CreateJob()
+    {
+        return new RescheduleJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "RescheduleJob";
+    }
+}
+
+public class RescheduleJob : Job
 {
     public static int Counter;
 
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         Counter++;
         return Task.CompletedTask;
     }
 }
 
-public class UnscheduleJob : IJob
+public class UnscheduleJobCreator : JobCreator<UnscheduleJob>
+{
+    public override UnscheduleJob CreateJob()
+    {
+        return new UnscheduleJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "UnscheduleJob";
+    }
+}
+
+public class UnscheduleJob : Job
 {
     public static int Counter;
 
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         Counter++;
         return Task.CompletedTask;
     }
 }
 
-public class EnqueueFailAndRetryJob : IJob
+public class EnqueueFailAndRetryJobCreator : JobCreator<EnqueueFailAndRetryJob>
+{
+    public override EnqueueFailAndRetryJob CreateJob()
+    {
+        return new EnqueueFailAndRetryJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "EnqueueFailAndRetryJob";
+    }
+}
+
+public class EnqueueFailAndRetryJob : Job
 {
     public static int Counter;
 
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         Counter++;
         throw new Exception($"Exception after increment counter. Count: {Counter}");
     }
 }
 
-public class ScheduleFailAndRetryJob : IJob
+public class ScheduleFailAndRetryJobCreator : JobCreator<ScheduleFailAndRetryJob>
+{
+    public override ScheduleFailAndRetryJob CreateJob()
+    {
+        return new ScheduleFailAndRetryJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "ScheduleFailAndRetryJob";
+    }
+}
+
+public class ScheduleFailAndRetryJob : Job
 {
     public static int Counter;
 
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         Counter++;
         throw new Exception($"Exception after increment counter. Count: {Counter}");
     }
 }
 
-public class EnqueueFailAndRetryUntilSixthAttemptJob : IJob
+public class EnqueueFailAndRetryUntilSixthAttemptJobCreator : JobCreator<EnqueueFailAndRetryUntilSixthAttemptJob>
+{
+    public override EnqueueFailAndRetryUntilSixthAttemptJob CreateJob()
+    {
+        return new EnqueueFailAndRetryUntilSixthAttemptJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "EnqueueFailAndRetryUntilSixthAttemptJob";
+    }
+}
+
+public class EnqueueFailAndRetryUntilSixthAttemptJob : Job
 {
     public static int Counter;
 
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         Counter++;
         if (Counter < 6)
@@ -258,11 +363,24 @@ public class EnqueueFailAndRetryUntilSixthAttemptJob : IJob
     }
 }
 
-public class ScheduleFailAndRetryUntilSixthAttemptJob : IJob
+public class ScheduleFailAndRetryUntilSixthAttemptJobCreator : JobCreator<ScheduleFailAndRetryUntilSixthAttemptJob>
+{
+    public override ScheduleFailAndRetryUntilSixthAttemptJob CreateJob()
+    {
+        return new ScheduleFailAndRetryUntilSixthAttemptJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "ScheduleFailAndRetryUntilSixthAttemptJob";
+    }
+}
+
+public class ScheduleFailAndRetryUntilSixthAttemptJob : Job
 {
     public static int Counter;
 
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         Counter++;
         if (Counter < 6)

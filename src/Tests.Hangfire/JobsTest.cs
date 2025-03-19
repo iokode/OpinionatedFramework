@@ -90,50 +90,50 @@ public class JobsTest(JobsTestsFixture fixture, ITestOutputHelper output) : Jobs
     }
 }
 
-public class EnqueuedJob : IJob
+public class EnqueuedJob : Job
 {
     public static bool IsExecuted;
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         IsExecuted = true;
         return Task.CompletedTask;
     }
 }
 
-public class EnqueuedWithDelayJob : IJob
+public class EnqueuedWithDelayJob : Job
 {
     public static bool IsExecuted;
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         IsExecuted = true;
         return Task.CompletedTask;
     }
 }
 
-public class ScheduledJob : IJob
+public class ScheduledJob : Job
 {
     public static int Counter;
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         Counter++;
         return Task.CompletedTask;
     }
 }
 
-public class RescheduledJob : IJob
+public class RescheduledJob : Job
 {
     public static bool IsExecuted;
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         IsExecuted = true;
         return Task.CompletedTask;
     }
 }
 
-public class UnscheduledJob : IJob
+public class UnscheduledJob : Job
 {
     public static bool IsExecuted;
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         IsExecuted = true;
         return Task.CompletedTask;

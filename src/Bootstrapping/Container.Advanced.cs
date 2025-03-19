@@ -70,7 +70,7 @@ public static partial class Container
         }
 
         /// <summary>
-        /// Clears the current service collection and then, register the sames services that was registered. It allow
+        /// Clears the current service collection and then, register the sames services that was registered. It allows
         /// to change descriptors at runtime.
         /// </summary>
         /// <remarks>

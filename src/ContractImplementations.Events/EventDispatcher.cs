@@ -33,7 +33,7 @@ public class EventDispatcher(IUnitOfWorkFactory uowFactory, IJobEnqueuer jobEnqu
         var handlerTypes = EventHandlers.GetHandlerTypes(@event.GetType());
         foreach (var handlerType in handlerTypes)
         {
-            var handlerJobArguments = new ExecuteHandlerJobArguments(id, handlerType);
+            var handlerJobArguments = new ExecuteHandlerJobCreator(id, handlerType);
             await jobEnqueuer.EnqueueAsync(queue, handlerJobArguments, cancellationToken);
         }
     }

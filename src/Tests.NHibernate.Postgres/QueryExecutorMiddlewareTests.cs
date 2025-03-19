@@ -248,7 +248,7 @@ public class CounterMiddleware : QueryMiddleware
 {
     public static int Counter { get; set; } = 0;
 
-    public override async Task ExecuteAsync(IQueryContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
     {
         QueryExecutorMiddlewareTests.ExecutedMiddlewares.Add("Counter");
         Counter++;
@@ -260,7 +260,7 @@ public class CounterMiddleware2 : QueryMiddleware
 {
     public static int Counter { get; set; } = 0;
 
-    public override async Task ExecuteAsync(IQueryContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
     {
         QueryExecutorMiddlewareTests.ExecutedMiddlewares.Add("Counter2");
         Counter++;
@@ -270,9 +270,9 @@ public class CounterMiddleware2 : QueryMiddleware
 
 public class QueryModifierMiddleware : QueryMiddleware
 {
-    public override async Task ExecuteAsync(IQueryContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
     {
-        context.RawQuery += " WHERE id = '1'";
+        executionContext.RawQuery += " WHERE id = '1'";
 
         await nextAsync();
     }
@@ -282,7 +282,7 @@ public class ExceptionHandlingMiddleware : QueryMiddleware
 {
     public static bool ExceptionHandled { get; set; } = false;
 
-    public override async Task ExecuteAsync(IQueryContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
     {
         try
         {
@@ -297,12 +297,12 @@ public class ExceptionHandlingMiddleware : QueryMiddleware
 
 public class OnlyActiveDirectiveProcessingMiddleware : QueryMiddleware
 {
-    public override async Task ExecuteAsync(IQueryContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
     {
-        if (context.Directives.Contains("OnlyActive"))
+        if (executionContext.Directives.Contains("OnlyActive"))
         {
-            string modifiedQuery = context.RawQuery + " WHERE is_active = true";
-            context.RawQuery = modifiedQuery;
+            string modifiedQuery = executionContext.RawQuery + " WHERE is_active = true";
+            executionContext.RawQuery = modifiedQuery;
         }
 
         await nextAsync();
@@ -311,15 +311,15 @@ public class OnlyActiveDirectiveProcessingMiddleware : QueryMiddleware
 
 public class LoggingMiddleware : QueryMiddleware
 {
-    public override async Task ExecuteAsync(IQueryContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
     {
         QueryExecutorMiddlewareTests.ExecutedMiddlewares.Add("Logging: Before");
         await nextAsync();
         QueryExecutorMiddlewareTests.ExecutedMiddlewares.Add("Logging: After");
 
-        if (context.IsQueryExecuted)
+        if (executionContext.IsExecuted)
         {
-            QueryExecutorMiddlewareTests.ExecutedMiddlewares.Add($"Logging: Got {context.Results.Count} results");
+            QueryExecutorMiddlewareTests.ExecutedMiddlewares.Add($"Logging: Got {executionContext.Results.Count} results");
         }
     }
 }
@@ -328,9 +328,9 @@ public class TransactionAwareMiddleware : QueryMiddleware
 {
     public static bool TransactionPresent { get; set; }
 
-    public override async Task ExecuteAsync(IQueryContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
     {
-        TransactionPresent = context.Transaction != null;
+        TransactionPresent = executionContext.Transaction != null;
         await nextAsync();
     }
 }
@@ -345,11 +345,11 @@ public class ParameterLoggingMiddleware : QueryMiddleware
     public static bool ParametersPresent { get; set; }
     public static string LoggedParameterId { get; set; }
 
-    public override async Task ExecuteAsync(IQueryContext context, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
     {
-        ParametersPresent = context.Parameters != null;
+        ParametersPresent = executionContext.Parameters != null;
 
-        if (context.Parameters is UserQueryParameters parameters)
+        if (executionContext.Parameters is UserQueryParameters parameters)
         {
             LoggedParameterId = parameters.Id;
         }

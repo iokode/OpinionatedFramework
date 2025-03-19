@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Cronos;
 using IOKode.OpinionatedFramework.Configuration;
 using IOKode.OpinionatedFramework.Ensuring;
-using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Logging;
+using Job = IOKode.OpinionatedFramework.Jobs.Job;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
@@ -16,11 +16,10 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
 {
     private List<object> registeredJobs = new();
 
-    public Task<ScheduledJob<TJob>> ScheduleAsync<TJob>(CronExpression interval, JobArguments<TJob>? jobArguments, CancellationToken cancellationToken = default) where TJob : IJob
+    public Task<ScheduledJob<TJob>> ScheduleAsync<TJob>(CronExpression interval, JobCreator<TJob> creator, CancellationToken cancellationToken = default) where TJob : Job
     {
-        var scheduledJob = new TaskRunMutableScheduledJob<TJob>(interval, jobArguments);
+        var scheduledJob = new TaskRunMutableScheduledJob<TJob>(interval, creator);
         this.registeredJobs.Add(scheduledJob);
-        var job = Job.Create(jobArguments);
 
         Task.Run(async () =>
         {
@@ -38,7 +37,7 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
                 {
                     try
                     {
-                        await RetryHelper.RetryOnExceptionAsync(job, configuration.GetValue<int>("TaskRun:JobScheduler:MaxAttempts"));
+                        await RetryHelper.RetryOnExceptionAsync(creator, configuration.GetValue<int>("TaskRun:JobScheduler:MaxAttempts"));
                     }
                     catch (AggregateException ex)
                     {
@@ -56,7 +55,7 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
         return Task.FromResult((ScheduledJob<TJob>) scheduledJob);
     }
     
-    public Task RescheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CronExpression interval, CancellationToken cancellationToken = default) where TJob : IJob
+    public Task RescheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CronExpression interval, CancellationToken cancellationToken = default) where TJob : Job
     {
         Ensure.Type.IsAssignableTo(scheduledJob.GetType(), typeof(MutableScheduledJob<TJob>))
             .ElseThrowsIllegalArgument($"Type must be assignable to {nameof(MutableScheduledJob<TJob>)} type.", nameof(scheduledJob));
@@ -71,7 +70,7 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
         return Task.CompletedTask;
     }
 
-    public Task UnscheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CancellationToken cancellationToken = default) where TJob : IJob
+    public Task UnscheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CancellationToken cancellationToken = default) where TJob : Job
     {
         var identifier = scheduledJob.Identifier;
 

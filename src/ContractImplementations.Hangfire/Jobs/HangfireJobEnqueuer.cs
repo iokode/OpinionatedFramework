@@ -4,20 +4,23 @@ using System.Threading.Tasks;
 using Hangfire;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Jobs;
+using Job = IOKode.OpinionatedFramework.Jobs.Job;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
 
 public class HangfireJobEnqueuer : IJobEnqueuer
 {
-    public Task EnqueueAsync<TJob>(Queue queue, JobArguments<TJob>? jobArguments, CancellationToken cancellationToken = default) where TJob : IJob
+    public Task EnqueueAsync<TJob>(Queue queue, JobCreator<TJob> creator, CancellationToken cancellationToken = default)
+        where TJob : Job
     {
-        BackgroundJob.Enqueue(queue.Name, () => InvokeJobAsync(jobArguments));
+        BackgroundJob.Enqueue(queue.Name, () => InvokeJobAsync(creator));
         return Task.CompletedTask;
     }
 
-    public Task EnqueueWithDelayAsync<TJob>(TimeSpan delay, Queue queue, JobArguments<TJob>? jobArguments, CancellationToken cancellationToken = default) where TJob : IJob
+    public Task EnqueueWithDelayAsync<TJob>(TimeSpan delay, Queue queue, JobCreator<TJob> creator,
+        CancellationToken cancellationToken = default) where TJob : Job
     {
-        BackgroundJob.Schedule(queue.Name, () => InvokeJobAsync(jobArguments), delay);
+        BackgroundJob.Schedule(queue.Name, () => InvokeJobAsync(creator), delay);
         return Task.CompletedTask;
     }
 
@@ -32,9 +35,17 @@ public class HangfireJobEnqueuer : IJobEnqueuer
     /// and execution of enqueued tasks. Hangfire requires that methods to be invoked 
     /// are publicly accessible to resolve them when deserializing the previously generated expression.
     /// </remarks>
-    public static async Task InvokeJobAsync<TJob>(JobArguments<TJob>? jobArguments) where TJob : IJob
+    public static async Task InvokeJobAsync<TJob>(JobCreator<TJob> creator) where TJob : Job
     {
-        var job = Job.Create(jobArguments);
-        await job.InvokeAsync(default);
+        var context = new HangfireJobExecutionContext
+        {
+            Name = creator.GetJobName(),
+            CancellationToken = CancellationToken.None,
+            JobType = typeof(TJob),
+            TraceID = Guid.NewGuid(),
+        };
+
+        var job = creator.CreateJob();
+        await job.ExecuteAsync(context);
     }
 }

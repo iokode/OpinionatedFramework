@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
@@ -7,7 +8,7 @@ namespace IOKode.OpinionatedFramework.Persistence.Queries;
 /// <summary>
 /// Represents the context in which a query is executed.
 /// </summary>
-public interface IQueryContext
+public interface IQueryExecutionContext
 {
     /// <summary>
     /// The database transaction associated with the query context, if any.
@@ -17,7 +18,7 @@ public interface IQueryContext
     /// <summary>
     /// Indicates whether the query has already been executed.
     /// </summary>
-    public bool IsQueryExecuted { get; }
+    public bool IsExecuted { get; }
 
     /// <summary>
     /// A collection of directives associated with the query.
@@ -46,5 +47,10 @@ public interface IQueryContext
     /// Retrieves the collection of results obtained after executing the query.
     /// </summary>
     /// <exception cref="System.InvalidOperationException">Thrown when the query is not executed yed.</exception>
-    public IReadOnlyCollection<object> Results { get; }
+    public IReadOnlyList<object> Results { get; }
+
+    /// <summary>
+    /// Unique identifier of the pipeline.
+    /// </summary>
+    public Guid TraceID { get; }
 }

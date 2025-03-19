@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -9,21 +10,24 @@ public class PipelineDataTests
     public async Task InvokeCommandsThatSetPipelineDataAndAssertIsNotSharedBetweenCommands()
     {
         // Arrange
-        var executor = Helpers.CreateExecutor();
+        var executor = Helpers.CreateExecutor(_ => { });
 
         // Act & Assert
-        await executor.InvokeAsync(new AssertGivenNameAndFamilyNameDoestExistInPipelineData(), default);
-        await executor.InvokeAsync(new SetGivenAndFamilyNamesInPipelineData("Ivan", "Montilla"), default);
-        await executor.InvokeAsync(new AssertIvanMontillaIsNotInPipelineData(), default);
+        await executor.InvokeAsync(new AssertGivenNameAndFamilyNameDoestExistInPipelineData(), CancellationToken.None);
+        await executor.InvokeAsync(new SetGivenAndFamilyNamesInPipelineData("Ivan", "Montilla"), CancellationToken.None);
+        await executor.InvokeAsync(new AssertIvanMontillaIsNotInPipelineData(), CancellationToken.None);
     }
 
     [Fact]
     public async Task InvokeCommandsThatSetPipelineDataAndAssertIsSharedBetweenInThePipeline()
     {
         // Arrange
-        var executor = Helpers.CreateExecutor([new SetIvanMontillaInPipelineDataMiddleware()]);
+        var executor = Helpers.CreateExecutor(options =>
+        {
+            options.AddMiddleware<SetIvanMontillaInPipelineDataMiddleware>();
+        });
 
         // Act & Assert
-        await executor.InvokeAsync(new AssertIvanMontillaIsInPipelineData(), default);
+        await executor.InvokeAsync(new AssertIvanMontillaIsInPipelineData(), CancellationToken.None);
     }
 }

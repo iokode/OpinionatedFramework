@@ -24,7 +24,7 @@ public class FoundationJobsTest(JobsTestsFixture fixture, ITestOutputHelper outp
             .ToEmail();
 
         // Act
-        await new SendEmailJobArguments(email).EnqueueAsync(default);
+        await new SendEmailJobCreator(email).EnqueueAsync(default);
         await PollingUtility.WaitUntilTrueAsync(() => IsExecutedSendEmailJob, 20000, 1000);
 
         // Assert
