@@ -55,6 +55,7 @@ public class QueryExecutorTests(NHibernateTestsFixture fixture, ITestOutputHelpe
 
         // Post Assert
         await npgsqlClient.ExecuteAsync("DROP TABLE users;");
+        await npgsqlClient.ExecuteAsync("DROP TYPE address_type;");
     }
 }
 

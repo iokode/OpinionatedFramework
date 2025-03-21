@@ -17,12 +17,12 @@ public class CommandScopeTests
     public async Task InvokeCommandMaintainsScopeInDeep_Success()
     {
         // Arrange
-        var executor = Helpers.CreateExecutorWithSampleScopedService();
+        var executor = Helpers.CreateExecutorWithSampleScopedService(_ => { });
 
         // Act
         var cmd = new InDeepCommand();
-        var servicesFromFirstExecution = await executor.InvokeAsync<InDeepCommand, (SampleService, SampleService)>(cmd, default);
-        var servicesFromSecondExecution = await executor.InvokeAsync<InDeepCommand, (SampleService, SampleService)>(cmd, default);
+        var servicesFromFirstExecution = await executor.InvokeAsync<InDeepCommand, (SampleService, SampleService)>(cmd, CancellationToken.None);
+        var servicesFromSecondExecution = await executor.InvokeAsync<InDeepCommand, (SampleService, SampleService)>(cmd, CancellationToken.None);
         
         // Assert
         Assert.Same(servicesFromFirstExecution.Item1, servicesFromFirstExecution.Item2);
@@ -34,12 +34,12 @@ public class CommandScopeTests
     public async Task InvokesCommandWithScopedService_SameServiceIsResolved()
     {
         // Arrange
-        var executor = Helpers.CreateExecutorWithSampleScopedService();
+        var executor = Helpers.CreateExecutorWithSampleScopedService(_ => { });
 
         // Act
         var cmd = new SampleCommand();
-        var servicesFromFirstExecution = await executor.InvokeAsync<SampleCommand, (SampleService, SampleService)>(cmd, default);
-        var servicesFromSecondExecution = await executor.InvokeAsync<SampleCommand, (SampleService, SampleService)>(cmd, default);
+        var servicesFromFirstExecution = await executor.InvokeAsync<SampleCommand, (SampleService, SampleService)>(cmd, CancellationToken.None);
+        var servicesFromSecondExecution = await executor.InvokeAsync<SampleCommand, (SampleService, SampleService)>(cmd, CancellationToken.None);
 
         // Assert
         Assert.Same(servicesFromFirstExecution.Item1, servicesFromFirstExecution.Item2);
@@ -54,7 +54,7 @@ public class CommandScopeTests
         var executor = Helpers.CreateExecutor(() =>
         {
             Container.Services.AddScoped<ScopedStateService>();
-        });
+        }, _ => { });
 
         var cmd = new SampleCommandWithScopedState();
         var tasks = new List<Task<string>>();
@@ -63,7 +63,7 @@ public class CommandScopeTests
         for (int i = 0; i < 1000; i++)
         {
             // Run 1000 cmds concurrently
-            tasks.Add(Task.Run(async () => await executor.InvokeAsync<SampleCommandWithScopedState, string>(cmd, default)));
+            tasks.Add(Task.Run(async () => await executor.InvokeAsync<SampleCommandWithScopedState, string>(cmd, CancellationToken.None)));
         }
 
         var results = await Task.WhenAll(tasks);
@@ -78,11 +78,11 @@ public class CommandScopeTests
     public async Task InvokeCommandAsync_EnsureScopedServiceProviderDoesNotRemains()
     {
         // Arrange
-        var executor = Helpers.CreateExecutorWithSampleScopedService();
+        var executor = Helpers.CreateExecutorWithSampleScopedService(_ => { });
 
         // Act
         var cmd = new GetProviderCommand();
-        var provider = await executor.InvokeAsync<GetProviderCommand, IServiceProvider>(cmd, default);
+        var provider = await executor.InvokeAsync<GetProviderCommand, IServiceProvider>(cmd, CancellationToken.None);
 
         // Arrange
         Assert.NotSame(Container.Services, provider);
@@ -95,28 +95,30 @@ public class CommandScopeTests
     public async Task InvokeCommandWithMiddleware_ScopeIsShared()
     {
         // Arrange
-        var executor = Helpers.CreateExecutorWithSampleScopedService(new CommandMiddleware[]
-            { new SetSampleServiceInSharedDataMiddleware() });
+        var executor = Helpers.CreateExecutorWithSampleScopedService(option =>
+        {
+            option.AddMiddleware<SetSampleServiceInSharedDataMiddleware>();
+        });
         
         // Act & Assert (assertions inside command)
         var cmd = new AssertSharedDateServiceIsSameCommand();
-        await executor.InvokeAsync(cmd, default);
+        await executor.InvokeAsync(cmd, CancellationToken.None);
     }
     
     private class SetSampleServiceInSharedDataMiddleware : CommandMiddleware
     {
-        public override Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync)
+        public override Task ExecuteAsync(ICommandExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
         {
-            context.SharedData.Set("Service", Locator.Resolve<SampleService>());
+            executionContext.SharedData.Set("Service", Locator.Resolve<SampleService>());
             return Task.CompletedTask;
         }
     }
 
     private class AssertSharedDateServiceIsSameCommand : Command
     {
-        protected override Task ExecuteAsync(ICommandContext context)
+        protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
         {
-            var serviceFromSharedData = context.SharedData.GetOrDefault("Service");
+            var serviceFromSharedData = executionContext.SharedData.GetOrDefault("Service");
             var serviceFromLocator = Locator.Resolve<SampleService>();
             
             Assert.Same(serviceFromLocator, serviceFromSharedData);
@@ -127,7 +129,7 @@ public class CommandScopeTests
 
     private class SampleCommand : Command<(SampleService, SampleService)>
     {
-        protected override Task<(SampleService, SampleService)> ExecuteAsync(ICommandContext context)
+        protected override Task<(SampleService, SampleService)> ExecuteAsync(ICommandExecutionContext executionContext)
         {
             var service = Locator.Resolve<SampleService>();
             var service2 = Locator.Resolve<SampleService>();
@@ -138,7 +140,7 @@ public class CommandScopeTests
 
     private class GetProviderCommand : Command<IServiceProvider>
     {
-        protected override Task<IServiceProvider> ExecuteAsync(ICommandContext context)
+        protected override Task<IServiceProvider> ExecuteAsync(ICommandExecutionContext executionContext)
         {
             return Task.FromResult(Locator.ServiceProvider!);
         }
@@ -156,7 +158,7 @@ public class CommandScopeTests
 
     private class SampleCommandWithScopedState : Command<string>
     {
-        protected override async Task<string> ExecuteAsync(ICommandContext context)
+        protected override async Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
         {
             var scopedStateService = Locator.Resolve<ScopedStateService>();
             var scopedStateToModify = Locator.Resolve<ScopedStateService>();
@@ -190,7 +192,7 @@ public class CommandScopeTests
             }
         }
 
-        protected override async Task<(SampleService, SampleService)> ExecuteAsync(ICommandContext context)
+        protected override async Task<(SampleService, SampleService)> ExecuteAsync(ICommandExecutionContext executionContext)
         {
             var sync = new InnerSyncClass();
             var async = new InnerAsyncClass();

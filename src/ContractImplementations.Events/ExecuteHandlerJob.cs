@@ -8,22 +8,23 @@ using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Events;
 
-public class ExecuteHandlerJob(Guid eventId, Type handlerType) : IJob
+public class ExecuteHandlerJob(Guid eventId, Type handlerType) : Job
 {
-    public async Task InvokeAsync(CancellationToken cancellationToken)
+    public override async Task ExecuteAsync(IJobExecutionContext context)
     {
         var uowFactory = Locator.Resolve<IUnitOfWorkFactory>();
         await using var uow = uowFactory.Create();
         var repository = uow.GetRepository<EventsRepository>();
-        var @event = await repository.GetByIdAsync(eventId, cancellationToken);
-        await uow.StopTrackingAsync(@event, cancellationToken);
+        var @event = await repository.GetByIdAsync(eventId, context.CancellationToken);
+        await uow.StopTrackingAsync(@event, context.CancellationToken);
 
         var handler = Activator.CreateInstance(handlerType)!;
-        await (Task) handler.GetType().InvokeMember(nameof(IEventHandler<Event>.HandleAsync), BindingFlags.InvokeMethod, null, handler, [@event, cancellationToken])!;
+        await (Task) handler.GetType().InvokeMember(nameof(IEventHandler<Event>.HandleAsync), BindingFlags.InvokeMethod, null, handler, [@event, context.CancellationToken])!;
     }
 }
 
-public record ExecuteHandlerJobArguments(Guid EventId, Type HandlerType) : JobArguments<ExecuteHandlerJob>
+public record ExecuteHandlerJobCreator(Guid EventId, Type HandlerType) : JobCreator<ExecuteHandlerJob>
 {
     public override ExecuteHandlerJob CreateJob() => new(EventId, HandlerType);
+    public override string GetJobName() => $"Execute handler for event {EventId}.";
 }

@@ -21,7 +21,7 @@ public class JobsTest(JobsTestsFixture fixture, ITestOutputHelper output) : Jobs
         var jobEnqueuer = new HangfireJobEnqueuer();
 
         // Act
-        await jobEnqueuer.EnqueueAsync<EnqueuedJob>(Queue.Default, default);
+        await jobEnqueuer.EnqueueAsync(Queue.Default, new EnqueueJobCreator());
         await PollingUtility.WaitUntilTrueAsync(() => EnqueuedJob.IsExecuted, 5000, 500);
 
         // Assert
@@ -35,7 +35,7 @@ public class JobsTest(JobsTestsFixture fixture, ITestOutputHelper output) : Jobs
         var jobEnqueuer = new HangfireJobEnqueuer();
 
         // Act
-        await jobEnqueuer.EnqueueWithDelayAsync<EnqueuedWithDelayJob>(TimeSpan.FromMilliseconds(5000), Queue.Default, default);
+        await jobEnqueuer.EnqueueWithDelayAsync(TimeSpan.FromMilliseconds(5000), Queue.Default, new EnqueuedWithDelayJobCreator());
         await PollingUtility.WaitUntilTrueAsync(() => EnqueuedWithDelayJob.IsExecuted, 20000, 1000);
 
         // Assert
@@ -49,9 +49,9 @@ public class JobsTest(JobsTestsFixture fixture, ITestOutputHelper output) : Jobs
         var jobScheduler = new HangfireJobScheduler();
 
         // Act
-        var scheduledJob = await jobScheduler.ScheduleAsync<ScheduledJob>(CronExpression.Parse("0/5 * * * * *", CronFormat.IncludeSeconds), default);
+        var scheduledJob = await jobScheduler.ScheduleAsync(CronExpression.Parse("0/5 * * * * *", CronFormat.IncludeSeconds), new ScheduledJobCreator());
         await PollingUtility.WaitUntilTrueAsync(() => ScheduledJob.Counter >= 2, 30000, 1000);
-        await jobScheduler.UnscheduleAsync(scheduledJob, default);
+        await jobScheduler.UnscheduleAsync(scheduledJob, CancellationToken.None);
 
         // Assert
         Assert.InRange(ScheduledJob.Counter, 2, 3);
@@ -64,11 +64,11 @@ public class JobsTest(JobsTestsFixture fixture, ITestOutputHelper output) : Jobs
         var jobScheduler = new HangfireJobScheduler();
 
         // Act
-        var scheduledJob = await jobScheduler.ScheduleAsync<RescheduledJob>(CronExpression.Parse("0/20 * * * *"), default);
+        var scheduledJob = await jobScheduler.ScheduleAsync(CronExpression.Parse("0/20 * * * *"), new RescheduledJobCreator());
         await Task.Delay(15000);
-        await jobScheduler.RescheduleAsync(scheduledJob, CronExpression.Parse("0/15 * * * * *", CronFormat.IncludeSeconds), default);
+        await jobScheduler.RescheduleAsync(scheduledJob, CronExpression.Parse("0/15 * * * * *", CronFormat.IncludeSeconds), CancellationToken.None);
         await Task.Delay(16000);
-        await jobScheduler.UnscheduleAsync(scheduledJob, default);
+        await jobScheduler.UnscheduleAsync(scheduledJob, CancellationToken.None);
 
         // Assert
         Assert.True(RescheduledJob.IsExecuted);
@@ -81,8 +81,8 @@ public class JobsTest(JobsTestsFixture fixture, ITestOutputHelper output) : Jobs
         var jobScheduler = new HangfireJobScheduler();
 
         // Act
-        var scheduledJob = await jobScheduler.ScheduleAsync<UnscheduledJob>(CronExpression.Parse("0 * * * *"), default);
-        await jobScheduler.UnscheduleAsync(scheduledJob, default);
+        var scheduledJob = await jobScheduler.ScheduleAsync(CronExpression.Parse("0 * * * *"), new UnscheduledJobCreator());
+        await jobScheduler.UnscheduleAsync(scheduledJob, CancellationToken.None);
         await Task.Delay(5000);
 
         // Assert
@@ -90,50 +90,115 @@ public class JobsTest(JobsTestsFixture fixture, ITestOutputHelper output) : Jobs
     }
 }
 
-public class EnqueuedJob : IJob
+public record EnqueueJobCreator : JobCreator<EnqueuedJob>
+{
+    public override EnqueuedJob CreateJob()
+    {
+        return new EnqueuedJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "EnqueueJob";
+    }
+}
+
+public class EnqueuedJob : Job
 {
     public static bool IsExecuted;
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         IsExecuted = true;
         return Task.CompletedTask;
     }
 }
 
-public class EnqueuedWithDelayJob : IJob
+public record EnqueuedWithDelayJobCreator : JobCreator<EnqueuedWithDelayJob>
+{
+    public override EnqueuedWithDelayJob CreateJob()
+    {
+        return new EnqueuedWithDelayJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "EnqueuedWithDelayJob";
+    }
+}
+
+public class EnqueuedWithDelayJob : Job
 {
     public static bool IsExecuted;
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         IsExecuted = true;
         return Task.CompletedTask;
     }
 }
 
-public class ScheduledJob : IJob
+public record ScheduledJobCreator : JobCreator<ScheduledJob>
+{
+    public override ScheduledJob CreateJob()
+    {
+        return new ScheduledJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "ScheduledJob";
+    }
+}
+
+public class ScheduledJob : Job
 {
     public static int Counter;
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         Counter++;
         return Task.CompletedTask;
     }
 }
 
-public class RescheduledJob : IJob
+public record RescheduledJobCreator : JobCreator<RescheduledJob>
+{
+    public override RescheduledJob CreateJob()
+    {
+        return new RescheduledJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "RescheduledJob";
+    }
+}
+
+public class RescheduledJob : Job
 {
     public static bool IsExecuted;
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         IsExecuted = true;
         return Task.CompletedTask;
     }
 }
 
-public class UnscheduledJob : IJob
+public record UnscheduledJobCreator : JobCreator<UnscheduledJob>
+{
+    public override UnscheduledJob CreateJob()
+    {
+        return new UnscheduledJob();
+    }
+
+    public override string GetJobName()
+    {
+        return "UnscheduledJob";
+    }
+}
+
+public class UnscheduledJob : Job
 {
     public static bool IsExecuted;
-    public Task InvokeAsync(CancellationToken cancellationToken)
+    public override Task ExecuteAsync(IJobExecutionContext context)
     {
         IsExecuted = true;
         return Task.CompletedTask;

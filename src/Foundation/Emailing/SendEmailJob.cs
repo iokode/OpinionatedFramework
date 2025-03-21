@@ -1,19 +1,21 @@
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Emailing.Extensions;
 using IOKode.OpinionatedFramework.Jobs;
 
 namespace IOKode.OpinionatedFramework.Emailing;
 
-public class SendEmailJob(Email email) : IJob
+public class SendEmailJob(Email email) : Job
 {
-    public async Task InvokeAsync(CancellationToken cancellationToken)
+    public override async Task ExecuteAsync(IJobExecutionContext context)
     {
-        await email.SendAsync(cancellationToken);
+        await email.SendAsync(context.CancellationToken);
     }
 }
 
-public record SendEmailJobArguments(Email Email) : JobArguments<SendEmailJob>
+public record SendEmailJobCreator(Email Email) : JobCreator<SendEmailJob>
 {
     public override SendEmailJob CreateJob() => new(Email);
+
+    public override string GetJobName() => $"Send '{Email.Subject}' to {Email.To.First()} via email.";
 }

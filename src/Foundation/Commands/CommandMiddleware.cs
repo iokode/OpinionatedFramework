@@ -6,5 +6,5 @@ public delegate Task InvokeNextMiddlewareDelegate();
 
 public abstract class CommandMiddleware
 {
-    public abstract Task ExecuteAsync(ICommandContext context, InvokeNextMiddlewareDelegate nextAsync);
+    public abstract Task ExecuteAsync(ICommandExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync);
 }

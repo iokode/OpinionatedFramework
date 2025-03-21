@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Commands;
 using Xunit;
@@ -14,11 +15,11 @@ public class MiddlewareTests
     {
         // Arrange
         CounterMiddleware.Counter = 0;
-        var executor = Helpers.CreateExecutor(new CommandMiddleware[] { new CounterMiddleware() });
+        var executor = Helpers.CreateExecutor(options => options.AddMiddleware<CounterMiddleware>());
 
         // Act
         var cmd = new VoidCommand();
-        await executor.InvokeAsync(cmd, default);
+        await executor.InvokeAsync(cmd, CancellationToken.None);
 
         // Assert
         Assert.Equal(1, CounterMiddleware.Counter);
@@ -31,12 +32,15 @@ public class MiddlewareTests
         ExecutedMiddlewares.Clear();
         CounterMiddleware.Counter = 0;
         CounterMiddleware2.Counter = 0;
-        var executor = Helpers.CreateExecutor(middlewares: new CommandMiddleware[]
-            { new CounterMiddleware(), new CounterMiddleware2() });
+        var executor = Helpers.CreateExecutor(options =>
+        {
+            options.AddMiddleware<CounterMiddleware>();
+            options.AddMiddleware<CounterMiddleware2>();
+        });
 
         // Act
         var cmd = new VoidCommand();
-        await executor.InvokeAsync(cmd, default);
+        await executor.InvokeAsync(cmd, CancellationToken.None);
 
         // Assert
         Assert.Equal(1, CounterMiddleware.Counter);
@@ -49,11 +53,11 @@ public class MiddlewareTests
     public async Task MiddlewareHandlesExceptions_Success()
     {
         // Arrange
-        var executor = Helpers.CreateExecutor(new CommandMiddleware[] { new ExceptionHandlingMiddleware() });
+        var executor = Helpers.CreateExecutor(options => options.AddMiddleware<ExceptionHandlingMiddleware>());
 
         // Act
         var cmd = new ExceptionThrowingCommand();
-        await executor.InvokeAsync(cmd, default);
+        await executor.InvokeAsync(cmd, CancellationToken.None);
 
         // Assert
         Assert.True(ExceptionHandlingMiddleware.ExceptionHandled);
@@ -63,11 +67,14 @@ public class MiddlewareTests
     public async Task CommandContextInMiddleware_PropertiesAreOk()
     {
         // Arrange
-        var executor = Helpers.CreateExecutor(new CommandMiddleware[]
-            { new AssertContextMiddlewareBeforeCommand(), new AssertContextMiddlewareAfterCommand() });
+        var executor = Helpers.CreateExecutor(options =>
+        {
+            options.AddMiddleware<AssertContextMiddlewareBeforeCommand>();
+            options.AddMiddleware<AssertContextMiddlewareAfterCommand>();
+        });
 
         // Act & Assert (assertions are inside middlewares)
         var cmd = new SumTwoNumbersCommand(5, 3);
-        await executor.InvokeAsync<SumTwoNumbersCommand, int>(cmd, default);
+        await executor.InvokeAsync<SumTwoNumbersCommand, int>(cmd, CancellationToken.None);
     }
 }

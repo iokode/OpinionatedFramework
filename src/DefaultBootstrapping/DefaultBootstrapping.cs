@@ -22,7 +22,10 @@ public static class DefaultBootstrapping
         Container.Services.AddTransient<IEncrypter, Aes256GcmModeEncrypter>();
         Container.Services.AddTransient<IPasswordHasher, BcryptPasswordHasher>();
 
-        Container.Services.AddDefaultCommandExecutor();
+        Container.Services.AddDefaultCommandExecutor(options =>
+        {
+            
+        });
 
         if (frameworkConfig["Email:Logger"] == "true")
         {

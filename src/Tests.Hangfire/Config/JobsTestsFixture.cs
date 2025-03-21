@@ -32,8 +32,7 @@ public class JobsTestsFixture : IAsyncLifetime
 
         GlobalConfiguration.Configuration
             .UseRecommendedSerializerSettings()
-            .UsePostgreSqlStorage(cfgPostgres => cfgPostgres.UseNpgsqlConnection(PostgresHelper.ConnectionString))
-            .UseFilter(new JobsChecker());
+            .UsePostgreSqlStorage(cfgPostgres => cfgPostgres.UseNpgsqlConnection(PostgresHelper.ConnectionString));
         HangfireServer = new BackgroundJobServer();
         await Task.Delay(3000);
 

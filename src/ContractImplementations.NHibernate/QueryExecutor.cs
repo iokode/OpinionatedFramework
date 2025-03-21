@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Persistence.Queries;
 using NHibernate;
@@ -21,7 +22,7 @@ public class QueryExecutor(
     public async Task<IReadOnlyCollection<TResult>> QueryAsync<TResult>(string query, object? parameters,
         IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
     {
-        var context = new NHibernateQueryExecutorContext
+        var context = new NHibernateQueryExecutionExecutorContext
         {
             CancellationToken = cancellationToken,
             Directives = new List<string>(),
@@ -29,21 +30,27 @@ public class QueryExecutor(
             RawQuery = query,
             Results = new List<object>(),
             Transaction = dbTransaction,
-            IsQueryExecuted = false,
+            IsExecuted = false,
+            TraceID = Guid.NewGuid()
         };
-
         ExtractDirectivesFromQuery(context);
-        
+
+        Container.Advanced.CreateScope();
         Log.Trace("Invoking query pipeline...");
 
         await InvokeMiddlewarePipelineAsync<TResult>(context, 0);
-        return context.Results.Cast<TResult>().ToList();
+
+        Log.Trace("Invoked query pipeline.");
+        Container.Advanced.DisposeScope();
+
+        var results = context.Results.Cast<TResult>().ToList();
+        return results;
     }
 
-    private void ExtractDirectivesFromQuery(NHibernateQueryExecutorContext context)
+    private void ExtractDirectivesFromQuery(NHibernateQueryExecutionExecutorContext context)
     {
         var lines = context.RawQuery.Split('\n');
-        
+
         foreach (string line in lines)
         {
             string trimmedLine = line.Trim();
@@ -55,7 +62,8 @@ public class QueryExecutor(
         }
     }
 
-    private async Task InvokeMiddlewarePipelineAsync<TResult>(NHibernateQueryExecutorContext context, int index)
+    private async Task InvokeMiddlewarePipelineAsync<TResult>(NHibernateQueryExecutionExecutorContext context,
+        int index)
     {
         if (index >= middlewares.Length)
         {
@@ -67,7 +75,7 @@ public class QueryExecutor(
         await middleware.ExecuteAsync(context, () => InvokeMiddlewarePipelineAsync<TResult>(context, index + 1));
     }
 
-    private async Task ExecuteQueryAsync<TResult>(NHibernateQueryExecutorContext context)
+    private async Task ExecuteQueryAsync<TResult>(NHibernateQueryExecutionExecutorContext context)
     {
         using var session = context.Transaction == null
             ? sessionFactory.OpenStatelessSession()
@@ -84,7 +92,7 @@ public class QueryExecutor(
         }
 
         context.Results = (await sqlQuery.ListAsync<object>(context.CancellationToken)).ToArray();
-        context.IsQueryExecuted = true;
+        context.IsExecuted = true;
     }
 
     /// <summary>
