@@ -23,7 +23,7 @@ public class ExecuteHandlerJob(Guid eventId, Type handlerType) : Job
     }
 }
 
-public class ExecuteHandlerJobCreator(Guid EventId, Type HandlerType) : JobCreator<ExecuteHandlerJob>
+public record ExecuteHandlerJobCreator(Guid EventId, Type HandlerType) : JobCreator<ExecuteHandlerJob>
 {
     public override ExecuteHandlerJob CreateJob() => new(EventId, HandlerType);
     public override string GetJobName() => $"Execute handler for event {EventId}.";

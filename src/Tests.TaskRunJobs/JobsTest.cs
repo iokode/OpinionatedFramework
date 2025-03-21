@@ -190,7 +190,7 @@ public class JobsTest : IDisposable
     }
 }
 
-public class EnqueueJobCreator : JobCreator<EnqueueJob>
+public record EnqueueJobCreator : JobCreator<EnqueueJob>
 {
     public override EnqueueJob CreateJob()
     {
@@ -214,7 +214,7 @@ public class EnqueueJob : Job
     }
 }
 
-public class ScheduleJobCreator : JobCreator<ScheduleJob>
+public record ScheduleJobCreator : JobCreator<ScheduleJob>
 {
     public override ScheduleJob CreateJob()
     {
@@ -238,7 +238,7 @@ public class ScheduleJob : Job
     }
 }
 
-public class RescheduleJobCreator : JobCreator<RescheduleJob>
+public record RescheduleJobCreator : JobCreator<RescheduleJob>
 {
     public override RescheduleJob CreateJob()
     {
@@ -262,7 +262,7 @@ public class RescheduleJob : Job
     }
 }
 
-public class UnscheduleJobCreator : JobCreator<UnscheduleJob>
+public record UnscheduleJobCreator : JobCreator<UnscheduleJob>
 {
     public override UnscheduleJob CreateJob()
     {
@@ -286,7 +286,7 @@ public class UnscheduleJob : Job
     }
 }
 
-public class EnqueueFailAndRetryJobCreator : JobCreator<EnqueueFailAndRetryJob>
+public record EnqueueFailAndRetryJobCreator : JobCreator<EnqueueFailAndRetryJob>
 {
     public override EnqueueFailAndRetryJob CreateJob()
     {
@@ -310,7 +310,7 @@ public class EnqueueFailAndRetryJob : Job
     }
 }
 
-public class ScheduleFailAndRetryJobCreator : JobCreator<ScheduleFailAndRetryJob>
+public record ScheduleFailAndRetryJobCreator : JobCreator<ScheduleFailAndRetryJob>
 {
     public override ScheduleFailAndRetryJob CreateJob()
     {
@@ -334,7 +334,7 @@ public class ScheduleFailAndRetryJob : Job
     }
 }
 
-public class EnqueueFailAndRetryUntilSixthAttemptJobCreator : JobCreator<EnqueueFailAndRetryUntilSixthAttemptJob>
+public record EnqueueFailAndRetryUntilSixthAttemptJobCreator : JobCreator<EnqueueFailAndRetryUntilSixthAttemptJob>
 {
     public override EnqueueFailAndRetryUntilSixthAttemptJob CreateJob()
     {
@@ -363,7 +363,7 @@ public class EnqueueFailAndRetryUntilSixthAttemptJob : Job
     }
 }
 
-public class ScheduleFailAndRetryUntilSixthAttemptJobCreator : JobCreator<ScheduleFailAndRetryUntilSixthAttemptJob>
+public record ScheduleFailAndRetryUntilSixthAttemptJobCreator : JobCreator<ScheduleFailAndRetryUntilSixthAttemptJob>
 {
     public override ScheduleFailAndRetryUntilSixthAttemptJob CreateJob()
     {

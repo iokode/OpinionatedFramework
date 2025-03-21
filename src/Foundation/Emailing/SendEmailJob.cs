@@ -13,7 +13,7 @@ public class SendEmailJob(Email email) : Job
     }
 }
 
-public class SendEmailJobCreator(Email Email) : JobCreator<SendEmailJob>
+public record SendEmailJobCreator(Email Email) : JobCreator<SendEmailJob>
 {
     public override SendEmailJob CreateJob() => new(Email);
 

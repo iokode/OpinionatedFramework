@@ -235,6 +235,35 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         await DropUsersTableQueryAsync();
     }
 
+    [Fact]
+    public async Task SameScopedIsUsedOverMiddlewarePipeline_Success()
+    {
+        // Arrange
+        await CreateUsersTableQueryAsync();
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
+
+        var queryExecutor = CreateExecutor(new ScopeServiceMiddleware1(), new ScopeServiceMiddleware2());
+
+        // Act
+        var result = await queryExecutor.QueryAsync<UserDto>("SELECT id, name, email, is_active FROM Users WHERE id = '1'");
+        var firstExecutionGuid = ScopeServiceMiddleware1.Id;
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("Test User", result.First().Name);
+        Assert.Equal(ScopeServiceMiddleware1.Id, ScopeServiceMiddleware2.Id);
+        Assert.NotEqual(Guid.Empty, ScopeServiceMiddleware1.Id);
+        Assert.NotEqual(Guid.Empty, ScopeServiceMiddleware2.Id);
+        
+        // In a second execution, the resolved scoped service should be different from the first one.
+        await queryExecutor.QueryAsync<UserDto>("SELECT id, name, email, is_active FROM Users WHERE id = '1'");
+        Assert.NotEqual(firstExecutionGuid, ScopeServiceMiddleware1.Id);
+        Assert.Equal(ScopeServiceMiddleware1.Id, ScopeServiceMiddleware2.Id);
+
+        // Cleanup
+        await DropUsersTableQueryAsync();
+    }
+
     public class UserDto
     {
         public string Id { get; set; }
@@ -248,7 +277,8 @@ public class CounterMiddleware : QueryMiddleware
 {
     public static int Counter { get; set; } = 0;
 
-    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
+        InvokeNextMiddlewareDelegate nextAsync)
     {
         QueryExecutorMiddlewareTests.ExecutedMiddlewares.Add("Counter");
         Counter++;
@@ -260,7 +290,8 @@ public class CounterMiddleware2 : QueryMiddleware
 {
     public static int Counter { get; set; } = 0;
 
-    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
+        InvokeNextMiddlewareDelegate nextAsync)
     {
         QueryExecutorMiddlewareTests.ExecutedMiddlewares.Add("Counter2");
         Counter++;
@@ -270,7 +301,8 @@ public class CounterMiddleware2 : QueryMiddleware
 
 public class QueryModifierMiddleware : QueryMiddleware
 {
-    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
+        InvokeNextMiddlewareDelegate nextAsync)
     {
         executionContext.RawQuery += " WHERE id = '1'";
 
@@ -282,7 +314,8 @@ public class ExceptionHandlingMiddleware : QueryMiddleware
 {
     public static bool ExceptionHandled { get; set; } = false;
 
-    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
+        InvokeNextMiddlewareDelegate nextAsync)
     {
         try
         {
@@ -297,7 +330,8 @@ public class ExceptionHandlingMiddleware : QueryMiddleware
 
 public class OnlyActiveDirectiveProcessingMiddleware : QueryMiddleware
 {
-    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
+        InvokeNextMiddlewareDelegate nextAsync)
     {
         if (executionContext.Directives.Contains("OnlyActive"))
         {
@@ -311,7 +345,8 @@ public class OnlyActiveDirectiveProcessingMiddleware : QueryMiddleware
 
 public class LoggingMiddleware : QueryMiddleware
 {
-    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
+        InvokeNextMiddlewareDelegate nextAsync)
     {
         QueryExecutorMiddlewareTests.ExecutedMiddlewares.Add("Logging: Before");
         await nextAsync();
@@ -319,7 +354,8 @@ public class LoggingMiddleware : QueryMiddleware
 
         if (executionContext.IsExecuted)
         {
-            QueryExecutorMiddlewareTests.ExecutedMiddlewares.Add($"Logging: Got {executionContext.Results.Count} results");
+            QueryExecutorMiddlewareTests.ExecutedMiddlewares.Add(
+                $"Logging: Got {executionContext.Results.Count} results");
         }
     }
 }
@@ -328,7 +364,8 @@ public class TransactionAwareMiddleware : QueryMiddleware
 {
     public static bool TransactionPresent { get; set; }
 
-    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
+        InvokeNextMiddlewareDelegate nextAsync)
     {
         TransactionPresent = executionContext.Transaction != null;
         await nextAsync();
@@ -345,7 +382,8 @@ public class ParameterLoggingMiddleware : QueryMiddleware
     public static bool ParametersPresent { get; set; }
     public static string LoggedParameterId { get; set; }
 
-    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
+        InvokeNextMiddlewareDelegate nextAsync)
     {
         ParametersPresent = executionContext.Parameters != null;
 
@@ -356,4 +394,35 @@ public class ParameterLoggingMiddleware : QueryMiddleware
 
         await nextAsync();
     }
+}
+
+public class ScopeServiceMiddleware1 : QueryMiddleware
+{
+    public static Guid Id { get; private set; }
+
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
+    {
+        var scopedService = Locator.Resolve<ScopedService>();
+        Id = scopedService.Id;
+
+        await nextAsync();
+    }
+}
+
+public class ScopeServiceMiddleware2 : QueryMiddleware
+{
+    public static Guid Id { get; private set; }
+
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
+    {
+        var scopedService = Locator.Resolve<ScopedService>();
+        Id = scopedService.Id;
+
+        await nextAsync();
+    }
+}
+
+public class ScopedService
+{
+    public Guid Id { get; } = Guid.NewGuid();
 }

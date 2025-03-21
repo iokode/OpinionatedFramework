@@ -28,6 +28,7 @@ public class NHibernateTestsFixture : IAsyncLifetime
     {
         NpgsqlConnection.GlobalTypeMapper.MapComposite<AddressDto>("public.address_type");
         Container.Services.AddTransient<ILogging>(_ => new XUnitLogging(TestOutputHelperFactory()));
+        Container.Services.AddScoped<ScopedService>();
         await PostgresContainer.InitializeAsync();
         string connectionString = PostgresHelper.ConnectionString;
         
