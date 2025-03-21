@@ -4,3 +4,4 @@ obj/
 .vs/
 .vscode/
 *.user
+.DS_Store
