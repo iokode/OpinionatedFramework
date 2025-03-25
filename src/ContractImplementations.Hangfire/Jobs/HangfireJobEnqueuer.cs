@@ -17,7 +17,7 @@ public class HangfireJobEnqueuer : IJobEnqueuer
     {
         // None cancellation token will be replaced internally.
         // https://docs.hangfire.io/en/latest/background-methods/using-cancellation-tokens.html
-        BackgroundJob.Enqueue(queue.Name, () => InvokeJobAsync(creator, CancellationToken.None));
+        BackgroundJob.Enqueue(queue.Name, () => InvokeJobAsync(creator.GetJobName(), creator, CancellationToken.None));
         return Task.CompletedTask;
     }
 
@@ -26,7 +26,7 @@ public class HangfireJobEnqueuer : IJobEnqueuer
     {
         // None cancellation token will be replaced internally.
         // https://docs.hangfire.io/en/latest/background-methods/using-cancellation-tokens.html
-        BackgroundJob.Schedule(queue.Name, () => InvokeJobAsync(creator, CancellationToken.None), delay);
+        BackgroundJob.Schedule(queue.Name, () => InvokeJobAsync(creator.GetJobName(), creator, CancellationToken.None), delay);
         return Task.CompletedTask;
     }
 
@@ -41,7 +41,8 @@ public class HangfireJobEnqueuer : IJobEnqueuer
     /// and execution of enqueued tasks. Hangfire requires that methods to be invoked 
     /// are publicly accessible to resolve them when deserializing the previously generated expression.
     /// </remarks>
-    public static async Task InvokeJobAsync<TJob>(JobCreator<TJob> creator, CancellationToken cancellationToken) where TJob : Job
+    [JobDisplayName("{0}")]
+    public static async Task InvokeJobAsync<TJob>(string jobName, JobCreator<TJob> creator, CancellationToken cancellationToken) where TJob : Job
     {
         try
         {

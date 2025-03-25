@@ -18,7 +18,7 @@ public class HangfireJobScheduler : IJobScheduler
 
         // None cancellation token will be replaced internally.
         // https://docs.hangfire.io/en/latest/background-methods/using-cancellation-tokens.html
-        RecurringJob.AddOrUpdate(scheduledJob.Identifier.ToString(), () => InvokeJobAsync(creator, CancellationToken.None), interval.ToString);
+        RecurringJob.AddOrUpdate(scheduledJob.Identifier.ToString(), () => InvokeJobAsync(creator.GetJobName(), creator, CancellationToken.None), interval.ToString);
         return Task.FromResult<ScheduledJob<TJob>>(scheduledJob);
     }
 
@@ -29,7 +29,7 @@ public class HangfireJobScheduler : IJobScheduler
 
         // None cancellation token will be replaced internally.
         // https://docs.hangfire.io/en/latest/background-methods/using-cancellation-tokens.html
-        RecurringJob.AddOrUpdate(scheduledJob.Identifier.ToString(), () => InvokeJobAsync(scheduledJob.JobArguments, CancellationToken.None), interval.ToString);
+        RecurringJob.AddOrUpdate(scheduledJob.Identifier.ToString(), () => InvokeJobAsync(scheduledJob.Creator.GetJobName(), scheduledJob.Creator, CancellationToken.None), interval.ToString);
         ((MutableScheduledJob<TJob>) scheduledJob).ChangeInterval(interval);
 
         return Task.CompletedTask;
@@ -51,7 +51,8 @@ public class HangfireJobScheduler : IJobScheduler
     /// and execution of scheduled tasks. Hangfire requires that methods to be invoked 
     /// are publicly accessible to resolve them when deserializing the previously generated expression.
     /// </remarks>
-    public static async Task InvokeJobAsync<TJob>(JobCreator<TJob> creator, CancellationToken cancellationToken) where TJob : Job
+    [JobDisplayName("{0}")]
+    public static async Task InvokeJobAsync<TJob>(string jobName, JobCreator<TJob> creator, CancellationToken cancellationToken) where TJob : Job
     {
         try
         {

@@ -7,7 +7,7 @@ namespace IOKode.OpinionatedFramework.Jobs;
 /// Represents the core details of a job that was scheduled.
 /// </summary>
 /// <remarks>
-/// This abstract class is designed to encapsulate essential aspects of a job that is to be scheduled,
+/// This abstract class is designed to encapsulate essential aspects of a job that was scheduled,
 /// its primary purpose is to serve as a foundational structure for managing metadata associated with
 /// scheduled jobs in scheduling frameworks.
 /// This class itself is not intended to represent the actual execution logic of the job,
@@ -17,15 +17,15 @@ public abstract class ScheduledJob<TJob> where TJob : Job
 {
     public CronExpression Interval { get; protected set; }
 
-    public JobCreator<TJob>? JobArguments { get; protected init; }
+    public JobCreator<TJob>? Creator { get; protected init; }
 
     public Guid Identifier { get; protected init; }
 
-    protected ScheduledJob(CronExpression interval, Guid id, JobCreator<TJob>? jobArguments = null)
+    protected ScheduledJob(CronExpression interval, Guid id, JobCreator<TJob>? creator = null)
     {
         Interval = interval;
         Identifier = id;
-        JobArguments = jobArguments;
+        Creator = creator;
     }
 
     protected void SetInterval(CronExpression interval)
@@ -50,11 +50,11 @@ public abstract class MutableScheduledJob<TJob> : ScheduledJob<TJob> where TJob 
         this.SetInterval(interval);
     }
 
-    public MutableScheduledJob(CronExpression interval, JobCreator<TJob>? jobArguments = null) : base(interval, Guid.NewGuid(), jobArguments)
+    public MutableScheduledJob(CronExpression interval, JobCreator<TJob>? creator = null) : base(interval, Guid.NewGuid(), creator)
     {
     }
 
-    public MutableScheduledJob(CronExpression interval, Guid id, JobCreator<TJob>? jobArguments = null) : base(interval, id, jobArguments)
+    public MutableScheduledJob(CronExpression interval, Guid id, JobCreator<TJob>? creator = null) : base(interval, id, creator)
     {
     }
 }

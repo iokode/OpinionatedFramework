@@ -9,7 +9,7 @@ internal class TaskRunMutableScheduledJob<TJob> : MutableScheduledJob<TJob> wher
     public DateTime LastInvocation { get; set; }
     public bool IsFinalized { get; private set; }
 
-    public TaskRunMutableScheduledJob(CronExpression interval, JobCreator<TJob>? jobArguments = null) : base(interval, jobArguments)
+    public TaskRunMutableScheduledJob(CronExpression interval, JobCreator<TJob>? creator = null) : base(interval, creator)
     {
         LastInvocation = DateTime.UtcNow;
     }
