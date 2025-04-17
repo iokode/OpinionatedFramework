@@ -2,6 +2,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Docker.DotNet;
+using FluentMigrator.Runner;
+using FluentMigrator.Runner.Initialization;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
 using Hangfire;
@@ -10,8 +12,10 @@ using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.Mappings;
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.Migrations;
 using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;
 
@@ -50,13 +54,23 @@ public class EventsTestsFixture : IAsyncLifetime
                 })
                 .BuildConfiguration();
         });
-        Container.Services.AddHangfireJobsImplementations(cfg =>
-        {
-            cfg.UseRecommendedSerializerSettings()
-                .UsePostgreSqlStorage(cfgPostgres => cfgPostgres.UseNpgsqlConnection(postgresConnectionString));
-        });
+        
+        Container.Services.AddFluentMigratorCore()
+            .ConfigureRunner(runnerBuilder =>
+                runnerBuilder
+                    .AddPostgres()
+                    .WithGlobalConnectionString(postgresConnectionString)
+                    .ScanIn(Assembly.GetAssembly(typeof(CreateSchemaMigration))!).For.Migrations()
+            )
+            .Configure<RunnerOptions>(cfg => cfg.Tags = ["opinionated_framework"]);
+        
+        GlobalConfiguration.Configuration.UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(cfgPostgres => cfgPostgres.UseNpgsqlConnection(postgresConnectionString));
+        Container.Services.AddHangfireJobsImplementations();
+        
         Container.Initialize();
 
+        Locator.Resolve<IMigrationRunner>().MigrateUp();
         HangfireServer = new BackgroundJobServer(new BackgroundJobServerOptions
         {
             Queues = ["eventing"]

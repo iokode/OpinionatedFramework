@@ -5,30 +5,24 @@ using Xunit;
 
 namespace IOKode.OpinionatedFramework.Tests.Events.Config;
 
-public class EventsTestsBase(EventsTestsFixture fixture) : IClassFixture<EventsTestsFixture>
+public class EventsTestsBase(EventsTestsFixture fixture) : IClassFixture<EventsTestsFixture>, IAsyncLifetime
 {
     protected NpgsqlConnection npgsqlClient => fixture.NpgsqlClient;
-    
-    protected async Task CreateEventsTableQueryAsync()
+
+    protected async Task TruncateEventsTableAsync()
     {
         npgsqlClient.Open();
-        await fixture.NpgsqlClient.ExecuteAsync(
-            """
-            CREATE SCHEMA IF NOT EXISTS opinionated_framework;
-            CREATE TABLE opinionated_framework.events (
-                id UUID PRIMARY KEY,
-                event_type TEXT NOT NULL,
-                dispatched_at TIMESTAMP,
-                payload JSONB NOT NULL
-            );
-            """);
+        await npgsqlClient.ExecuteAsync("TRUNCATE TABLE opinionated_framework.events;");
         npgsqlClient.Close();
     }
 
-    protected async Task DropEventsTableQueryAsync()
+    public Task InitializeAsync()
     {
-        npgsqlClient.Open();
-        await npgsqlClient.ExecuteAsync("DROP TABLE opinionated_framework.events;");
-        npgsqlClient.Close();
+        return Task.CompletedTask;
+    }
+
+    public async Task DisposeAsync()
+    {
+        await TruncateEventsTableAsync();
     }
 }

@@ -22,7 +22,6 @@ public class EventDispatcherTests(ITestOutputHelper output, EventsTestsFixture f
         // Arrange
         EventHandlers.Register<Event1, EventHandler1>();
         EventHandlers.Register<Event1, EventHandler2>();
-        await CreateEventsTableQueryAsync();
 
         var enqueuer = Locator.Resolve<IJobEnqueuer>();
         var uowFactory = Locator.Resolve<IUnitOfWorkFactory>();
@@ -47,10 +46,6 @@ public class EventDispatcherTests(ITestOutputHelper output, EventsTestsFixture f
         Assert.NotNull(eventDispatched.DispatchedAt);
         Assert.True(EventHandler1.IsExecuted);
         Assert.True(EventHandler2.IsExecuted);
-
-        // Post assert
-        output.WriteLine("Post assert");
-        await DropEventsTableQueryAsync();
     }
 }
 

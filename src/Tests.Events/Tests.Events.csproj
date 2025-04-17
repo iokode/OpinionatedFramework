@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Test.props"/>
+    
+    <PropertyGroup>
+        <FluentMigratorVersion>6.1.0</FluentMigratorVersion>
+    </PropertyGroup>
 
     <ItemGroup Label="Project references">
         <ProjectReference Include="..\ContractImplementations.Events\ContractImplementations.Events.csproj" />
@@ -8,7 +12,8 @@
         <ProjectReference Include="..\ContractImplementations.NHibernate.Postgres\ContractImplementations.NHibernate.Postgres.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
+    <ItemGroup Label="Package references">
+        <PackageReference Include="FluentMigrator.Runner.Postgres" Version="$(FluentMigratorVersion)" />
         <PackageReference Include="Hangfire.PostgreSql" Version="1.20.10" />
     </ItemGroup>
 </Project>

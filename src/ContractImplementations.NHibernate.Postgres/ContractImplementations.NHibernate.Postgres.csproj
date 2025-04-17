@@ -2,12 +2,25 @@
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Packable.props"/>
 
+    <ItemGroup>
+        <AdditionalFiles Include="**\*.sql"/>
+    </ItemGroup>
+
+    <PropertyGroup Label="Package versions">
+        <FluentMigratorVersion>6.2.*</FluentMigratorVersion>
+        <NpgsqlVersion>9.0.*</NpgsqlVersion>
+    </PropertyGroup>
+
     <ItemGroup Label="Package references">
-        <PackageReference Include="Npgsql" Version="9.0.2" />
+        <PackageReference Include="Npgsql" Version="$(NpgsqlVersion)"/>
+        <PackageReference Include="FluentMigrator" Version="$(FluentMigratorVersion)"/>
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">
-        <ProjectReference Include="..\ContractImplementations.NHibernate\ContractImplementations.NHibernate.csproj" />
+        <ProjectReference Include="..\ContractImplementations.NHibernate\ContractImplementations.NHibernate.csproj"/>
     </ItemGroup>
 
+    <ItemGroup Label="Analyzers and source generators">
+        <ProjectReference Include="..\SourceGenerators.Migrations\SourceGenerators.Migrations.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    </ItemGroup>
 </Project>
