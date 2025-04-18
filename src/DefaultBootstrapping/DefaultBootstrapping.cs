@@ -22,10 +22,7 @@ public static class DefaultBootstrapping
         Container.Services.AddTransient<IEncrypter, Aes256GcmModeEncrypter>();
         Container.Services.AddTransient<IPasswordHasher, BcryptPasswordHasher>();
 
-        Container.Services.AddDefaultCommandExecutor(options =>
-        {
-            
-        });
+        Container.Services.AddDefaultCommandExecutor(options => { });
 
         if (frameworkConfig["Email:Logger"] == "true")
         {
@@ -38,7 +35,11 @@ public static class DefaultBootstrapping
 
         Container.Services.AddMicrosoftLogging(options =>
         {
-            var minimumLevel = frameworkConfig["Logging:MinimumLevel"] switch
+            var config = frameworkConfig.GetValue<bool>("Logging:Global")
+                ? configuration.GetSection("Logging")
+                : frameworkConfig.GetSection("Logging");
+
+            var minimumLevel = config["MinimumLevel"] switch
             {
                 "Trace" => LogLevel.Trace,
                 "Debug" => LogLevel.Debug,
@@ -56,7 +57,8 @@ public static class DefaultBootstrapping
         Container.Services.AddMicrosoftConfiguration(configuration);
     }
 
-    public static void BootstrapAndInitialize(IConfiguration configuration, string frameworkConfigSection = "OpinionatedFramework")
+    public static void BootstrapAndInitialize(IConfiguration configuration,
+        string frameworkConfigSection = "OpinionatedFramework")
     {
         Bootstrap(configuration, frameworkConfigSection);
         Container.Initialize();

@@ -11,7 +11,7 @@ using NHibernate.Criterion;
 using NHNonUniqueResultException = NHibernate.NonUniqueResultException;
 using NonUniqueResultException = IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions.NonUniqueResultException;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
+namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;
 
 public class EntitySet<T> : IEntitySet<T> where T : Entity
 {

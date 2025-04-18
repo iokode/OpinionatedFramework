@@ -1,9 +1,10 @@
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
 using IOKode.OpinionatedFramework.Utilities;
 using NHibernate.Transform;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 
-public class QueryExecutionPostgresConfiguration : IQueryExecutorConfiguration
+public class PostgresQueryExecutorConfiguration : IQueryExecutorConfiguration
 {
     public IResultTransformer GetResultTransformer<TResult>()
     {

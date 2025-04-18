@@ -11,7 +11,7 @@ using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
 using NHibernate;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
+namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;
 
 public class UnitOfWork : IUnitOfWork
 {

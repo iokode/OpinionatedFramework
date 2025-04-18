@@ -1,5 +1,8 @@
 using System;
+using FluentNHibernate.Cfg;
 using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.Queries;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using Microsoft.Extensions.DependencyInjection;

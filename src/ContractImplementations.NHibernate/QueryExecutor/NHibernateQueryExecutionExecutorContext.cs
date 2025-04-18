@@ -4,7 +4,7 @@ using System.Data;
 using System.Threading;
 using IOKode.OpinionatedFramework.Persistence.Queries;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
+namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
 
 public class NHibernateQueryExecutionExecutorContext : IQueryExecutionContext
 {

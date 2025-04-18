@@ -1,7 +1,7 @@
 using IOKode.OpinionatedFramework.Persistence.Queries;
 using NHibernate;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
+namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
 
 public class QueryExecutorFactory(ISessionFactory sessionFactory, IQueryExecutorConfiguration configuration) : IQueryExecutorFactory
 {

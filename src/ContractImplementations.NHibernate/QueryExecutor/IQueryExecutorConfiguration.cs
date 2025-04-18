@@ -1,6 +1,6 @@
 using NHibernate.Transform;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
+namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
 
 public interface IQueryExecutorConfiguration
 {

@@ -323,57 +323,6 @@ public static class StringUtility
         return result.ToString();
     }
 
-#if NETSTANDARD2_0 || NETSTANDARD2_1 || NETCOREAPP3_1 || NET5_0
-        /// <summary>
-        /// Extension method to convert a given string to title case.
-        /// </summary>
-        /// <param name="text">The string to convert to title case.</param>
-        /// <returns>A new string with each word in title case.</returns>
-        public static string ToTitleCase(string text)
-        {
-            // Check if the input string is null or empty, return the original string in that case
-            if (string.IsNullOrEmpty(text))
-            {
-                return text;
-            }
-
-            // Create a StringBuilder with the initial capacity set to the length of the input string
-            // This helps avoid unnecessary memory allocations
-            StringBuilder sb = new(text.Length);
-
-            // A boolean flag to track if we are at the start of a new word
-            bool newWord = true;
-
-            // Iterate over each character in the input string
-            foreach (char c in text)
-            {
-                // If the current character is a whitespace, hyphen, or underscore,
-                // set the newWord flag to true and append the character to the StringBuilder
-                if (char.IsWhiteSpace(c) || c is '-' or '_')
-                {
-                    newWord = true;
-                    sb.Append(c);
-                }
-                // If we are at the start of a new word, append the uppercase version of the character
-                // and set the newWord flag to false
-                else if (newWord)
-                {
-                    sb.Append(char.ToUpper(c));
-                    newWord = false;
-                }
-                // If we are not at the start of a new word, append the lowercase version of the character
-                else
-                {
-                    sb.Append(char.ToLower(c));
-                }
-            }
-
-            // Convert the StringBuilder to a string and return it
-            return sb.ToString();
-        }
-
-#elif NET6_0_OR_GREATER
-
     /// <summary>
     /// Extension method to convert a given string to title case.
     /// </summary>
@@ -411,21 +360,18 @@ public static class StringUtility
         return builder.ToString();
     }
 
-
-#endif
-
     /// <summary>
-    /// Convert a string to Train Case
+    /// Convert a string to Train Case.
     /// </summary>
-    /// <param name="text"></param>
-    /// <returns>string</returns>
+    /// <param name="text">The string to convert to Train Case.</param>
+    /// <returns>A new string with each word in Train Case.</returns>
     public static string ToTrainCase(string text)
     {
         return FirstCharToUpperCase(SplitCamelCase(ToPascalCase(text), "-")).Replace("--", "-");
     }
 
     /// <summary>
-    /// Insert any character before all upper space characters in a string
+    /// Insert any character before all upper space characters in a string.
     /// </summary>
     /// <param name="text"></param>
     /// <param name="character"></param>
@@ -454,7 +400,7 @@ public static class StringUtility
     }
 
     /// <summary>
-    /// Insert a space before any upper case character in a string
+    /// Insert a space before any upper case character in a string.
     /// </summary>
     /// <param name="text"></param>
     /// <returns>string</returns>
@@ -464,7 +410,7 @@ public static class StringUtility
     }
 
     /// <summary>
-    /// Replace specific characters found in a string
+    /// Replace specific characters found in a string.
     /// See: https://stackoverflow.com/a/7265786/7986443
     /// </summary>
     /// <param name="s"></param>
@@ -480,7 +426,7 @@ public static class StringUtility
     private static readonly Regex WhiteSpaceRegex = new(@"\s+");
 
     /// <summary>
-    /// Replace all whitespace in a string
+    /// Replace all whitespace in a string.
     /// See: https://stackoverflow.com/questions/6219454/efficient-way-to-remove-all-whitespace-from-string
     /// </summary>
     /// <param name="input"></param>
@@ -520,9 +466,9 @@ public static class StringUtility
     }
 
     /// <summary>
-    /// Convert SnakeCase to CamelCase
-    /// See: https://www.codegrepper.com/code-examples/csharp/camelCase+and+snakeCase
+    /// Convert SnakeCase to CamelCase.
     /// </summary>
+    /// <seealso cref="https://www.codegrepper.com/code-examples/csharp/camelCase+and+snakeCase"/>
     /// <param name="text"></param>
     /// <returns>string</returns>
     public static string SnakeCaseToCamelCase(string text)
@@ -531,7 +477,7 @@ public static class StringUtility
     }
 
     /// <summary>
-    /// Convert the first character in a string to lower case
+    /// Convert the first character in a string to lower case.
     /// See: https://stackoverflow.com/questions/21755757/first-character-of-string-lowercase-c-sharp/21755933
     /// </summary>
     /// <param name="text"></param>
@@ -545,7 +491,7 @@ public static class StringUtility
     }
 
     /// <summary>
-    /// Convert the first character in a string to upper case
+    /// Convert the first character in a string to upper case.
     /// </summary>
     /// <param name="text"></param>
     /// <returns>string</returns>

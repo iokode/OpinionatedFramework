@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
