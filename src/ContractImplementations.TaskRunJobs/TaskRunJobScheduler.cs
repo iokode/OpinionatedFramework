@@ -8,13 +8,14 @@ using IOKode.OpinionatedFramework.Configuration;
 using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Logging;
+using NodaTime;
 using Job = IOKode.OpinionatedFramework.Jobs.Job;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
 public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging logging) : IJobScheduler
 {
-    private List<object> registeredJobs = new();
+    private readonly List<object> registeredJobs = new();
 
     public Task<ScheduledJob<TJob>> ScheduleAsync<TJob>(CronExpression interval, JobCreator<TJob> creator, CancellationToken cancellationToken = default) where TJob : Job
     {
@@ -26,7 +27,7 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
             while (!scheduledJob.IsFinalized)
             {
                 var now = DateTime.UtcNow;
-                var nextOccurrence = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastInvocation);
+                var nextOccurrence = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastInvocation.ToDateTimeUtc());
 
                 if (nextOccurrence == null)
                 {
@@ -44,10 +45,10 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
                         logging.Error(ex, "An scheduled job reached max attempts.");
                     }
 
-                    scheduledJob.LastInvocation = now;
+                    scheduledJob.LastInvocation = Instant.FromDateTimeUtc(now);
                 }
 
-                var delay = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastInvocation)! - now;
+                var delay = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastInvocation.ToDateTimeUtc())! - now;
                 await Task.Delay(delay.Value);
             }
         }, cancellationToken);

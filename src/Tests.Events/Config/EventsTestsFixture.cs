@@ -41,7 +41,7 @@ public class EventsTestsFixture : IAsyncLifetime
                     .ConnectionString(postgresConnectionString))
                 .Mappings(mapCfg =>
                 {
-                    mapCfg.FluentMappings.Add<EventMap>();
+                    mapCfg.FluentMappings.AddOpinionatedFrameworkPostgresMappings();
                     var assembly = Assembly.GetExecutingAssembly();
                     var eventSubclasses = assembly.GetTypes()
                         .Where(type => type.IsSubclassOf(typeof(Event)) && !type.IsAbstract);

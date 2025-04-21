@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Google.Apis.Storage.v1.Data;
 using Google.Cloud.Storage.V1;
+using NodaTime;
 using File = IOKode.OpinionatedFramework.FileSystem.File;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.GoogleCloudStorage;
@@ -24,8 +25,8 @@ public sealed class GoogleCloudStorageFile : File
         Name = obj.Name.Split("/").Last();
         FullName = obj.Name;
         Size = obj.Size!.Value;
-        CreationTime = obj.TimeCreated!.Value;
-        UpdateTime = obj.Updated!.Value;
+        CreationTime = Instant.FromDateTimeUtc(obj.TimeCreated!.Value.ToUniversalTime());
+        UpdateTime = Instant.FromDateTimeUtc(obj.Updated!.Value.ToUniversalTime());
         StorageClass = GoogleCloudStorageHelpers.GetStorageClassFromString(obj.StorageClass);
     }
     

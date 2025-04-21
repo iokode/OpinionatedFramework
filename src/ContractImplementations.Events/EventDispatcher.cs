@@ -5,6 +5,7 @@ using IOKode.OpinionatedFramework.Configuration;
 using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
+using NodaTime;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Events;
 
@@ -19,7 +20,7 @@ public class EventDispatcher(IUnitOfWorkFactory uowFactory, IJobEnqueuer jobEnqu
             return;
         }
 
-        typeof(Event).GetProperty(nameof(Event.DispatchedAt))!.SetValue(@event, DateTime.UtcNow);
+        typeof(Event).GetProperty(nameof(Event.DispatchedAt))!.SetValue(@event, Instant.FromDateTimeUtc(DateTime.UtcNow));
         Guid id;
 
         await using (var uow = uowFactory.Create())

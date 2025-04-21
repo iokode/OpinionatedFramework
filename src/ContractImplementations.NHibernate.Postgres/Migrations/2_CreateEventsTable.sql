@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS opinionated_framework.events
 (
     id            UUID PRIMARY KEY,
     event_type    TEXT  NOT NULL,
-    dispatched_at TIMESTAMP,
+    dispatched_at TIMESTAMP WITH TIME ZONE,
     payload       JSONB NOT NULL
 );
 

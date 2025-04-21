@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.FileSystem;
 using IOKode.OpinionatedFramework.FileSystem.Exceptions;
+using NodaTime;
 using Directory = System.IO.Directory;
 using DirectoryNotFoundException = IOKode.OpinionatedFramework.FileSystem.Exceptions.DirectoryNotFoundException;
 using File = System.IO.File;
@@ -199,8 +200,8 @@ public class LocalDisk : IFileDisk
 
         return new LocalFile
         {
-            CreationTime = fileInfo.CreationTime,
-            UpdateTime = fileInfo.LastWriteTimeUtc,
+            CreationTime = Instant.FromDateTimeUtc(fileInfo.CreationTimeUtc),
+            UpdateTime = Instant.FromDateTimeUtc(fileInfo.LastWriteTimeUtc),
             FullName = fileInfo.FullName,
             Name = fileInfo.Name,
             Size = (uint)fileInfo.Length
@@ -215,10 +216,10 @@ public class LocalDisk : IFileDisk
             throw new ArgumentException("Trying to create a directory representation of non-existent directory.");
         }
 
-        return new FileSystem.Directory()
+        return new FileSystem.Directory
         {
-            CreationTime = directoryInfo.CreationTime,
-            UpdateTime = directoryInfo.LastWriteTimeUtc,
+            CreationTime = Instant.FromDateTimeUtc(directoryInfo.CreationTimeUtc),
+            UpdateTime = Instant.FromDateTimeUtc(directoryInfo.LastWriteTimeUtc),
             FullName = directoryInfo.FullName,
             Name = directoryInfo.Name
         };

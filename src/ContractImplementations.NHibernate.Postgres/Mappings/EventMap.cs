@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using FluentNHibernate.Mapping;
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.UserTypes.NodaTime;
 using IOKode.OpinionatedFramework.Events;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.Mappings;
@@ -13,7 +14,7 @@ public class EventMap : ClassMap<Event>
         Schema("opinionated_framework");
         Table("events");
         Id<Guid>(column: "id").GeneratedBy.GuidComb();
-        Map(x => x.DispatchedAt).Column("dispatched_at").Nullable();
+        Map(x => x.DispatchedAt).Column("dispatched_at").Nullable().CustomType<InstantUserType>();
         Map(PayloadPropertyExpression()).Column("payload").Access.Using<EventPayloadAccessor>().CustomType<JsonBType>();
 
         DiscriminateSubClassesOnColumn("event_type");

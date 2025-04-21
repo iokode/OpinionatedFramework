@@ -7,6 +7,7 @@ using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.FileSystem;
 using IOKode.OpinionatedFramework.FileSystem.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
+using NodaTime;
 using Xunit;
 using DirectoryNotFoundException = System.IO.DirectoryNotFoundException;
 using File = System.IO.File;
@@ -187,7 +188,7 @@ public class LocalFileSystemTests : IDisposable
         Assert.Equal(filename, replacedFile.Name);
         Assert.Equal(fileInfo.FullName, replacedFile.FullName);
         Assert.Equal((ulong)20, replacedFile.Size);
-        Assert.Equal(fileInfo.CreationTime, replacedFile.CreationTime);
+        Assert.Equal(Instant.FromDateTimeUtc(fileInfo.CreationTimeUtc), replacedFile.CreationTime);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using NodaTime;
 
 namespace IOKode.OpinionatedFramework.FileSystem;
 
@@ -26,12 +27,12 @@ public abstract class File
     /// <summary>
     /// The point in time when the file was originally created.
     /// </summary>
-    public virtual DateTimeOffset CreationTime { get; init; }
+    public virtual Instant CreationTime { get; init; }
 
     /// <summary>
     /// The point in time when the file was last updated or modified.
     /// </summary>
-    public virtual DateTimeOffset UpdateTime { get; init; }
+    public virtual Instant UpdateTime { get; init; }
     
     /// <summary>
     /// The size of the file, in bytes.

@@ -1,4 +1,5 @@
 using System;
+using NodaTime;
 
 namespace IOKode.OpinionatedFramework.FileSystem;
 
@@ -24,10 +25,10 @@ public class Directory
     /// <summary>
     /// The point in time when the directory was originally created.
     /// </summary>
-    public virtual DateTimeOffset CreationTime { get; set; }
+    public virtual Instant CreationTime { get; set; }
 
     /// <summary>
     /// The point in time when the directory was last updated or modified.
     /// </summary>
-    public virtual DateTimeOffset UpdateTime { get; set; }
+    public virtual Instant UpdateTime { get; set; }
 }
