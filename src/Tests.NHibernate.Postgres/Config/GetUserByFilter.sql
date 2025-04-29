@@ -1,9 +1,10 @@
 -- @generate
+-- @using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres
 -- @parameter string? name
--- @parameter IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Address? address
+-- @parameter Address? address
 -- @result string id
 -- @result string name
--- @result IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Address address
+-- @result Address address
 
 SELECT *
 FROM users
