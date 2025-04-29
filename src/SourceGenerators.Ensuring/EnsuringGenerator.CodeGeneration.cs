@@ -53,8 +53,7 @@ internal partial class EnsuringGenerator
     /// <summary>
     /// Get the relevant information of each class for code generation.
     /// </summary>
-    private static IEnumerable<_Ensurer> _GetEnsurers(Compilation compilation, IEnumerable<ClassDeclarationSyntax> classes,
-        CancellationToken cancellationToken)
+    private static IEnumerable<_Ensurer> _GetEnsurers(Compilation compilation, IEnumerable<ClassDeclarationSyntax> classes, CancellationToken cancellationToken)
     {
         foreach (var classDeclarationSyntax in classes)
         {
@@ -64,9 +63,7 @@ internal partial class EnsuringGenerator
             var ensurerClassNamespace = SourceGenerationHelper.GetNamespace(classDeclarationSyntax);
 
             var semanticModel = compilation.GetSemanticModel(classDeclarationSyntax.SyntaxTree);
-            var methods = classDeclarationSyntax.Members
-                .OfType<MethodDeclarationSyntax>()
-                .Select(syntax => getEnsurerMethod(syntax, semanticModel))
+            var methods = _GetMethodsFromPartialClass(classDeclarationSyntax, semanticModel)
                 .Where(method => method is not null)
                 .ToArray();
 
@@ -78,39 +75,65 @@ internal partial class EnsuringGenerator
             };
             yield return ensurer;
         }
+    }
 
-        _EnsurerMethod getEnsurerMethod(MethodDeclarationSyntax methodDeclarationSyntax, SemanticModel semanticModel)
+    private static _EnsurerMethod? _GetEnsurerMethod(MethodDeclarationSyntax methodDeclarationSyntax, SemanticModel semanticModel)
+    {
+        var methodSymbol = (IMethodSymbol) semanticModel.GetDeclaredSymbol(methodDeclarationSyntax)!;
+        if (methodSymbol.DeclaredAccessibility != Accessibility.Public)
         {
-            var methodSymbol = (IMethodSymbol) semanticModel.GetDeclaredSymbol(methodDeclarationSyntax)!;
-            if (methodSymbol.DeclaredAccessibility != Accessibility.Public)
-            {
-                return null;
-            }
+            return null;
+        }
 
-            var boolTypeSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(bool).FullName!);
-            if (!SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType, boolTypeSymbol))
-            {
-                return null;
-            }
+        var boolTypeSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(bool).FullName!);
+        if (!SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType, boolTypeSymbol))
+        {
+            return null;
+        }
 
-            var methodName = methodDeclarationSyntax.Identifier.Text;
-            var docComment = SourceGenerationHelper.GetMethodDocComment(methodSymbol);
-            var methodParameters = methodDeclarationSyntax.ParameterList.Parameters
-                .Select(parameterSyntax => (IParameterSymbol) semanticModel.GetDeclaredSymbol(parameterSyntax))
-                .Where(parameterSymbol => parameterSymbol is not null)
-                .Select(parameterSymbol => new _EnsurerMethodParameter
+        var methodName = methodDeclarationSyntax.Identifier.Text;
+        var docComment = SourceGenerationHelper.GetMethodDocComment(methodSymbol);
+        var methodParameters = methodDeclarationSyntax.ParameterList.Parameters
+            .Select(parameterSyntax => (IParameterSymbol) semanticModel.GetDeclaredSymbol(parameterSyntax))
+            .Where(parameterSymbol => parameterSymbol is not null)
+            .Select(parameterSymbol => new _EnsurerMethodParameter
+            {
+                Name = parameterSymbol.Name,
+                Type = parameterSymbol.Type.ToString()
+            });
+
+        var method = new _EnsurerMethod
+        {
+            Name = methodName,
+            Parameters = methodParameters,
+            DocComment = docComment
+        };
+        return method;
+    }
+
+    private static IEnumerable<_EnsurerMethod> _GetMethodsFromPartialClass(ClassDeclarationSyntax classDeclarationSyntax, SemanticModel semanticModel)
+    {
+        var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
+        if (classSymbol is null)
+        {
+            yield break;
+        }
+
+        var partialParts = classSymbol.DeclaringSyntaxReferences
+            .Select(reference => reference.GetSyntax())
+            .OfType<ClassDeclarationSyntax>();
+
+        foreach (var part in partialParts)
+        {
+            foreach (var method in part.Members.OfType<MethodDeclarationSyntax>())
+            {
+                var partSemanticModel = semanticModel.Compilation.GetSemanticModel(part.SyntaxTree);
+                var ensurerMethod = _GetEnsurerMethod(method, partSemanticModel);
+                if (ensurerMethod != null)
                 {
-                    Name = parameterSymbol.Name,
-                    Type = parameterSymbol.Type.ToString()
-                });
-
-            var method = new _EnsurerMethod
-            {
-                Name = methodName,
-                Parameters = methodParameters,
-                DocComment = docComment
-            };
-            return method;
+                    yield return ensurerMethod;
+                }
+            }
         }
     }
 

@@ -37,9 +37,9 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgre
 ///   </description></item>
 /// </list>
 /// All null‑handling, deep‑copying, equality, and immutability semantics are
-/// inherited from <see cref="InmutableNativeValueUserType{TValue}"/>.
+/// inherited from <see cref="ImmutableNativeValueUserType{TValue}"/>.
 /// </remarks>
-public abstract class ValueObjectConverterUserType<TValueObject, TProvider> : InmutableNativeValueUserType<TValueObject> 
+public abstract class ValueObjectConverterUserType<TValueObject, TProvider> : ImmutableNativeValueUserType<TValueObject> 
 {
     public abstract TValueObject? FromProvider(TProvider provider);
     public abstract TProvider ToProvider(TValueObject valueObject);

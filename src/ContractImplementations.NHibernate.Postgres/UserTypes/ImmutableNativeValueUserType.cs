@@ -27,7 +27,7 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgre
 /// Sub‑classes only need to supply the concrete database type.
 /// <see cref="DataTypeName"/> (e.g. <c>core.customer_discriminator</c>).
 /// </remarks>
-public abstract class InmutableNativeValueUserType<TValue> : IUserType
+public abstract class ImmutableNativeValueUserType<TValue> : IUserType
 {
     public SqlType[] SqlTypes => [new (DbType.Object)];
     public Type ReturnedType => typeof(TValue);
