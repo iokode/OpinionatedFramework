@@ -33,12 +33,14 @@ public partial class QueryObjectsGenerator
         public bool IsSingleResult => Regex.IsMatch(SqlFile.Content, _QueryIsSingleResultRegex);
         public bool IsSingleOrDefaultResult => Regex.IsMatch(SqlFile.Content, _QueryIsSingleOrDefaultResultRegex);
 
+        public string[] Usings;
         public ParameterType[] QueryParameters;
         public ParameterType[] ResultParameters;
         public string QueryResultClassName => $"{ClassName}Result";
         private readonly string _QueryParameterRegex = @"--\s*@parameter\s+([\w.]+(?:\?)?)\s+(\w+)";
         private readonly string _QueryResultParameterRegex = @"--\s*@result\s+([\w.]+(?:\?)?)\s+(\w+)";
         private readonly string _QueryNamespaceParameterRegex = @"--\s*@namespace\s+([\w.]+)";
+        private readonly string _QueryUsingRegex = @"--\s*@using\s+([\w.]+)";
         private readonly string _QueryIsSingleResultRegex = @"--\s*@single(?!\w)";
         private readonly string _QueryIsSingleOrDefaultResultRegex = @"--\s*@single_or_default";
 
@@ -46,9 +48,11 @@ public partial class QueryObjectsGenerator
         {
             SqlFile = sqlFile;
             ConfigOptions = configOptions;
+            var queryUsingMatches = Regex.Matches(sqlFile.Content, _QueryUsingRegex);
             var queryParameterMatches = Regex.Matches(sqlFile.Content, _QueryParameterRegex);
             var queryResultParameterMatches = Regex.Matches(sqlFile.Content, _QueryResultParameterRegex);
 
+            Usings = queryUsingMatches.Cast<Match>().Select(match => match.Groups[1].Value).ToArray();
             QueryParameters = queryParameterMatches
                 .Cast<Match>()
                 .Select(match => new ParameterType
@@ -108,6 +112,9 @@ public partial class QueryObjectsGenerator
         using System.Threading.Tasks;
         using IOKode.OpinionatedFramework;
         using IOKode.OpinionatedFramework.Persistence.Queries;
+        {{~ for using in Usings ~}}
+        using {{ using }};
+        {{~ end ~}}
 
         namespace {{ Namespace }};
 
