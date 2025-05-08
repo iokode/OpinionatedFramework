@@ -1,12 +1,12 @@
 -- @generate
 -- @using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres
--- @parameter string? name
+-- @parameter string? user_name
 -- @parameter Address? address
 -- @result string id
--- @result string name
+-- @result string user_name
 -- @result Address address
 
-SELECT *
+SELECT id, name as user_name, address
 FROM users
 WHERE address = COALESCE(CAST(:address AS address_type), address)
-  AND name = COALESCE(:name, name);
+  AND name = COALESCE(:user_name, name);

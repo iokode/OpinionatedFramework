@@ -138,33 +138,13 @@ public partial class QueryObjectsGenerator
                 };
 
                 {{~ if IsSingleResult ~}}
-                var queryResult = await queryExecutor.QuerySingleAsync<_QueryResult>(Query, parameters, null, cancellationToken);
-                var result = _MapQueryResult(queryResult);
+                var queryResult = await queryExecutor.QuerySingleAsync<{{ QueryResultClassName }}>(Query, parameters, null, cancellationToken);
                 {{~ else if IsSingleOrDefaultResult ~}}
-                var queryResult = await queryExecutor.QuerySingleOrDefaultAsync<_QueryResult>(Query, parameters, null, cancellationToken);
-                var result = queryResult == null ? default : _MapQueryResult(queryResult);
+                var queryResult = await queryExecutor.QuerySingleOrDefaultAsync<{{ QueryResultClassName }}>(Query, parameters, null, cancellationToken);
                 {{~ else ~}}
-                var queryResult = await queryExecutor.QueryAsync<_QueryResult>(Query, parameters, null, cancellationToken);
-                var result = queryResult.Select(_MapQueryResult).ToArray();
+                var queryResult = await queryExecutor.QueryAsync<{{ QueryResultClassName }}>(Query, parameters, null, cancellationToken);
                 {{~ end ~}}
-                return result;
-            }
-
-            private static {{ QueryResultClassName }} _MapQueryResult(_QueryResult queryResult)
-            {
-                return new {{ QueryResultClassName }}
-                {
-                    {{~ for parameter in ResultParameters ~}}
-                    {{ parameter.PascalCaseName }} = queryResult.{{ parameter.Name }},
-                    {{~ end ~}}
-                };
-            }
-            
-            private class _QueryResult
-            {
-                {{~ for parameter in ResultParameters ~}}
-                public {{ parameter.Type }} {{ parameter.Name }} { get; set; }
-                {{~ end ~}}
+                return queryResult;
             }
         }
 
