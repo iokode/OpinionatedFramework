@@ -69,7 +69,7 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         Assert.Equal(4, collectionWithoutFilter.Count);
 
         var singleResultByAddress = Assert.Single(collectionByAddress);
-        Assert.Equal("Javier", singleResultByAddress.Name);
+        Assert.Equal("Javier", singleResultByAddress.UserName);
 
         Assert.Equal(2, collectionByName.Count);
         Assert.Collection(collectionByName,
@@ -77,7 +77,7 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
             result => Assert.Equal("EST", result.Address.CountryCode.IsoCode));
 
         var singleResultByNameAndAddress = Assert.Single(collectionNameAndAddress);
-        Assert.Equal("Ivan", singleResultByNameAndAddress.Name);
+        Assert.Equal("Ivan", singleResultByNameAndAddress.UserName);
         Assert.Equal("USA", singleResultByNameAndAddress.Address.CountryCode.IsoCode);
 
         // Post Assert
