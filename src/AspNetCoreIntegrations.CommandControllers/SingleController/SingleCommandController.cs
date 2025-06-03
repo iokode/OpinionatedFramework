@@ -2,42 +2,28 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Commands;
 using IOKode.OpinionatedFramework.Commands.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 
 namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.CommandControllers.SingleController;
 
 public class SingleCommandController : ControllerBase
 {
-    // [CommandTypeConstraint(IsGeneric = false)]
-    // public async Task<IActionResult> InvokeCommand(Command command)
-    // {
-    //     await command.InvokeAsync();
-    //     return Ok();
-    // }
-    //
-    // [CommandTypeConstraint(IsGeneric = true)]
-    // [ActionName("InvokeCommand")]
-    // public async Task<IActionResult> InvokeGenericCommand<T>(Command<T> command)
-    // {
-    //     var commandResult = await command.InvokeAsync();
-    //     return Ok(commandResult);
-    // }
-
-    public async Task<IResult> InvokeCommand()
+    public async Task<IResult> InvokeCommandAsync()
     {
         var controllerStrategy = Locator.Resolve<SingleControllerStrategy>();
         if (!Request.Method.Equals(controllerStrategy.HttpMethod, StringComparison.InvariantCultureIgnoreCase))
         {
             return Results.Problem
             (
-                title: "Method not allowed",
-                detail: "Invalid HTTP method",
+                title: "Method not allowed.",
+                detail: "Invalid HTTP method.",
                 statusCode: StatusCodes.Status405MethodNotAllowed
             );
         }
@@ -57,12 +43,22 @@ public class SingleCommandController : ControllerBase
         try
         {
             var commandInstance = await CreateCommandInstance(commandType!, Request.Body);
-            return await InvokeCommand((dynamic) commandInstance);
-            // return commandInstance switch
-            // {
-            //     Command command => await InvokeCommand(command),
-            //     var command when command.GetType().IsAssignableToOpenGeneric(typeof(Command<>)) => await InvokeCommand((dynamic) command),
-            // };
+
+            if (commandType!.IsAssignableTo(typeof(Command)))
+            {
+                return await InvokeCommandAsync((Command)commandInstance);
+            }
+
+            var executeMethod = commandInstance.GetType().GetMethod("ExecuteAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+            var returnType = executeMethod!.ReturnType;
+
+            var resultType = returnType.GetGenericArguments()[0];
+            var method = GetType()
+                .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+                .FirstOrDefault(method => method is {Name: nameof(InvokeCommandAsync), IsGenericMethodDefinition: true})?
+                .MakeGenericMethod(resultType);
+
+            return await (Task<IResult>) method!.Invoke(this, [commandInstance])!;
         }
         catch (JsonException ex)
         {
@@ -78,13 +74,13 @@ public class SingleCommandController : ControllerBase
         }
     }
     
-    private async Task<IResult> InvokeCommand(Command command)
+    private async Task<IResult> InvokeCommandAsync(Command command)
     {
         await command.InvokeAsync();
         return Results.Ok();
     }
 
-    private async Task<IResult> InvokeCommand<T>(Command<T> command)
+    private async Task<IResult> InvokeCommandAsync<T>(Command<T> command)
     {
         var commandResult = await command.InvokeAsync();
         return Results.Ok(commandResult);
@@ -95,8 +91,14 @@ public class SingleCommandController : ControllerBase
         using var reader = new StreamReader(jsonStream);
         var jsonString = await reader.ReadToEndAsync();
 
+        var serializerOptions = new JsonSerializerOptions();
+        foreach (var converterType in JsonConvertersMapper.Converters)
+        {
+            var converter = (JsonConverter) Activator.CreateInstance(converterType)!;
+            serializerOptions.Converters.Add(converter);
+        }
         var dictionary = (!string.IsNullOrWhiteSpace(jsonString)
-            ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(jsonString)
+            ? JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(jsonString, serializerOptions)
             : null) ?? new Dictionary<string, JsonElement>();
 
         var constructor = commandType.GetConstructors().FirstOrDefault();
@@ -126,63 +128,9 @@ public class SingleCommandController : ControllerBase
                 throw new InvalidOperationException($"Missing parameter '{paramName}' in JSON.");
             }
 
-            values[i] = JsonSerializer.Deserialize(jsonElement.GetRawText(), paramInfo.ParameterType);
+            values[i] = JsonSerializer.Deserialize(jsonElement.GetRawText(), paramInfo.ParameterType, serializerOptions);
         }
 
         return constructor.Invoke(values);
     }
 }
-
-public class HttpMethodWithNotAllowedConstraint : IRouteConstraint
-{
-    private readonly string[] _allowedMethods;
-
-    public HttpMethodWithNotAllowedConstraint(params string[] allowedMethods)
-    {
-        _allowedMethods = allowedMethods ?? throw new ArgumentNullException(nameof(allowedMethods));
-    }
-
-    public bool Match(HttpContext? httpContext, IRouter? route, string routeKey, 
-        RouteValueDictionary values, RouteDirection routeDirection)
-    {
-        if (httpContext == null || routeDirection == RouteDirection.UrlGeneration)
-            return true;
-
-        var method = httpContext.Request.Method;
-        var isMethodAllowed = _allowedMethods.Contains(method, StringComparer.OrdinalIgnoreCase);
-
-        if (!isMethodAllowed)
-        {
-            // Establecer código de estado y header Allow
-            httpContext.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
-            httpContext.Response.Headers.Allow = string.Join(", ", _allowedMethods);
-            
-            // Opcional: escribir mensaje de error
-            // WriteMethodNotAllowedResponse(httpContext, method);
-            
-            return false;
-        }
-
-        return true;
-    }
-
-    private static void WriteMethodNotAllowedResponse(HttpContext context, string attemptedMethod)
-    {
-        context.Response.ContentType = "application/json";
-        
-        var errorResponse = new
-        {
-            error = "Method Not Allowed",
-            message = $"The HTTP method '{attemptedMethod}' is not allowed for this endpoint",
-            allowedMethods = string.Join(", ", ((HttpMethodWithNotAllowedConstraint)context.Items["constraint"]!)._allowedMethods)
-        };
-
-        // Escribir respuesta de forma asíncrona
-        _ = Task.Run(async () =>
-        {
-            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResponse));
-        });
-    }
-}
-
-

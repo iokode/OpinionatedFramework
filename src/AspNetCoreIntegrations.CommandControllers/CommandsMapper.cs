@@ -17,7 +17,7 @@ internal static class CommandsMapper
         commands[commandName] = commandType;
     }
 
-    public static void RegisterCommandsFromAssembly(Assembly assembly)
+    public static void RegisterCommandsFromAssembly(Assembly assembly, Func<Type, string>? commandNameProvider = null)
     {
         ArgumentNullException.ThrowIfNull(assembly);
 
@@ -27,16 +27,16 @@ internal static class CommandsMapper
 
         foreach (var commandType in commandTypes)
         {
-            var commandName = commandType.Name;
-            RegisterCommand(commandName, commandType);
+            var commandName = commandNameProvider?.Invoke(commandType) ?? commandType.FullName;
+            RegisterCommand(commandName!, commandType);
         }
     }
-    
-    public static void RegisterCommandsFromAssemblies(ICollection<Assembly> assemblies)
+
+    public static void RegisterCommandsFromAssemblies(ICollection<Assembly> assemblies, Func<Type, string>? commandNameProvider = null)
     {
         foreach (var assembly in assemblies)
         {
-            RegisterCommandsFromAssembly(assembly);
+            RegisterCommandsFromAssembly(assembly, commandNameProvider);
         }
     }
 }

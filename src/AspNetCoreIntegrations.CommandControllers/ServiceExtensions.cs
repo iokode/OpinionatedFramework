@@ -8,35 +8,22 @@ namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.CommandControllers;
 
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddCommandControllers(this IServiceCollection services, ControllersStrategy? strategy = null)
+    public static IServiceCollection AddCommandControllers(this IServiceCollection services, IControllersStrategy? strategy = null)
     {
         strategy ??= new SingleControllerStrategy();
+        strategy.ConfigureServices(services);
+        return services;       
+    }
 
-        switch (strategy)
-        {
-            case SingleControllerStrategy singleControllerStrategy:
-                services.AddSingleton(singleControllerStrategy);
-                ConfigSingleControllerStrategy(services);
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null);
-                break;
-        }
-
+    public static IServiceCollection ScanForControllersCommands(this IServiceCollection services, ICollection<Assembly> assemblies, Func<Type, string>? commandNameProvider = null)
+    {
+        CommandsMapper.RegisterCommandsFromAssemblies(assemblies, commandNameProvider);
         return services;
     }
 
-    public static IServiceCollection ScanForControllersCommands(this IServiceCollection services, ICollection<Assembly> assemblies)
+    public static IServiceCollection ScanForControllersJsonConverters(this IServiceCollection services, ICollection<Assembly> assemblies)
     {
-        CommandsMapper.RegisterCommandsFromAssemblies(assemblies);
+        JsonConvertersMapper.RegisterCommandsFromAssemblies(assemblies);
         return services;
-    }
-
-    private static void ConfigSingleControllerStrategy(IServiceCollection services)
-    {
-        services
-            .AddControllers()
-            .AddApplicationPart(typeof(SingleCommandController).Assembly);
     }
 }

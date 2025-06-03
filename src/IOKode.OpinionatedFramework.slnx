@@ -1,5 +1,7 @@
 <Solution>
-  <Folder Name="/AspNetCoreIntegrations/" />
+  <Folder Name="/AspNetCoreIntegrations/">
+    <Project Path="AspNetCoreIntegrations.CommandControllers\AspNetCoreIntegrations.CommandControllers.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/ContractsImplementations/">
     <Project Path="ContractImplementations.Aes256GcmModeEncrypter/ContractImplementations.Aes256GcmModeEncrypter.csproj" />
     <Project Path="ContractImplementations.Bcrypt/ContractImplementations.Bcrypt.csproj" />
@@ -25,6 +27,7 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests.Aes256GcmModeEncrypter/Tests.Aes256GcmModeEncrypter.csproj" />
+    <Project Path="Tests.AspNetCoreCommandControllers\Tests.AspNetCoreCommandControllers.csproj" Type="Classic C#" />
     <Project Path="Tests.CommandExecutor/Tests.CommandExecutor.csproj" />
     <Project Path="Tests.Ensuring/Tests.Ensuring.csproj" />
     <Project Path="Tests.Events/Tests.Events.csproj" />

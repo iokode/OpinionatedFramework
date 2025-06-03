@@ -23,6 +23,7 @@ public class CommandControllersFixture : IDisposable
         Container.Services.AddDefaultCommandExecutor(_ => {});
         Container.Services.AddCommandControllers();
         Container.Services.ScanForControllersCommands([typeof(TestCommand).Assembly]);
+        Container.Services.ScanForControllersJsonConverters([typeof(TestCommand).Assembly]);
         
         var webHostBuilder = new WebHostBuilder()
             .ConfigureServices(services => services.AddCommandControllers())
