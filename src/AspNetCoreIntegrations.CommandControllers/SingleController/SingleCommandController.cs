@@ -32,12 +32,22 @@ public class SingleCommandController : ControllerBase
         var isARegisteredCommand = CommandsMapper.Commands.TryGetValue((string?) commandName ?? string.Empty, out var commandType);
         if (!hasCommandHeader)
         {
-            return Results.BadRequest(new {error = "Missing required X-Command header or invalid command type"});
+            return Results.Problem
+            (
+                title: "Bad request.",
+                detail: "Missing required X-Command header or invalid command type.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
         }
 
         if (!isARegisteredCommand)
         {
-            return Results.BadRequest(new {error = "Invalid command type"});
+            return Results.Problem
+            (
+                title: "Bad request.",
+                detail: "Invalid command type.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
         }
 
         try
@@ -62,15 +72,30 @@ public class SingleCommandController : ControllerBase
         }
         catch (JsonException ex)
         {
-            return Results.BadRequest(new {error = "Invalid JSON format", details = ex.Message});
+            return Results.Problem
+            (
+                title: "Bad request.",
+                detail: "Invalid JSON format.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
         }
         catch (InvalidOperationException ex)
         {
-            return Results.BadRequest(new {error = "Invalid command data", details = ex.Message});
+            return Results.Problem
+            (
+                title: "Bad request.",
+                detail: "Invalid command data.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
         }
         catch (Exception ex)
         {
-            return Results.BadRequest(new {error = "Failed to create command instance", details = ex.Message});
+            return Results.Problem
+            (
+                title: "Bad request.",
+                detail: "Failed to create command instance.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
         }
     }
     
@@ -104,7 +129,7 @@ public class SingleCommandController : ControllerBase
         var constructor = commandType.GetConstructors().FirstOrDefault();
         if (constructor == null)
         {
-            throw new InvalidOperationException($"No constructor found for {commandType.FullName}");
+            throw new ArgumentException($"No constructor found for {commandType.FullName}.");
         }
 
         var parameters = constructor.GetParameters();
@@ -120,12 +145,12 @@ public class SingleCommandController : ControllerBase
             var paramName = paramInfo.Name;
             if (paramName == null)
             {
-                throw new InvalidOperationException($"No parameter name found in {commandType.FullName}");
+                throw new ArgumentException($"No parameter name found in {commandType.FullName}.");
             }
 
             if (!dictionary.TryGetValue(paramName, out var jsonElement))
             {
-                throw new InvalidOperationException($"Missing parameter '{paramName}' in JSON.");
+                throw new ArgumentException($"Missing parameter '{paramName}' in JSON.");
             }
 
             values[i] = JsonSerializer.Deserialize(jsonElement.GetRawText(), paramInfo.ParameterType, serializerOptions);
