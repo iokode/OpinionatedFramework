@@ -1,6 +1,6 @@
 using System;
 using System.Net.Http;
-using IOKode.OpinionatedFramework.AspNetCoreIntegrations.CommandControllers;
+using IOKode.OpinionatedFramework.AspNetCoreIntegrations.ControllerGenerators;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 using IOKode.OpinionatedFramework.Logging;
@@ -10,14 +10,14 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
-namespace IOKode.OpinionatedFramework.Tests.AspNetCoreCommandControllers;
+namespace IOKode.OpinionatedFramework.Tests.AspNetCoreIntegrations.ControllerGenerator;
 
-public class CommandControllersFixture : IDisposable
+public class ControllerGeneratorFixture : IDisposable
 {
     public HttpClient HttpClient { get; }
     public Func<ITestOutputHelper> TestOutputHelperFactory { get; set; } = null!;
 
-    public CommandControllersFixture()
+    public ControllerGeneratorFixture()
     {
         Container.Services.AddTransient<ILogging>(_ => new XUnitLogging(TestOutputHelperFactory()));
         Container.Services.AddDefaultCommandExecutor(_ => {});
@@ -27,7 +27,7 @@ public class CommandControllersFixture : IDisposable
         
         var webHostBuilder = new WebHostBuilder()
             .ConfigureServices(services => services.AddCommandControllers())
-            .Configure(cfg => cfg.UseCommandControllers());
+            .Configure(cfg => cfg.UseGeneratedControllersForCommands());
         var server = new TestServer(webHostBuilder);
         HttpClient = server.CreateClient();
         Container.Initialize();

@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace IOKode.OpinionatedFramework.Tests.AspNetCoreCommandControllers;
+namespace IOKode.OpinionatedFramework.Tests.AspNetCoreIntegrations.ControllerGenerator;
 
-public class SingleControllerTests : IClassFixture<CommandControllersFixture>
+public class SingleControllerTests : IClassFixture<ControllerGeneratorFixture>
 {
     private readonly HttpClient httpClient;
 
-    public SingleControllerTests(CommandControllersFixture fixture, ITestOutputHelper output)
+    public SingleControllerTests(ControllerGeneratorFixture fixture, ITestOutputHelper output)
     {
         fixture.TestOutputHelperFactory = () => output;
         httpClient = fixture.HttpClient;

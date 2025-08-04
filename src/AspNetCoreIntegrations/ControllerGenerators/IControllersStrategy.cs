@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.CommandControllers;
+namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.ControllerGenerators;
 
 public interface IControllersStrategy
 {

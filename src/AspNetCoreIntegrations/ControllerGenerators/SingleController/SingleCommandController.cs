@@ -11,7 +11,7 @@ using IOKode.OpinionatedFramework.Commands.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.CommandControllers.SingleController;
+namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.ControllerGenerators.SingleController;
 
 public class SingleCommandController : ControllerBase
 {

@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Commands;
 
-namespace IOKode.OpinionatedFramework.Tests.AspNetCoreCommandControllers;
+namespace IOKode.OpinionatedFramework.Tests.AspNetCoreIntegrations.ControllerGenerator;
 
 internal class TestCommand : Command
 {

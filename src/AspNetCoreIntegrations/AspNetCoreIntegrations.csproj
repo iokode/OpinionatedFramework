@@ -7,6 +7,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
       <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>
 

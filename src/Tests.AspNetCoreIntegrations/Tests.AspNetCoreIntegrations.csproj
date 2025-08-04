@@ -3,7 +3,7 @@
     <Import Project="../MSBuild/Test.props"/>
 
     <ItemGroup Label="Project referencies">
-      <ProjectReference Include="..\AspNetCoreIntegrations.CommandControllers\AspNetCoreIntegrations.CommandControllers.csproj" />
+      <ProjectReference Include="..\AspNetCoreIntegrations\AspNetCoreIntegrations.csproj" />
       <ProjectReference Include="..\ContractImplementations.CommandExecutor\ContractImplementations.CommandExecutor.csproj" />
     </ItemGroup>
 

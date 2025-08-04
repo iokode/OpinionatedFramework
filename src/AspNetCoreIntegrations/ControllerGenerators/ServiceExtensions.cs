@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using IOKode.OpinionatedFramework.AspNetCoreIntegrations.CommandControllers.SingleController;
+using IOKode.OpinionatedFramework.AspNetCoreIntegrations.ControllerGenerators.SingleController;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.CommandControllers;
+namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.ControllerGenerators;
 
 public static class ServiceExtensions
 {

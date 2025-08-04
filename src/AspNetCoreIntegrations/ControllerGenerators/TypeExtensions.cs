@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.CommandControllers;
+namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.ControllerGenerators;
 
 internal static class TypeExtensions
 {

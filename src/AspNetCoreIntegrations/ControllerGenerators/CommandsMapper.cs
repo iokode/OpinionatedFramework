@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using IOKode.OpinionatedFramework.Commands;
 
-namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.CommandControllers;
+namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.ControllerGenerators;
 
 internal static class CommandsMapper
 {
