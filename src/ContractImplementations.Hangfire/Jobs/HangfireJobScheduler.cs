@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
 using Hangfire;
+using Hangfire.Storage;
 using IOKode.OpinionatedFramework.Bootstrapping;
-using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Jobs;
 using Job = IOKode.OpinionatedFramework.Jobs.Job;
 
@@ -12,32 +16,32 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
 
 public class HangfireJobScheduler : IJobScheduler
 {
-    public Task<ScheduledJob<TJob>> ScheduleAsync<TJob>(CronExpression interval, JobCreator<TJob>? creator, CancellationToken cancellationToken = default) where TJob : Job
+    public Task<Guid> ScheduleAsync<TJob>(CronExpression interval, JobCreator<TJob> creator, CancellationToken cancellationToken = default) where TJob : Job
     {
-        var scheduledJob = new HangfireMutableScheduledJob<TJob>(interval, creator);
+        // var scheduledJob = new HangfireMutableScheduledJob<TJob>(interval, creator);
+        var scheduledJobId = Guid.NewGuid();
 
         // None cancellation token will be replaced internally.
         // https://docs.hangfire.io/en/latest/background-methods/using-cancellation-tokens.html
-        RecurringJob.AddOrUpdate(scheduledJob.Identifier.ToString(), () => InvokeJobAsync(creator.GetJobName(), creator, CancellationToken.None), interval.ToString);
-        return Task.FromResult<ScheduledJob<TJob>>(scheduledJob);
+        RecurringJob.AddOrUpdate(scheduledJobId.ToString(), () => InvokeJobAsync(creator, CancellationToken.None), interval.ToString);
+        return Task.FromResult(scheduledJobId);
     }
 
-    public Task RescheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CronExpression interval, CancellationToken cancellationToken = default) where TJob : Job
+    public Task RescheduleAsync(Guid scheduledJobId, CronExpression interval, CancellationToken cancellationToken = default)
     {
-        Ensure.Type.IsAssignableTo(scheduledJob.GetType(), typeof(MutableScheduledJob<TJob>))
-            .ElseThrowsIllegalArgument($"Type must be assignable to {nameof(MutableScheduledJob<TJob>)} type.", nameof(scheduledJob));
+        var detailsJob = JobStorage.Current.GetConnection().GetRecurringJobs([scheduledJobId.ToString()]).Single().Job;
+        var jobExpression = ReconstructExpressionFromJobData(detailsJob.Method, detailsJob.Args);
 
         // None cancellation token will be replaced internally.
         // https://docs.hangfire.io/en/latest/background-methods/using-cancellation-tokens.html
-        RecurringJob.AddOrUpdate(scheduledJob.Identifier.ToString(), () => InvokeJobAsync(scheduledJob.Creator.GetJobName(), scheduledJob.Creator, CancellationToken.None), interval.ToString);
-        ((MutableScheduledJob<TJob>) scheduledJob).ChangeInterval(interval);
+        RecurringJob.AddOrUpdate(scheduledJobId.ToString(), jobExpression, interval.ToString);
 
         return Task.CompletedTask;
     }
 
-    public Task UnscheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CancellationToken cancellationToken = default) where TJob : Job
+    public Task UnscheduleAsync(Guid scheduledJobId, CancellationToken cancellationToken = default)
     {
-        RecurringJob.RemoveIfExists(scheduledJob.Identifier.ToString());
+        RecurringJob.RemoveIfExists(scheduledJobId.ToString());
         return Task.CompletedTask;
     }
 
@@ -52,7 +56,7 @@ public class HangfireJobScheduler : IJobScheduler
     /// are publicly accessible to resolve them when deserializing the previously generated expression.
     /// </remarks>
     [JobDisplayName("{0}")]
-    public static async Task InvokeJobAsync<TJob>(string jobName, JobCreator<TJob> creator, CancellationToken cancellationToken) where TJob : Job
+    public static async Task InvokeJobAsync<TJob>(JobCreator<TJob> creator, CancellationToken cancellationToken) where TJob : Job
     {
         try
         {
@@ -73,5 +77,16 @@ public class HangfireJobScheduler : IJobScheduler
         {
             Container.Advanced.DisposeScope();
         }
+    }
+
+    private static Expression<Action> ReconstructExpressionFromJobData(MethodInfo method, IReadOnlyCollection<object> arguments)
+    {
+        var parameterExpressions = method.GetParameters()
+            .Zip(arguments, (param, arg) => Expression.Constant(arg, param.ParameterType));
+
+        var methodCallExpression = Expression.Call(method, parameterExpressions);
+        var lambdaExpression = Expression.Lambda<Action>(methodCallExpression);
+
+        return lambdaExpression;
     }
 }

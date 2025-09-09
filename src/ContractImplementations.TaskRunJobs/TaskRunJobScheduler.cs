@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
@@ -15,25 +14,56 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
 public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging logging) : IJobScheduler
 {
-    private readonly List<object> registeredJobs = new();
+    private readonly Dictionary<Guid, TaskRunScheduledJob> registeredJobs = new();
 
-    public Task<ScheduledJob<TJob>> ScheduleAsync<TJob>(CronExpression interval, JobCreator<TJob> creator, CancellationToken cancellationToken = default) where TJob : Job
+    public Task<Guid> ScheduleAsync<TJob>(CronExpression interval, JobCreator<TJob> creator, CancellationToken cancellationToken = default) where TJob : Job
     {
-        var scheduledJob = new TaskRunMutableScheduledJob<TJob>(interval, creator);
-        this.registeredJobs.Add(scheduledJob);
+        var scheduledJobId = Guid.NewGuid();
+        var scheduledJob = new TaskRunScheduledJob
+        {
+            Interval = interval
+        };
+        this.registeredJobs.Add(scheduledJobId, scheduledJob);
+        RunJobAsync(creator, scheduledJob, cancellationToken);
 
-        Task.Run(async () =>
+        return Task.FromResult(scheduledJobId);
+    }
+
+    public async Task RescheduleAsync(Guid scheduledJobId, CronExpression interval, CancellationToken cancellationToken = default)
+    {
+        this.registeredJobs.TryGetValue(scheduledJobId, out var scheduledJob);
+        Ensure.Object.NotNull(scheduledJob)
+            .ElseThrowsIllegalArgument($"The id '{scheduledJobId}' was not found on the schedule jobs.", nameof(scheduledJobId));
+
+        scheduledJob!.Interval = interval;
+        await scheduledJob.CancelDelayTokenAsync();
+    }
+
+    public async Task UnscheduleAsync(Guid scheduledJobId, CancellationToken cancellationToken = default)
+    {
+        this.registeredJobs.TryGetValue(scheduledJobId, out var scheduledJob);
+        Ensure.Object.NotNull(scheduledJob)
+            .ElseThrowsIllegalArgument($"The id '{scheduledJobId}' was not found on the schedule jobs.", nameof(scheduledJobId));
+
+        scheduledJob!.CancelLoop();
+        await scheduledJob.CancelDelayTokenAsync();
+        this.registeredJobs.Remove(scheduledJobId);
+    }
+
+    private Task RunJobAsync<TJob>(JobCreator<TJob> creator, TaskRunScheduledJob scheduledJob, CancellationToken cancellationToken) where TJob : Job
+    {
+        return Task.Run(async () =>
         {
             while (!scheduledJob.IsFinalized)
             {
                 var now = DateTime.UtcNow;
-                var nextOccurrence = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastInvocation.ToDateTimeUtc());
+                var nextOccurrence = scheduledJob.NextOccurrence;
 
                 if (nextOccurrence == null)
                 {
                     throw new FormatException("The cron expression next occurrence is not found.");
                 }
-                
+
                 if (now >= nextOccurrence)
                 {
                     try
@@ -48,40 +78,35 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
                     scheduledJob.LastInvocation = Instant.FromDateTimeUtc(now);
                 }
 
-                var delay = scheduledJob.Interval.GetNextOccurrence(scheduledJob.LastInvocation.ToDateTimeUtc())! - now;
-                await Task.Delay(delay.Value);
+                var delay = scheduledJob.NextOccurrence! - now;
+
+                try
+                {
+                    await Task.Delay(delay.Value, scheduledJob.DelayCancellationTokenSource.Token);
+                } catch (TaskCanceledException) { }
             }
         }, cancellationToken);
-
-        return Task.FromResult((ScheduledJob<TJob>) scheduledJob);
     }
-    
-    public Task RescheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CronExpression interval, CancellationToken cancellationToken = default) where TJob : Job
+}
+
+internal class TaskRunScheduledJob
+{
+    public required CronExpression Interval { get; set; }
+    public Instant LastInvocation { get; set; } = Instant.FromDateTimeUtc(DateTime.UtcNow);
+    public CancellationTokenSource DelayCancellationTokenSource { get; } = new();
+    public bool IsFinalized { get; private set; }
+
+    public DateTime? NextOccurrence => Interval.GetNextOccurrence(LastInvocation.ToDateTimeUtc());
+
+    public void CancelLoop()
     {
-        Ensure.Type.IsAssignableTo(scheduledJob.GetType(), typeof(MutableScheduledJob<TJob>))
-            .ElseThrowsIllegalArgument($"Type must be assignable to {nameof(MutableScheduledJob<TJob>)} type.", nameof(scheduledJob));
-
-        var mutableScheduledJob = this.registeredJobs.Cast<TaskRunMutableScheduledJob<TJob>>().FirstOrDefault(job => job.Identifier == scheduledJob.Identifier);
-        Ensure.Object.NotNull(mutableScheduledJob)
-            .ElseThrowsIllegalArgument($"The {nameof(ScheduledJob<TJob>.Identifier)} value was not found on the schedule jobs.", nameof(scheduledJob));
-
-        mutableScheduledJob!.ChangeInterval(interval);
-        ((MutableScheduledJob<TJob>) scheduledJob).ChangeInterval(interval);
-
-        return Task.CompletedTask;
+        IsFinalized = true;
     }
 
-    public Task UnscheduleAsync<TJob>(ScheduledJob<TJob> scheduledJob, CancellationToken cancellationToken = default) where TJob : Job
+    public async Task CancelDelayTokenAsync()
     {
-        var identifier = scheduledJob.Identifier;
-
-        var mutableScheduledJob = this.registeredJobs.Cast<TaskRunMutableScheduledJob<TJob>>().FirstOrDefault(job => job.Identifier == identifier);
-        Ensure.Object.NotNull(mutableScheduledJob)
-            .ElseThrowsIllegalArgument($"The {nameof(ScheduledJob<TJob>.Identifier)} value was not found on the schedule jobs.", nameof(scheduledJob));
-
-        mutableScheduledJob!.CancelLoop();
-        this.registeredJobs.Remove(mutableScheduledJob);
-
-        return Task.CompletedTask;
+        LastInvocation = Instant.FromDateTimeUtc(DateTime.UtcNow);
+        await DelayCancellationTokenSource.CancelAsync();
+        DelayCancellationTokenSource.TryReset();
     }
 }

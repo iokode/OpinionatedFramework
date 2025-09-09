@@ -21,7 +21,7 @@ internal static class RetryHelper
             {
                 attempt++;
 
-                var context = new JobContext()
+                var context = new JobContext
                 {
                     CancellationToken = CancellationToken.None,
                     Name = creator.GetJobName(),
