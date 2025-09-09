@@ -74,9 +74,11 @@ public class JobsTest : IDisposable
 
         // Act
         var scheduledJob = await jobScheduler.ScheduleAsync(CronExpression.Parse("0/2 * * * * *", CronFormat.IncludeSeconds), new RescheduleJobCreator());
-        await Task.Delay(6000);
+        await Task.Delay(7500);
+        await jobScheduler.RescheduleAsync(scheduledJob, CronExpression.Parse("0/3 * * * * *", CronFormat.IncludeSeconds), CancellationToken.None);
+        await Task.Delay(4500);
         await jobScheduler.RescheduleAsync(scheduledJob, CronExpression.Parse("0/4 * * * * *", CronFormat.IncludeSeconds), CancellationToken.None);
-        await Task.Delay(4000);
+        await Task.Delay(5500);
 
         // Assert
         Assert.Equal(4, RescheduleJob.Counter);
