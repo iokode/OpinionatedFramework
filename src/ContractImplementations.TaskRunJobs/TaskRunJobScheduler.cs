@@ -79,7 +79,11 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
                 }
 
                 var delay = scheduledJob.NextOccurrence! - now;
-                await Task.Delay(delay.Value, scheduledJob.DelayCancellationTokenSource.Token);
+
+                try
+                {
+                    await Task.Delay(delay.Value, scheduledJob.DelayCancellationTokenSource.Token);
+                } catch (TaskCanceledException) { }
             }
         }, cancellationToken);
     }
@@ -89,8 +93,8 @@ internal class TaskRunScheduledJob
 {
     public required CronExpression Interval { get; set; }
     public Instant LastInvocation { get; set; } = Instant.FromDateTimeUtc(DateTime.UtcNow);
+    public CancellationTokenSource DelayCancellationTokenSource { get; } = new();
     public bool IsFinalized { get; private set; }
-    public CancellationTokenSource DelayCancellationTokenSource { get; private set; } = new();
 
     public DateTime? NextOccurrence => Interval.GetNextOccurrence(LastInvocation.ToDateTimeUtc())!.Value;
 
@@ -103,7 +107,6 @@ internal class TaskRunScheduledJob
     {
         LastInvocation = Instant.FromDateTimeUtc(DateTime.UtcNow);
         await DelayCancellationTokenSource.CancelAsync();
-        DelayCancellationTokenSource.Dispose();
-        DelayCancellationTokenSource = new CancellationTokenSource();
+        DelayCancellationTokenSource.TryReset();
     }
 }
