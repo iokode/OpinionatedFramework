@@ -21,6 +21,16 @@ public interface IUnitOfWork : IAsyncDisposable
     
     public Task AddAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity;
 
+    public Task DeleteAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity;
+    
+    public async Task DeleteAsync<TEntity, TId>(TId entityId, CancellationToken cancellationToken = default)
+        where TEntity : Entity
+        where TId : notnull
+    {
+        var entity = await GetEntitySet<TEntity>().GetByIdAsync(entityId, cancellationToken);
+        await DeleteAsync(entity, cancellationToken);
+    }
+
     public Task<bool> IsTrackedAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity;
     
     public Task<TId?> GetEntityIdAsync<TEntity, TId>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity;
