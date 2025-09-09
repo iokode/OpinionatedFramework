@@ -82,6 +82,13 @@ public class UnitOfWork : IUnitOfWork
         await this.session.PersistAsync(entity, cancellationToken);
     }
 
+    public async Task DeleteAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
+        where TEntity : Entity
+    {
+        ThrowsIfRolledBack();
+        await this.session.DeleteAsync(entity, cancellationToken);
+    }
+
     public Task<bool> IsTrackedAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity
     {
         ThrowsIfRolledBack();
