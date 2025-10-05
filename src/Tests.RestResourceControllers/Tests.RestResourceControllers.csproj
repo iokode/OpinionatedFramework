@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <PropertyGroup>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CommandsDllAssemblies>IOKode.OpinionatedFramework.Tests.ResourceCommands</CommandsDllAssemblies>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include="CommandsDllAssemblies" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ContractImplementations.CommandExecutor\ContractImplementations.CommandExecutor.csproj" />
+      <ProjectReference Include="..\Tests.ResourceCommands\Tests.ResourceCommands.csproj" />
+    </ItemGroup>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\SourceGenerators.RestResourceControllers\SourceGenerators.RestResourceControllers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.16" />
+        <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.16" />
+    </ItemGroup>
+
+</Project>
