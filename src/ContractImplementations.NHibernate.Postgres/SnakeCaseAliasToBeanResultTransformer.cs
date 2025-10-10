@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Reflection;
-using IOKode.OpinionatedFramework.Utilities;
+using Humanizer;
 using NHibernate.Transform;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
@@ -19,7 +19,7 @@ public class SnakeCaseAliasToBeanResultTransformer<T> : IResultTransformer
         for (int i = 0; i < aliases.Length; i++)
         {
             string alias = aliases[i];
-            string propertyName = StringUtility.ToPascalCase(alias);
+            string propertyName = alias.Pascalize();
 
             var property = typeof(T).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
             if (property != null && property.CanWrite)
