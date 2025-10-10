@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Commands;
 using IOKode.OpinionatedFramework.Resources.Attributes;
 
-namespace IOKode.OpinionatedFramework.Tests.ResourceCommands;
+namespace IOKode.OpinionatedFramework.Tests.Resources;
 
 [Create("user")]
 public class CreateUserCommand(CreateUserInput input) : Command<CreateUserOutput>

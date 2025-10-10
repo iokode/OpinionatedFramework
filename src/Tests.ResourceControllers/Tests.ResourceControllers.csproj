@@ -4,21 +4,21 @@
     <Import Project="../MSBuild/Test.props"/>
 
     <PropertyGroup>
-        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-        <CommandsDllAssemblies>IOKode.OpinionatedFramework.Tests.ResourceCommands</CommandsDllAssemblies>
+        <ResourcesDllAssemblies>IOKode.OpinionatedFramework.Tests.Resources</ResourcesDllAssemblies>
     </PropertyGroup>
 
     <ItemGroup>
-        <CompilerVisibleProperty Include="CommandsDllAssemblies" />
+        <CompilerVisibleProperty Include="ResourcesDllAssemblies" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\ContractImplementations.CommandExecutor\ContractImplementations.CommandExecutor.csproj" />
-      <ProjectReference Include="..\Tests.ResourceCommands\Tests.ResourceCommands.csproj" />
+      <ProjectReference Include="..\ContractImplementations.NHibernate.Postgres\ContractImplementations.NHibernate.Postgres.csproj" />
+      <ProjectReference Include="..\Tests.Resources\Tests.Resources.csproj" />
     </ItemGroup>
 
-    <ItemGroup Label="Project references">
-        <ProjectReference Include="..\SourceGenerators.RestResourceControllers\SourceGenerators.RestResourceControllers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ItemGroup>
+        <ProjectReference Include="..\SourceGenerators.ResourceControllers\SourceGenerators.ResourceControllers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <ItemGroup>
