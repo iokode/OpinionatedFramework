@@ -138,7 +138,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Assert
         var content = await response.Content.ReadFromJsonAsync<ListProductsQueryResult[]>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(["product1", "product2", "product3"], content.Select(result => result.Name));;
+        Assert.Equal(["product1", "product2", "product3"], content?.Select(result => result.Name) ?? []);;
     }
 
     [Fact]
