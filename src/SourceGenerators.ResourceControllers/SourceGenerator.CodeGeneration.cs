@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using IOKode.OpinionatedFramework.SourceGenerators.Helpers;
+using Humanizer;
 using Microsoft.CodeAnalysis;
 
-namespace IOKode.OpinionatedFramework.SourceGenerators.RestResourceControllers;
+namespace IOKode.OpinionatedFramework.SourceGenerators.ResourceControllers;
 
 public partial class SourceGenerator
 {
@@ -21,8 +22,10 @@ public partial class SourceGenerator
 
     public class GeneratorContextData
     {
-        public required ITypeSymbol CommandBaseSymbol;
-        public required ITypeSymbol GenericCommandBaseSymbol;
+        public required ITypeSymbol CommandBaseSymbol { get; set; }
+        public required ITypeSymbol GenericCommandBaseSymbol { get; set; }
+        public required IAssemblySymbol CompilationAssemblySymbol { get; set; }
+        public required string AssemblyNamespace { get; set; }
 
         public readonly IReadOnlyDictionary<string, ResourceType> ResourceTypes = new Dictionary<string, ResourceType>
         {
@@ -38,26 +41,31 @@ public partial class SourceGenerator
 
     public class ResourceControllerData
     {
-        public required CommandData[] CommandsData { get; set; }
-        public string Resource => CommandsData[0].LowerCaseResource;
-        public string ClassName => $"{CommandsData[0].PascalCaseResource}ResourceController";
+        public required string AssemblyNamespace { get; set; }
+        public required ResourceData[] ResourcesData { get; set; }
+        public string BaseRoute => ResourcesData[0].Resource.Pluralize().Kebaberize();
+        public string ClassName => $"{ResourcesData[0].Resource.Pascalize()}ResourceController";
+        public string Namespace => $"{AssemblyNamespace}.Resources.Controllers";
         public string ClassFileName => $"{ClassName}.g.cs";
     }
 
-    public class CommandData
+    public abstract class ResourceData
     {
+        public abstract string DataType { get; } 
         public required string Resource { get; set; }
         public required string ClassName { get; set; }
         public required string Namespace { get; set; }
         public required ResourceType ResourceType { get; set; }
         public string? KeyName { get; set; }
         public string? Action { get; set; }
-        public string? GenericArgument { get; set; }
-        public ConstructorParameter[] ConstructorParameters { get; set; } = Array.Empty<ConstructorParameter>();
-        public string? ConstructorKeyName => ConstructorParameters.Length > 0 ? ConstructorParameters[0].Name : null;
+        public Parameter[] InvocationParameters { get; set; } = Array.Empty<Parameter>();
+        public Parameter[] InvocationParametersWithoutCancellationToken => InvocationParameters.Where(param => param.Name != "cancellationToken").ToArray();
+        public virtual Parameter[] ControllerMethodParameters => InvocationParameters.Any(parameter => parameter.Type == "System.Threading.CancellationToken")
+            ? InvocationParameters
+            : InvocationParameters.Concat(new[] {new Parameter {Name = "cancellationToken", Type = "System.Threading.CancellationToken"}}).ToArray();
+        public string? ConstructorKeyName => InvocationParametersWithoutCancellationToken.Length > 0 && ResourceType != ResourceType.List ? InvocationParametersWithoutCancellationToken[0].Name : null;
         public string FullClassName => $"{Namespace}.{ClassName}";
-        public string PascalCaseResource => Resource.ToPascalCase();
-        public string LowerCaseResource => Resource.ToCamelCase().ToLower();
+        public bool ThereIsResourceId => InvocationParameters.Any();
 
         public string HttpVerb => ResourceType switch
         {
@@ -67,7 +75,7 @@ public partial class SourceGenerator
             ResourceType.Update => "Patch",
             ResourceType.Replace => "Put",
             ResourceType.Delete => "Delete",
-            ResourceType.Action => "Post", // todo patch?
+            ResourceType.Action => "Patch",
             _ => throw new ArgumentOutOfRangeException()
         };
 
@@ -82,9 +90,15 @@ public partial class SourceGenerator
             get
             {
                 var builder = new StringBuilder();
+
+                if(ResourceType == ResourceType.Retrieve && !ThereIsResourceId)
+                {
+                    builder.Append($"/{Resource.Kebaberize()}");;
+                }
+
                 if (KeyName != null)
                 {
-                    builder.Append($"{KeyName.ToKebabCase()}/");
+                    builder.Append($"{KeyName.Kebaberize()}/");
                 }
 
                 if (ConstructorKeyName != null)
@@ -94,7 +108,7 @@ public partial class SourceGenerator
 
                 if (Action != null)
                 {
-                    builder.Append(Action.ToKebabCase());
+                    builder.Append(Action.Kebaberize());
                 }
 
                 return builder.ToString();
@@ -106,16 +120,16 @@ public partial class SourceGenerator
             get
             {
                 var builder = new StringBuilder();
-                builder.Append(HttpVerb);
+                builder.Append(ResourceType.ToString().Pascalize());
 
                 if (KeyName != null)
                 {
-                    builder.Append(KeyName.ToPascalCase());
+                    builder.Append(KeyName.Pascalize());
                 }
 
                 if (Action != null)
                 {
-                    builder.Append(Action.ToPascalCase());
+                    builder.Append(Action.Pascalize());
                 }
 
                 builder.Append("Async");
@@ -124,7 +138,18 @@ public partial class SourceGenerator
         }
     }
 
-    public class ConstructorParameter
+    public class QueryData : ResourceData
+    {
+        public override string DataType => "Query";
+    }
+
+    public class CommandData : ResourceData
+    {
+        public string? GenericArgument { get; set; }
+        public override string DataType => "Command";
+    }
+
+    public class Parameter
     {
         public required string Name { get; set; }
         public required string Type { get; set; }
@@ -133,6 +158,8 @@ public partial class SourceGenerator
     private static readonly string ControllerClassTemplate =
         """
         // This file was auto-generated by a source generator
+        #nullable enable
+        
         using System;
         using System.Threading;
         using System.Threading.Tasks;
@@ -142,26 +169,34 @@ public partial class SourceGenerator
         using Microsoft.AspNetCore.Http;
         using Microsoft.AspNetCore.Mvc;
 
-        namespace IOKode.OpinionatedFramework.Test.Commands;
+        namespace {{ Namespace }};
 
         [ApiController]
-        [Route("{{ Resource }}")]
+        [Route("{{ BaseRoute }}")]
         public partial class {{ ClassName }} : Controller
         {
-            {{~ for command in CommandsData ~}}
-            {{ command.HttpAttribute }}
-            public async Task<IActionResult> {{ command.ControllerMethodName }}({{ for parameter in command.ConstructorParameters }}{{ parameter.Type }} {{ parameter.Name }}, {{ end }}CancellationToken cancellationToken)
+            {{~ for resource in ResourcesData ~}}
+            {{ resource.HttpAttribute }}
+            {{~ if resource.ContentType ~}}
+            [Consumes("{{ resource.ContentType }}")]
+            {{~ end ~}}
+            public async Task<IActionResult> {{ resource.ControllerMethodName }}({{ for parameter in resource.ControllerMethodParameters }}{{ if for.first && resource.ResourceType == 'List' }}[FromQuery] {{ end }}{{ parameter.Type }} {{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }})
             {
-                var commandExecutor = Locator.Resolve<ICommandExecutor>();
-                var command = new {{ command.FullClassName }}({{ for parameter in command.ConstructorParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }});
                 try
                 {
-                    {{~ if command.GenericArgument ~}}
-                    var result = await commandExecutor.InvokeAsync<{{ command.FullClassName }}, {{ command.GenericArgument }}>(command, cancellationToken);
+                    {{~ if resource.DataType == 'Query' ~}}
+                    var result = await {{ resource.FullClassName }}.InvokeAsync({{ for parameter in resource.InvocationParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }});
+                    return Ok(result);
+                    {{~ else if resource.DataType == 'Command' ~}}
+                    var commandExecutor = Locator.Resolve<ICommandExecutor>();
+                    var command = new {{ resource.FullClassName }}({{ for parameter in resource.InvocationParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }});
+                    {{~ if resource.GenericArgument ~}}
+                    var result = await commandExecutor.InvokeAsync<{{ resource.FullClassName }}, {{ resource.GenericArgument }}>(command, cancellationToken);
                     return Ok(result);
                     {{~ else ~}}
-                    await commandExecutor.InvokeAsync<{{ command.FullClassName }}>(command, cancellationToken);
-                    return Ok();
+                    await commandExecutor.InvokeAsync<{{ resource.FullClassName }}>(command, cancellationToken);
+                    return NoContent();
+                    {{~ end ~}}
                     {{~ end ~}}
                 }
                 catch (EntityNotFoundException)
@@ -192,6 +227,7 @@ public partial class SourceGenerator
                     );
                 }
             }
+
             {{~ end ~}}
         }
         """;
