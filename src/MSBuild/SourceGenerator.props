@@ -8,6 +8,7 @@
         <IncludeSymbols>false</IncludeSymbols>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <IsRoslynComponent>true</IsRoslynComponent>
+        <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
     </PropertyGroup>
 
     <ItemGroup Label="Source generation references">
@@ -21,10 +22,21 @@
         <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.0"/>
     </ItemGroup>
 
+    <ItemGroup Label="Humanizer dependencies">
+        <PackageReference Include="Humanizer.Core" Version="2.14.1" GeneratePathProperty="true" PrivateAssets="all"/>
+    </ItemGroup>
+
     <ItemGroup Label="Source generation settings">
         <None Include="$(OutputPath)\$(TargetName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+        <None Include="$(PKGHumanizer_Core)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <Compile Include="..\SourceGenerators.Shared\SourceGenerationHelper.cs"/>
         <Compile Include="..\SourceGenerators.Shared\RequiredMemberAttribute.cs"/>
         <Compile Include="..\SourceGenerators.Shared\SetsRequiredMembersAttribute.cs"/>
     </ItemGroup>
+
+    <Target Name="GetDependencyTargetPaths">
+        <ItemGroup>
+            <TargetPathWithTargetPlatformMoniker Include="$(PKGHumanizer_Core)\lib\netstandard2.0\*.dll" IncludeRuntimeDependency="false" />
+        </ItemGroup>
+    </Target>
 </Project>

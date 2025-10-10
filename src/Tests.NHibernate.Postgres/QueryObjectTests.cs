@@ -1,6 +1,8 @@
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using Dapper;
+using IOKode.OpinionatedFramework.Resources.Attributes;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,7 +21,11 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
 
         // Act and Assert
         var result = await GetUserNameQuery.InvokeAsync(1, default);
+        var attribute = typeof(GetUserNameQuery).GetCustomAttribute<RetrieveAttribute>();
         Assert.Equal("Ivan", result.Name);
+        Assert.NotNull(attribute);
+        Assert.Equal("active user", attribute.Resource);
+        Assert.Equal("name", attribute.Key);
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await GetUserNameQuery.InvokeAsync(2, default));
 
         // Post Assert

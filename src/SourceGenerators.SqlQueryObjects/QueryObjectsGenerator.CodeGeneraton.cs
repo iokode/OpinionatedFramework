@@ -2,8 +2,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using IOKode.OpinionatedFramework.SourceGenerators.Helpers;
+using Humanizer;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace IOKode.OpinionatedFramework.SourceGenerators.SqlQueryObjects;
 
@@ -37,6 +38,7 @@ public partial class QueryObjectsGenerator
         public string[] Usings;
         public ParameterType[] QueryParameters;
         public ParameterType[] ResultParameters;
+        public string[] Attributes;
         public string QueryResultClassName => $"{ClassName}Result";
         private readonly string _QueryParameterRegex = @"--\s*@parameter\s+(.+)\s+(\S+)\s*\n";
         private readonly string _QueryResultParameterRegex = @"--\s*@result\s+(.+)\s+(\S+)\s*\n";
@@ -44,6 +46,7 @@ public partial class QueryObjectsGenerator
         private readonly string _QueryUsingRegex = @"--\s*@using\s+([\w.]+)";
         private readonly string _QueryIsSingleResultRegex = @"--\s*@single(?!\w)";
         private readonly string _QueryIsSingleOrDefaultResultRegex = @"--\s*@single_or_default";
+        private readonly string _QueryAttributeRegex = @"--\s*@attribute\s+(.+)\s*";
 
         public QueryObjectClass(SqlFile sqlFile, ConfigOptions configOptions)
         {
@@ -52,6 +55,7 @@ public partial class QueryObjectsGenerator
             var queryUsingMatches = Regex.Matches(sqlFile.Content, _QueryUsingRegex);
             var queryParameterMatches = Regex.Matches(sqlFile.Content, _QueryParameterRegex);
             var queryResultParameterMatches = Regex.Matches(sqlFile.Content, _QueryResultParameterRegex);
+            var queryAttributeMatches = Regex.Matches(sqlFile.Content, _QueryAttributeRegex);
 
             Usings = queryUsingMatches.Cast<Match>().Select(match => match.Groups[1].Value).ToArray();
             QueryParameters = queryParameterMatches
@@ -70,6 +74,20 @@ public partial class QueryObjectsGenerator
                     Type = SyntaxFactory.ParseTypeName(match.Groups[1].Value).ToString(),
                     Name = SyntaxFactory.ParseName(match.Groups[2].Value).ToString(),
                 })
+                .ToArray();
+
+            Attributes = queryAttributeMatches
+                .Cast<Match>()
+                .Select(match =>
+                {
+                    var code = $"{match.Groups[1].Value} class __GEN {{ }}";
+                    var tree = CSharpSyntaxTree.ParseText(code);
+                    var root = tree.GetRoot();
+                    var attribute = root.DescendantNodes().OfType<AttributeListSyntax>().FirstOrDefault();
+                    return attribute?.ToString();
+                })
+                .Where(attribute => !string.IsNullOrWhiteSpace(attribute))
+                .Cast<string>()
                 .ToArray();
         }
 
@@ -98,8 +116,8 @@ public partial class QueryObjectsGenerator
     {
         public string Name { get; set; }
         public string Type { get; set; }
-        public string PascalCaseName => Name.ToPascalCase();
-        public string CamelCaseName => Name.ToCamelCase();
+        public string PascalCaseName => Name.Pascalize();
+        public string CamelCaseName => Name.Camelize();
     }
 
     private const string _QueryObjectClassTemplate =
@@ -120,6 +138,9 @@ public partial class QueryObjectsGenerator
 
         namespace {{ Namespace }};
 
+        {{~ for attribute in Attributes ~}}
+        {{ attribute }}
+        {{~ end ~}}
         public static partial class {{ ClassName }}
         {
             public const string Query =
