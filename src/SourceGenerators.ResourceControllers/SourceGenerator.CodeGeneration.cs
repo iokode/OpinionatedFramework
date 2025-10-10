@@ -65,7 +65,7 @@ public partial class SourceGenerator
             : InvocationParameters.Concat(new[] {new Parameter {Name = "cancellationToken", Type = "System.Threading.CancellationToken"}}).ToArray();
         public string? ConstructorKeyName => InvocationParametersWithoutCancellationToken.Length > 0 && ResourceType != ResourceType.List ? InvocationParametersWithoutCancellationToken[0].Name : null;
         public string FullClassName => $"{Namespace}.{ClassName}";
-        public bool ThereIsResourceId => InvocationParameters.Any();
+        public bool ThereIsResourceId => InvocationParametersWithoutCancellationToken.Any();
 
         public string HttpVerb => ResourceType switch
         {
@@ -93,7 +93,7 @@ public partial class SourceGenerator
 
                 if(ResourceType == ResourceType.Retrieve && !ThereIsResourceId)
                 {
-                    builder.Append($"/{Resource.Kebaberize()}");;
+                    builder.Append($"/{Resource.Kebaberize()}/");
                 }
 
                 if (KeyName != null)

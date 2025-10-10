@@ -64,10 +64,22 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     }
 
     [Fact]
+    public async Task RetrieveUser_SingleFromSqlQuery_Success()
+    {
+        // Act
+        var response = await Client.GetAsync("/user/by-global");
+
+        // Assert
+        var result = await response.Content.ReadFromJsonAsync<GetSingleUserQueryResult>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("global-user", result?.Name ?? string.Empty);
+    }
+
+    [Fact]
     public async Task RetrieveUser_ByKeyFromSqlQuery_Success()
     {
         // Arrange
-        var name = "Alice";
+        var name = "Angel";
 
         // Act
         var response = await Client.GetAsync($"/users/by-name/{name}");
@@ -147,7 +159,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Arrange
         var input = new CreateUserInput
         {
-            Name = "Alice"
+            Name = "Angel"
         };
 
         // Act
