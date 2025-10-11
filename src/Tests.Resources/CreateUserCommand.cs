@@ -4,7 +4,7 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[Create("user")]
+[CreateResource("user")]
 public class CreateUserCommand(CreateUserInput input) : Command<CreateUserOutput>
 {
     protected override Task<CreateUserOutput> ExecuteAsync(ICommandExecutionContext executionContext)

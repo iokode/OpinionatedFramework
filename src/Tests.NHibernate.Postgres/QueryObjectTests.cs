@@ -21,7 +21,7 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
 
         // Act and Assert
         var result = await GetUserNameQuery.InvokeAsync(1, default);
-        var attribute = typeof(GetUserNameQuery).GetCustomAttribute<RetrieveAttribute>();
+        var attribute = typeof(GetUserNameQuery).GetCustomAttribute<RetrieveResourceAttribute>();
         Assert.Equal("Ivan", result.Name);
         Assert.NotNull(attribute);
         Assert.Equal("active user", attribute.Resource);

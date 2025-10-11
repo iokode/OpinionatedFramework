@@ -4,7 +4,7 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[Delete("user")]
+[DeleteResource("user")]
 public class DeleteUserCommand(int id) : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)

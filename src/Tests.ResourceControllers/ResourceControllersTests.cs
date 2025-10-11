@@ -13,22 +13,22 @@ namespace IOKode.OpinionatedFramework.Tests.ResourceControllers;
 
 public class ResourceControllersTests : IClassFixture<ResourceControllersFixture>
 {
-    private readonly HttpClient Client;
+    private readonly HttpClient client;
 
     public ResourceControllersTests(ResourceControllersFixture fixture, ITestOutputHelper output)
     {
         fixture.TestOutputHelperFactory = () => output;
-        Client = fixture.Client;
+        client = fixture.Client;
     }
 
     [Fact]
     public async Task RetrieveUser_Success()
     {
         // Arrange
-        var id = 321;
+        int id = 321;
 
         // Act
-        var response = await Client.GetAsync($"/users/{id}");
+        var response = await this.client.GetAsync($"/users/{id}");
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
@@ -40,10 +40,10 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task RetrieveUser_ByKey_Success()
     {
         // Arrange
-        var id = 123;
+        int id = 123;
 
         // Act
-        var response = await Client.GetAsync($"/users/by-code/{id}");
+        var response = await this.client.GetAsync($"/users/by-code/{id}");
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
@@ -55,7 +55,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task RetrieveUser_Single_Success()
     {
         // Act
-        var response = await Client.GetAsync("/user");
+        var response = await this.client.GetAsync("/user");
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
@@ -67,7 +67,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task RetrieveUser_SingleFromSqlQuery_Success()
     {
         // Act
-        var response = await Client.GetAsync("/user/by-global");
+        var response = await this.client.GetAsync("/user/by-global");
 
         // Assert
         var result = await response.Content.ReadFromJsonAsync<GetSingleUserQueryResult>();
@@ -82,7 +82,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var name = "Angel";
 
         // Act
-        var response = await Client.GetAsync($"/users/by-name/{name}");
+        var response = await this.client.GetAsync($"/users/by-name/{name}");
 
         // Assert
         var result = await response.Content.ReadFromJsonAsync<GetUserByNameQueryResult>();
@@ -94,10 +94,10 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task RetrieveOrder_FromThisAssembly_Success()
     {
         // Arrange
-        var id = 753;
+        int id = 753;
 
         // Act
-        var response = await Client.GetAsync($"/orders/{id}");
+        var response = await this.client.GetAsync($"/orders/{id}");
 
         // Assert
         var result = await response.Content.ReadAsStringAsync();
@@ -109,7 +109,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task ListUsers_Success()
     {
         // Act
-        var response = await Client.GetAsync("/users");
+        var response = await this.client.GetAsync("/users");
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string[]>();
@@ -121,7 +121,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task ListUsers_ByKey_Success()
     {
         // Act
-        var response = await Client.GetAsync("/users/by-actives");
+        var response = await this.client.GetAsync("/users/by-actives");
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<int[]>();
@@ -133,7 +133,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task ListUsers_ByKeyAndFilters_Success()
     {
         // Act
-        var response = await Client.GetAsync("/users/by-actives?isSingle=true");
+        var response = await this.client.GetAsync("/users/by-actives?isSingle=true");
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<int[]>();
@@ -145,7 +145,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task ListProducts_FromQuery_Success()
     {
         // Act
-        var response = await Client.GetAsync("/products");
+        var response = await this.client.GetAsync("/products");
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<ListProductsQueryResult[]>();
@@ -163,7 +163,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         };
 
         // Act
-        var response = await Client.PostAsJsonAsync("/users", input);
+        var response = await this.client.PostAsJsonAsync("/users", input);
 
         // Assert
         var output = await response.Content.ReadFromJsonAsync<CreateUserOutput>();
@@ -176,10 +176,10 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task UpdateUser_Success()
     {
         // Arrange
-        var id = 10;
+        int id = 10;
 
         // Act
-        var response = await Client.PatchAsync($"/users/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+        var response = await this.client.PatchAsync($"/users/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
@@ -191,10 +191,10 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task UpdateUser_ByKey_Success()
     {
         // Arrange
-        var id = 11;
+        int id = 11;
 
         // Act
-        var response = await Client.PatchAsync($"/users/by-code/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+        var response = await this.client.PatchAsync($"/users/by-code/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
@@ -206,8 +206,8 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task ReplaceUser_Success()
     {
         // Arrange
-        var id = 20;
-        var response = await Client.PutAsync($"/users/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+        int id = 20;
+        var response = await this.client.PutAsync($"/users/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Act
         var content = await response.Content.ReadAsStringAsync();
@@ -221,10 +221,10 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task ReplaceUser_ByKey_Success()
     {
         // Arrange
-        var id = 21;
+        int id = 21;
 
         // Act
-        var response = await Client.PutAsync($"/users/by-code/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+        var response = await this.client.PutAsync($"/users/by-code/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
@@ -236,10 +236,10 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task DeleteUser_Success()
     {
         // Arrange
-        var id = 30;
+        int id = 30;
 
         // Act
-        var response = await Client.DeleteAsync($"/users/{id}");
+        var response = await this.client.DeleteAsync($"/users/{id}");
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
@@ -251,10 +251,10 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task DeleteUser_ByCode_Success()
     {
         // Arrange
-        var id = 31;
+        int id = 31;
 
         // Act
-        var response = await Client.DeleteAsync($"/users/by-code/{id}");
+        var response = await this.client.DeleteAsync($"/users/by-code/{id}");
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
@@ -266,10 +266,10 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task ActionEnableUser_Success()
     {
         // Arrange
-        var id = 40;
+        int id = 40;
 
         // Act
-        var response = await Client.PatchAsync($"/users/{id}/enable", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+        var response = await this.client.PatchAsync($"/users/{id}/enable", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
@@ -284,7 +284,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var code = "41";
 
         // Act
-        var response = await Client.PatchAsync($"/users/by-code/{code}/enable", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+        var response = await this.client.PatchAsync($"/users/by-code/{code}/enable", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();

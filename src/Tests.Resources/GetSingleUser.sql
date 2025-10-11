@@ -1,6 +1,6 @@
 -- @generate
 -- @using IOKode.OpinionatedFramework.Resources.Attributes
--- @attribute [Retrieve("user", "by global")]
+-- @attribute [RetrieveResource("user", "by global")]
 -- @result string name
 -- @single
 

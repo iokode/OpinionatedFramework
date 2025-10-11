@@ -4,7 +4,7 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[Retrieve("user", "by code")]
+[RetrieveResource("user", "by code")]
 public class RetrieveUserByKeyCommand(int id) : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)

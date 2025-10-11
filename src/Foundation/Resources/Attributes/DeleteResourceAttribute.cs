@@ -3,7 +3,7 @@ using System;
 namespace IOKode.OpinionatedFramework.Resources.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
-public class DeleteAttribute(string resource, string? key = null) : Attribute
+public class DeleteResourceAttribute(string resource, string? key = null) : Attribute
 {
     public string Resource { get; } = resource;
     public string? Key { get; } = key;

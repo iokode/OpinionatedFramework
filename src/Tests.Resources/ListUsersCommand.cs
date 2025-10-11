@@ -4,7 +4,7 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[List("user")]
+[ListResources("user")]
 public class ListUsersCommand : Command<string[]>
 {
     protected override Task<string[]> ExecuteAsync(ICommandExecutionContext executionContext)

@@ -20,7 +20,7 @@ namespace IOKode.OpinionatedFramework.Tests.ResourceControllers.Config;
 
 public class ResourceControllersFixture : IAsyncLifetime
 {
-    public HttpClient Client { get; set; }
+    public required HttpClient Client { get; set; }
     public Func<ITestOutputHelper> TestOutputHelperFactory { get; set; } = null!;
     public readonly PostgresContainer PostgresContainer = new();
 

@@ -187,13 +187,15 @@ public partial class SourceGenerator
                 }
 
                 case ITypeSymbol type:
-                    if (type is {TypeKind: TypeKind.Class, IsAbstract: true})
+                {
+                    if (type is { TypeKind: TypeKind.Class, IsAbstract: true })
                     {
                         continue;
                     }
 
                     yield return type;
                     break;
+                }
             }
         }
     }

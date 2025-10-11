@@ -4,7 +4,7 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[Action("user", key: "by code", action: "enable")]
+[ActionOnResource("user", key: "by code", action: "enable")]
 public class ActionEnableUserByKeyCommand(string code) : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)

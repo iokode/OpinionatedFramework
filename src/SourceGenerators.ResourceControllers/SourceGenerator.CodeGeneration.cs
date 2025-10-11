@@ -29,13 +29,13 @@ public partial class SourceGenerator
 
         public readonly IReadOnlyDictionary<string, ResourceType> ResourceTypes = new Dictionary<string, ResourceType>
         {
-            ["IOKode.OpinionatedFramework.Resources.Attributes.RetrieveAttribute"] = ResourceType.Retrieve,
-            ["IOKode.OpinionatedFramework.Resources.Attributes.ListAttribute"] = ResourceType.List,
-            ["IOKode.OpinionatedFramework.Resources.Attributes.CreateAttribute"] = ResourceType.Create,
-            ["IOKode.OpinionatedFramework.Resources.Attributes.UpdateAttribute"] = ResourceType.Update,
-            ["IOKode.OpinionatedFramework.Resources.Attributes.ReplaceAttribute"] = ResourceType.Replace,
-            ["IOKode.OpinionatedFramework.Resources.Attributes.DeleteAttribute"] = ResourceType.Delete,
-            ["IOKode.OpinionatedFramework.Resources.Attributes.ActionAttribute"] = ResourceType.Action,
+            ["IOKode.OpinionatedFramework.Resources.Attributes.RetrieveResourceAttribute"] = ResourceType.Retrieve,
+            ["IOKode.OpinionatedFramework.Resources.Attributes.ListResourcesAttribute"] = ResourceType.List,
+            ["IOKode.OpinionatedFramework.Resources.Attributes.CreateResourceAttribute"] = ResourceType.Create,
+            ["IOKode.OpinionatedFramework.Resources.Attributes.UpdateResourceAttribute"] = ResourceType.Update,
+            ["IOKode.OpinionatedFramework.Resources.Attributes.ReplaceResourceAttribute"] = ResourceType.Replace,
+            ["IOKode.OpinionatedFramework.Resources.Attributes.DeleteResourceAttribute"] = ResourceType.Delete,
+            ["IOKode.OpinionatedFramework.Resources.Attributes.ActionOnResourceAttribute"] = ResourceType.Action,
         };
     }
 
