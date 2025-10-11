@@ -1,5 +1,5 @@
+using Humanizer;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
-using IOKode.OpinionatedFramework.Utilities;
 using NHibernate.Transform;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
@@ -13,11 +13,11 @@ public class PostgresQueryExecutorConfiguration : IQueryExecutorConfiguration
 
     public string TransformAlias(string alias)
     {
-        return StringUtility.ToSnakeCase(alias);
+        return alias.Underscore();
     }
 
     public string TransformParameterName(string parameterName)
     {
-        return StringUtility.ToSnakeCase(parameterName);
+        return parameterName.Underscore();
     }
 }

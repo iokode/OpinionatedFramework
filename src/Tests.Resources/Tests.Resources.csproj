@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SourceGenerators.SqlQueryObjects\SourceGenerators.SqlQueryObjects.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+      <AdditionalFiles Include="**\*.sql"/>
+    </ItemGroup>
+
+</Project>
