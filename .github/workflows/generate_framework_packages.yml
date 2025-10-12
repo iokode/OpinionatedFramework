@@ -6,7 +6,7 @@ name: Generate OpinionatedFramework packages and push to NuGet Gallery
 on:
   push:
     branches:
-      - 'main'
+      - 'master'
 
 jobs:
   build:
