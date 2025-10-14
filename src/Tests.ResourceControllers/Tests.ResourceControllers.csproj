@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AspNetCoreIntegrations\AspNetCoreIntegrations.csproj" /> 
       <ProjectReference Include="..\ContractImplementations.CommandExecutor\ContractImplementations.CommandExecutor.csproj" />
       <ProjectReference Include="..\ContractImplementations.NHibernate.Postgres\ContractImplementations.NHibernate.Postgres.csproj" />
       <ProjectReference Include="..\Tests.Resources\Tests.Resources.csproj" />

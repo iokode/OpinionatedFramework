@@ -25,7 +25,6 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests.Aes256GcmModeEncrypter/Tests.Aes256GcmModeEncrypter.csproj" />
-    <Project Path="Tests.AspNetCoreIntegrations/Tests.AspNetCoreIntegrations.csproj" />
     <Project Path="Tests.CommandExecutor/Tests.CommandExecutor.csproj" />
     <Project Path="Tests.Ensuring/Tests.Ensuring.csproj" />
     <Project Path="Tests.Events/Tests.Events.csproj" />

@@ -2,9 +2,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.AspNetCoreIntegrations;
 using IOKode.OpinionatedFramework.Tests.ResourceControllers.Config;
+using IOKode.OpinionatedFramework.Tests.ResourceControllers.Resources.Controllers;
 using IOKode.OpinionatedFramework.Tests.Resources;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,6 +22,32 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     {
         fixture.TestOutputHelperFactory = () => output;
         client = fixture.Client;
+    }
+
+    [Fact]
+    public void SourceCommandForCommandIsApplied_Success()
+    {
+        // Arrange
+        var controllerType = typeof(UserResourceController);
+        var controllerMethod = controllerType.GetMethod(nameof(UserResourceController.RetrieveByCodeAsync))!;
+        string sourceCommand = typeof(RetrieveUserByKeyCommand).ToString();
+        string sourceCommandInController = controllerMethod.GetCustomAttribute<SourceCommandAttribute>()!.CommandTypeString;
+
+        // Assert
+        Assert.Equal(sourceCommand, sourceCommandInController);
+    }
+
+    [Fact]
+    public void SourceCommandForQueryIsApplied_Success()
+    {
+        // Arrange
+        var controllerType = typeof(UserResourceController);
+        var controllerMethod = controllerType.GetMethod(nameof(UserResourceController.RetrieveByNameAsync))!;
+        string sourceQuery = typeof(GetUserByNameQuery).ToString();
+        string sourceQueryInController = controllerMethod.GetCustomAttribute<SourceCommandAttribute>()!.CommandTypeString;
+
+        // Assert
+        Assert.Equal(sourceQuery, sourceQueryInController);
     }
 
     [Fact]

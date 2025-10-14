@@ -164,6 +164,7 @@ public partial class SourceGenerator
         using System.Threading;
         using System.Threading.Tasks;
         using IOKode.OpinionatedFramework;
+        using IOKode.OpinionatedFramework.AspNetCoreIntegrations;
         using IOKode.OpinionatedFramework.Commands;
         using IOKode.OpinionatedFramework.Facades;
         using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
@@ -178,9 +179,7 @@ public partial class SourceGenerator
         {
             {{~ for resource in ResourcesData ~}}
             {{ resource.HttpAttribute }}
-            {{~ if resource.ContentType ~}}
-            [Consumes("{{ resource.ContentType }}")]
-            {{~ end ~}}
+            [SourceCommand("{{ resource.FullClassName }}")]
             public async Task<IActionResult> {{ resource.ControllerMethodName }}({{ for parameter in resource.ControllerMethodParameters }}{{ if for.first && resource.ResourceType == 'List' }}[FromQuery] {{ end }}{{ parameter.Type }} {{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }})
             {
                 try
