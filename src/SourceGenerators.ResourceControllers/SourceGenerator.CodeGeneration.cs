@@ -163,6 +163,7 @@ public partial class SourceGenerator
         using System;
         using System.Threading;
         using System.Threading.Tasks;
+        using IOKode.OpinionatedFramework;
         using IOKode.OpinionatedFramework.Commands;
         using IOKode.OpinionatedFramework.Facades;
         using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
