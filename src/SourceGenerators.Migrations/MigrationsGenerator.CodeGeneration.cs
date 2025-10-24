@@ -120,7 +120,7 @@ public partial class MigrationsGenerator
         namespace {{ Namespace }};
         
         [Migration({{ Version }})]
-        [Tags(TagBehavior.RequireAny, {{ for tag in Tags }}"{{ tag }}"{{ if !for.last }}, {{ end }}{{ end }})]
+        {{ if Tags && Tags.length > 0 }}[Tags(TagBehavior.RequireAny, {{ for tag in Tags }}"{{ tag }}"{{ if !for.last }}, {{ end }}{{ end }})]{{ end }}
         public partial class {{ ClassName }} : Migration
         {
             public const string UpSqlContent =
