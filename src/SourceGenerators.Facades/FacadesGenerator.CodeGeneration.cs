@@ -14,34 +14,34 @@ public partial class FacadesGenerator
 {
     private class _Facade
     {
-        public string Name { get; set; }
-        public _FacadeMethod[] Methods { get; set; }
+        public required string Name { get; set; }
+        public required _FacadeMethod[] Methods { get; set; }
     }
 
     private class _FacadeMethod
     {
-        public string Name { get; set; }
-        public string ReturnType { get; set; }
-        public IEnumerable<_FacadeMethodParameter> Parameters { get; set; }
-        public IEnumerable<_FacadeMethodGenericParameter> GenericTypeParameters { get; set; }
-        public string DocComment { get; set; }
-        public string ContractFullName { get; set; }
-        public string FacadeName { get; set; }
-        public IMethodSymbol MethodSymbol { get; set; }
-        public bool Has => !string.IsNullOrEmpty(DocComment);
+        public required string Name { get; set; }
+        public required string ReturnType { get; set; }
+        public required IEnumerable<_FacadeMethodParameter> Parameters { get; set; }
+        public required IEnumerable<_FacadeMethodGenericParameter> GenericTypeParameters { get; set; }
+        public required string? DocComment { get; set; }
+        public required string ContractFullName { get; set; }
+        public required string FacadeName { get; set; }
+        public required IMethodSymbol MethodSymbol { get; set; }
+        public bool HasDocComment => !string.IsNullOrEmpty(DocComment);
     }
 
     private class _FacadeMethodParameter
     {
-        public bool IsParams { get; set; }
-        public string Name { get; set; }
-        public string Type { get; set; }
+        public required bool IsParams { get; set; }
+        public required string Name { get; set; }
+        public required string Type { get; set; }
     }
 
     private class _FacadeMethodGenericParameter
     {
-        public string Name { get; set; }
-        public string Constraints { get; set; }
+        public required string Name { get; set; }
+        public required string Constraints { get; set; }
         public bool HasConstraints => Constraints.Length > 0;
     }
 
@@ -72,12 +72,12 @@ public partial class FacadesGenerator
                 var semanticModel = compilation.GetSemanticModel(interfaceDeclarationSyntax.SyntaxTree);
                 var interfaceSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(interfaceDeclarationSyntax)!;
                 var interfaceFullName = interfaceSymbol.ToString();
-                var facadeName = (string)interfaceSymbol!
+                var facadeName = (string) interfaceSymbol
                     .GetAttributes()
                     .Single(attribute => attribute.AttributeClass!.ToDisplayString() == _AddToFacadeAttribute)
                     .ConstructorArguments
                     .Single()
-                    .Value;
+                    .Value!;
 
                 // Get all partial declarations of the interface
                 var allInterfaceDeclarations = interfaceSymbol.DeclaringSyntaxReferences
@@ -87,27 +87,23 @@ public partial class FacadesGenerator
                 foreach (var partialDeclaration in allInterfaceDeclarations)
                 {
                     var partialSemanticModel = compilation.GetSemanticModel(partialDeclaration.SyntaxTree);
-
-                    foreach (var methodDeclarationSyntax in
-                             partialDeclaration.Members.OfType<MethodDeclarationSyntax>())
+                    foreach (var methodDeclarationSyntax in partialDeclaration.Members.OfType<MethodDeclarationSyntax>())
                     {
-                        var methodSymbol =
-                            (IMethodSymbol)partialSemanticModel.GetDeclaredSymbol(methodDeclarationSyntax)!;
+                        var methodSymbol = (IMethodSymbol) partialSemanticModel.GetDeclaredSymbol(methodDeclarationSyntax)!;
                         if (methodSymbol.DeclaredAccessibility != Accessibility.Public)
                         {
                             continue;
                         }
 
                         var methodName = methodDeclarationSyntax.Identifier.Text;
-                        var methodReturnType = methodSymbol?.ReturnType.ToDisplayString();
+                        var methodReturnType = methodSymbol.ReturnType.ToDisplayString();
                         var docComment = SourceGenerationHelper.GetMethodDocComment(methodSymbol);
                         var methodParameters = methodDeclarationSyntax.ParameterList.Parameters
-                            .Select(parameterSyntax =>
-                                (IParameterSymbol)partialSemanticModel.GetDeclaredSymbol(parameterSyntax))
+                            .Select(parameterSyntax => (IParameterSymbol?) partialSemanticModel.GetDeclaredSymbol(parameterSyntax))
                             .Where(parameterSymbol => parameterSymbol is not null)
                             .Select(parameterSymbol => new _FacadeMethodParameter
                             {
-                                IsParams = parameterSymbol.IsParams,
+                                IsParams = parameterSymbol!.IsParams,
                                 Name = parameterSymbol.Name,
                                 Type = parameterSymbol.Type.ToString()
                             });
@@ -138,7 +134,7 @@ public partial class FacadesGenerator
         }
     }
 
-    private static IEnumerable<(string Message, Location Location)> _GetGenerationErrors(IEnumerable<_Facade> facades)
+    private static IEnumerable<(string Message, Location? Location)> _GetGenerationErrors(IEnumerable<_Facade> facades)
     {
         foreach (var facade in facades)
         {
@@ -252,7 +248,7 @@ public partial class FacadesGenerator
         public static partial class {{ Name }}
         {
             {{~ for method in Methods ~}}
-            {{~ if method.Has ~}}
+            {{~ if method.HasDocComment ~}}
             {{ method.DocComment }}
             {{~ end ~}}
             public static {{ method.ReturnType }} {{ method.Name }}{{ if !method.GenericTypeParameters.empty? }}<{{ for parameter in method.GenericTypeParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }}>{{ end }}({{ for parameter in method.Parameters }}{{ if parameter.IsParams }}params {{ end }}{{ parameter.Type }} {{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }}) {{ for parameter in method.GenericTypeParameters }}{{ if parameter.HasConstraints }}where {{ parameter.Name }} : {{ parameter.Constraints }}{{ end }}{{ end }}

@@ -11,13 +11,13 @@
             <generator class="uuid.hex" />
         </id>
         
-        <property name="username" access="field">
+        <property name="Username" access="backfield">
             <column name="name" length="16" not-null="true" />
         </property>
-        <property name="emailAddress" access="field">
+        <property name="EmailAddress" access="backfield">
             <column name="email" length="255" not-null="true" />
         </property>
-        <property name="isActive" access="field">
+        <property name="IsActive" access="backfield">
             <column name="is_active" not-null="true" />
         </property>
     </class>

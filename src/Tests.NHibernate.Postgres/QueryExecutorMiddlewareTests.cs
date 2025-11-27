@@ -266,10 +266,10 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
 
     public class UserDto
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public bool IsActive { get; set; }
+        public required string Id { get; init; }
+        public required string Name { get; init; }
+        public required string Email { get; init; }
+        public required bool IsActive { get; init; }
     }
 }
 
@@ -374,13 +374,13 @@ public class TransactionAwareMiddleware : QueryMiddleware
 
 public class UserQueryParameters
 {
-    public string Id { get; set; }
+    public required string Id { get; init; }
 }
 
 public class ParameterLoggingMiddleware : QueryMiddleware
 {
     public static bool ParametersPresent { get; set; }
-    public static string LoggedParameterId { get; set; }
+    public static string? LoggedParameterId { get; set; }
 
     public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
         InvokeNextMiddlewareDelegate nextAsync)

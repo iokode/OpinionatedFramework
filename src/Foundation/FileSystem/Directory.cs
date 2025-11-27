@@ -1,4 +1,3 @@
-using System;
 using NodaTime;
 
 namespace IOKode.OpinionatedFramework.FileSystem;
@@ -15,12 +14,12 @@ public class Directory
     /// <summary>
     /// The name of the directory, which includes only the name and excludes the path.
     /// </summary>
-    public virtual string Name { get; set; }
+    public virtual string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// The full name of the directory, which includes its path within the filesystem.
     /// </summary>
-    public virtual string FullName { get; set; }
+    public virtual string FullName { get; set; } = string.Empty;
 
     /// <summary>
     /// The point in time when the directory was originally created.

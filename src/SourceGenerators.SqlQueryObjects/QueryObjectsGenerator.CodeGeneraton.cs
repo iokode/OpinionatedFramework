@@ -12,14 +12,14 @@ public partial class QueryObjectsGenerator
 {
     private class ConfigOptions
     {
-        public string RootNamespace { get; set; }
-        public string RootPath { get; set; }
+        public required string RootNamespace { get; set; }
+        public required string RootPath { get; set; }
     }
 
     private class SqlFile
     {
-        public string FilePath { get; set; }
-        public string Content { get; set; }
+        public required string FilePath { get; set; }
+        public required string Content { get; set; }
     }
 
     private class QueryObjectClass
@@ -97,7 +97,7 @@ public partial class QueryObjectsGenerator
             var namespaceInFile = queryNamespaceMatches.Cast<Match>().FirstOrDefault()?.Groups[1].Value;
             if (!string.IsNullOrWhiteSpace(namespaceInFile))
             {
-                return namespaceInFile;
+                return namespaceInFile!;
             }
 
             var rootPathName = ConfigOptions.RootPath.TrimEnd(Path.DirectorySeparatorChar);
@@ -114,8 +114,8 @@ public partial class QueryObjectsGenerator
 
     private class ParameterType
     {
-        public string Name { get; set; }
-        public string Type { get; set; }
+        public required string Name { get; set; }
+        public required string Type { get; set; }
         public string PascalCaseName => Name.Pascalize();
         public string CamelCaseName => Name.Camelize();
     }

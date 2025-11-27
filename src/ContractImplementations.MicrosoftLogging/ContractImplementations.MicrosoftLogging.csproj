@@ -3,8 +3,8 @@
     <Import Project="../MSBuild/Packable.props"/>
 
     <ItemGroup Label="Package references">
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftPackagesVersion)"/>
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftPackagesVersion)"/>
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">

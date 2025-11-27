@@ -83,7 +83,7 @@ internal static class TypeNameHelper
     {
         return item != null
             ? TypeNameHelper.GetTypeDisplayName(item.GetType(), fullName, false, true, '+')
-            : (string)null;
+            : null;
     }
 
     /// <summary>Pretty print a type name.</summary>
