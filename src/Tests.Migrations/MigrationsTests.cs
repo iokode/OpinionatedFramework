@@ -12,7 +12,7 @@ using Xunit;
 
 namespace IOKode.OpinionatedFramework.Tests.Migrations;
 
-public class MigrationsTests(PostgresContainer fixture) : IClassFixture<PostgresContainer>, IAsyncLifetime
+public class MigrationsTests : IClassFixture<PostgresContainer>, IAsyncLifetime
 {
     private readonly NpgsqlConnection npgsqlClient = new(PostgresHelper.ConnectionString);
 
@@ -62,7 +62,11 @@ public class MigrationsTests(PostgresContainer fixture) : IClassFixture<Postgres
                 .WithGlobalConnectionString(PostgresHelper.ConnectionString)
                 .ScanIn(Assembly.GetAssembly(typeof(CreateSchemaMigration))!).For.Migrations()
             )
-            .Configure<RunnerOptions>(cfg => { cfg.Tags = ["iokode"]; });
+            .Configure<RunnerOptions>(cfg =>
+            {
+                cfg.IncludeUntaggedMigrations = false;
+                cfg.Tags = ["iokode"];
+            });
         Container.Initialize();
         await npgsqlClient.OpenAsync();
     }
