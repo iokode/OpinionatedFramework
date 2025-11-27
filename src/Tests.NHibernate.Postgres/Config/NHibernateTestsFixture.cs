@@ -21,15 +21,13 @@ public class NHibernateTestsFixture : IAsyncLifetime
     private DockerClient docker => DockerHelper.DockerClient;
 
     public readonly PostgresContainer PostgresContainer = new();
-    public NpgsqlConnection? NpgsqlClient;
+    public NpgsqlConnection? NpgsqlClient = null;
     public global::NHibernate.Cfg.Configuration Configuration = null!;
     
     public async Task InitializeAsync()
     {
-#pragma warning disable 0618
         NpgsqlConnection.GlobalTypeMapper.MapComposite<AddressDto>("public.address_type");
-#pragma warning restore 0618
-        Container.Services.AddTransient<ILogging>(_ => new XUnitLogging(TestOutputHelperFactory?.Invoke() ?? throw new NullReferenceException("TestOutputHelperFactory is null. Did you forget to set it in the constructor?")));
+        Container.Services.AddTransient<ILogging>(_ => new XUnitLogging(TestOutputHelperFactory()));
         Container.Services.AddScoped<ScopedService>();
         await PostgresContainer.InitializeAsync();
         string connectionString = PostgresHelper.ConnectionString;
@@ -60,8 +58,8 @@ public class NHibernateTestsFixture : IAsyncLifetime
         
         docker.Dispose();
     }
-
-    public Func<ITestOutputHelper>? TestOutputHelperFactory { get; set; }
+    
+    public Func<ITestOutputHelper> TestOutputHelperFactory { get; set; }
 }
 
 [CollectionDefinition(nameof(NHibernateTestsFixtureCollection))]

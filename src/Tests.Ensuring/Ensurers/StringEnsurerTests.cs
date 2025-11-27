@@ -227,9 +227,9 @@ public partial class StringEnsurerTests
     [InlineData("", false)]
     [InlineData(" ", true)]
     [InlineData("notEmpty", true)]
-    public void NotEmpty(string? value, bool expectedResult)
+    public void NotEmpty(string value, bool expectedResult)
     {
-        bool result = StringEnsurer.NotEmpty(value!);
+        bool result = StringEnsurer.NotEmpty(value);
         Assert.Equal(expectedResult, result);
     }
 
@@ -238,9 +238,9 @@ public partial class StringEnsurerTests
     [InlineData("", false)]
     [InlineData(" ", false)]
     [InlineData("notEmpty", true)]
-    public void NotWhiteSpace(string? value, bool expectedResult)
+    public void NotWhiteSpace(string value, bool expectedResult)
     {
-        bool result = StringEnsurer.NotWhiteSpace(value!);
+        bool result = StringEnsurer.NotWhiteSpace(value);
         Assert.Equal(expectedResult, result);
     }
 

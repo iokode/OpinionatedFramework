@@ -8,12 +8,12 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryEx
 
 public class NHibernateQueryExecutionExecutorContext : IQueryExecutionContext
 {
-    public required IDbTransaction? Transaction { get; set; }
-    public required bool IsExecuted { get; set; }
-    public required ICollection<string> Directives { get; set; }
-    public required object? Parameters { get; set; }
-    public required CancellationToken CancellationToken { get; set; }
-    public required string RawQuery { get; set; }
-    public required IReadOnlyList<object> Results { get; set; }
-    public required Guid TraceID { get; set; }
+    public IDbTransaction? Transaction { get; set; }
+    public bool IsExecuted { get; set; }
+    public ICollection<string> Directives { get; set; }
+    public object? Parameters { get; set; }
+    public CancellationToken CancellationToken { get; set; }
+    public string RawQuery { get; set; }
+    public IReadOnlyList<object> Results { get; set; }
+    public Guid TraceID { get; set; }
 }

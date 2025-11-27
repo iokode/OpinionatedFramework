@@ -26,8 +26,8 @@ public class EventsTestsFixture : IAsyncLifetime
     private DockerClient docker => DockerHelper.DockerClient;
 
     public readonly PostgresContainer PostgresContainer = new();
-    public NpgsqlConnection? NpgsqlClient;
-    public BackgroundJobServer? HangfireServer;
+    public NpgsqlConnection? NpgsqlClient = null;
+    public BackgroundJobServer? HangfireServer = null;
 
     public async Task InitializeAsync()
     {

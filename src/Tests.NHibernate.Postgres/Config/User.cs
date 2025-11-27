@@ -6,29 +6,38 @@ namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 
 public class User : Entity
 {
-#pragma warning disable CS0414
-    private string id = null!;
-#pragma warning restore CS0414
+    private string id;
+    private string username;
+    private string emailAddress;
+    private bool isActive;
 
+    public User()
+    {
+    }
+    
     public required string Username
     {
-        get;
+        get => this.username;
         set
         {
             Ensure.String.Alphanumeric(value, AlphaOptions.Default).ElseThrowsIllegalArgument(nameof(value), "Invalid username.");
-            field = value;
+            this.username = value;
         }
     }
 
     public required string EmailAddress
     {
-        get;
+        get => this.emailAddress;
         set
         {
             Ensure.String.Email(value).ElseThrowsIllegalArgument(nameof(value), "Invalid email address.");
-            field = value;
+            this.emailAddress = value;
         }
     }
 
-    public required bool IsActive { get; set; }
+    public required bool IsActive
+    {
+        get => this.isActive;
+        set => this.isActive = value;
+    }
 }

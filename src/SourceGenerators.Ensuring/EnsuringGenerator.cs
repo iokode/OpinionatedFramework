@@ -27,7 +27,8 @@ internal partial class EnsuringGenerator : IIncrementalGenerator
             .Where(static declarationSyntax => declarationSyntax is not null);
 
         IncrementalValueProvider<(Compilation Compilation, ImmutableArray<ClassDeclarationSyntax> Declarations)>
-            compilationAndClasses = context.CompilationProvider.Combine(throwerDeclarations.Collect())!;
+            compilationAndClasses =
+                context.CompilationProvider.Combine(throwerDeclarations.Collect());
 
         context.RegisterSourceOutput(compilationAndClasses,
             static (sourceProductionContext, source) =>
@@ -77,7 +78,7 @@ internal partial class EnsuringGenerator : IIncrementalGenerator
     /// <summary>
     /// Filter classes at the semantic level for code generation.
     /// </summary>
-    private static ClassDeclarationSyntax? _GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+    private static ClassDeclarationSyntax _GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
         var classDeclarationSyntax = (ClassDeclarationSyntax) context.Node;
 

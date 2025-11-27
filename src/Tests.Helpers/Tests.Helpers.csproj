@@ -9,8 +9,9 @@
 
     <ItemGroup Label="Package references">
         <PackageReference Include="Flurl.Http" Version="3.2.4" />
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftPackagesVersion)" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="$(MicrosoftPackagesVersion)" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.*" />
         <PackageReference Include="xunit" Version="2.8.1" />
         <PackageReference Include="Dapper" Version="2.1.35" />
         <PackageReference Include="Docker.DotNet" Version="3.125.15" />
