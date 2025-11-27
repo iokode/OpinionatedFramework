@@ -14,9 +14,9 @@ internal partial class EnsuringGenerator
 {
     private class _Ensurer
     {
-        public string EnsurerClassName { get; set; }
-        public string EnsurerClassNamespace { get; set; }
-        public _EnsurerMethod[] Methods { get; set; }
+        public required string EnsurerClassName { get; set; }
+        public required string EnsurerClassNamespace { get; set; }
+        public required _EnsurerMethod[] Methods { get; set; }
 
         public string Name
         {
@@ -37,15 +37,15 @@ internal partial class EnsuringGenerator
 
     private class _EnsurerMethod
     {
-        public string Name { get; set; }
-        public IEnumerable<_EnsurerMethodParameter> Parameters { get; set; }
-        public string DocComment { get; set; }
+        public required string Name { get; set; }
+        public required IEnumerable<_EnsurerMethodParameter> Parameters { get; set; }
+        public required string? DocComment { get; set; }
     }
 
     private class _EnsurerMethodParameter
     {
-        public string Name { get; set; }
-        public string Type { get; set; }
+        public required string Name { get; set; }
+        public required string Type { get; set; }
     }
 
     private static readonly string _EnsurerAttribute = "IOKode.OpinionatedFramework.Ensuring.EnsurerAttribute";
@@ -94,11 +94,11 @@ internal partial class EnsuringGenerator
         var methodName = methodDeclarationSyntax.Identifier.Text;
         var docComment = SourceGenerationHelper.GetMethodDocComment(methodSymbol);
         var methodParameters = methodDeclarationSyntax.ParameterList.Parameters
-            .Select(parameterSyntax => (IParameterSymbol) semanticModel.GetDeclaredSymbol(parameterSyntax))
+            .Select(parameterSyntax => (IParameterSymbol?) semanticModel.GetDeclaredSymbol(parameterSyntax))
             .Where(parameterSymbol => parameterSymbol is not null)
             .Select(parameterSymbol => new _EnsurerMethodParameter
             {
-                Name = parameterSymbol.Name,
+                Name = parameterSymbol!.Name,
                 Type = parameterSymbol.Type.ToString()
             });
 

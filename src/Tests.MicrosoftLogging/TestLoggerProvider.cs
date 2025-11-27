@@ -22,22 +22,15 @@ public class TestLoggerProvider : ILoggerProvider
     public List<TestLogger> GetLoggers() => _loggers;
 }
 
-public class TestLogger : ILogger
+public class TestLogger(string categoryName) : ILogger
 {
-    private readonly string _categoryName;
+    public List<LogEntry> LogEntries { get; } = [];
 
-    public TestLogger(string categoryName)
-    {
-        _categoryName = categoryName;
-    }
-
-    public List<LogEntry> LogEntries { get; } = new List<LogEntry>();
-
-    public IDisposable BeginScope<TState>(TState state) => null;
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
     public bool IsEnabled(LogLevel logLevel) => true;
 
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
         LogEntries.Add(new LogEntry
         {
@@ -46,17 +39,17 @@ public class TestLogger : ILogger
             State = state,
             Exception = exception,
             Message = formatter(state, exception),
-            CategoryName = _categoryName
+            CategoryName = categoryName
         });
     }
 }
 
 public class LogEntry
 {
-    public LogLevel LogLevel { get; set; }
-    public EventId EventId { get; set; }
-    public object State { get; set; }
-    public Exception Exception { get; set; }
-    public string Message { get; set; }
-    public string CategoryName { get; set; }
+    public required LogLevel LogLevel { get; init; }
+    public required EventId EventId { get; init; }
+    public required object? State { get; init; }
+    public required Exception? Exception { get; init; }
+    public required string Message { get; init; }
+    public required string CategoryName { get; init; }
 }

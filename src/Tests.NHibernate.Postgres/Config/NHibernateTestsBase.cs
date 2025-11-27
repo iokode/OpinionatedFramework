@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Dapper;
 using Npgsql;
@@ -15,7 +16,7 @@ public abstract class NHibernateTestsBase
         this.fixture = fixture;
     }
     
-    protected NpgsqlConnection npgsqlClient => fixture.NpgsqlClient;
+    protected NpgsqlConnection npgsqlClient => fixture.NpgsqlClient ?? throw new NullReferenceException("NpgsqlClient from fixture is null. Did you forget to await fixture.InitializeAsync()?.");
     protected global::NHibernate.Cfg.Configuration configuration => fixture.Configuration;
 
     protected async Task CreateUsersTableQueryAsync()

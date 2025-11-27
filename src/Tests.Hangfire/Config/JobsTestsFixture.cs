@@ -22,9 +22,9 @@ public class JobsTestsFixture : IAsyncLifetime
     private DockerClient docker => DockerHelper.DockerClient;
 
     public readonly PostgresContainer PostgresContainer = new();
-    public BackgroundJobServer? HangfireServer = null;
+    public BackgroundJobServer? HangfireServer;
 
-    public Func<ITestOutputHelper> TestOutputHelperFactory { get; set; }
+    public Func<ITestOutputHelper>? TestOutputHelperFactory { get; set; }
 
     public async Task InitializeAsync()
     {
@@ -37,7 +37,7 @@ public class JobsTestsFixture : IAsyncLifetime
         await Task.Delay(3000);
 
         Container.Services.AddTransient<IJobEnqueuer, HangfireJobEnqueuer>();
-        Container.Services.AddTransient<ILogging>(_ => new XUnitLogging(TestOutputHelperFactory()));
+        Container.Services.AddTransient<ILogging>(_ => new XUnitLogging(TestOutputHelperFactory?.Invoke() ?? throw new NullReferenceException("TestOutputHelperFactory is null. Did you forget to set it in the constructor?")));
         Container.Services.AddTransient<IEmailSender, LoggerEmailSender>();
         Container.Initialize();
     }

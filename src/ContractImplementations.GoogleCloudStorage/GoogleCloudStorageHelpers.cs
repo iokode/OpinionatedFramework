@@ -1,3 +1,5 @@
+using System;
+
 namespace IOKode.OpinionatedFramework.ContractImplementations.GoogleCloudStorage;
 
 public static class GoogleCloudStorageHelpers
@@ -9,7 +11,8 @@ public static class GoogleCloudStorageHelpers
             "STANDARD" => GoogleCloudStorageClass.Standard,
             "COLDLINE" => GoogleCloudStorageClass.Coldline,
             "NEARLINE" => GoogleCloudStorageClass.Nearline,
-            "ARCHIVE" => GoogleCloudStorageClass.Archive
+            "ARCHIVE" => GoogleCloudStorageClass.Archive,
+            _ => throw new ArgumentOutOfRangeException(nameof(str), str, null)
         };
     }
 }

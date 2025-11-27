@@ -1,7 +1,7 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
-using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
@@ -28,10 +28,10 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act and Assert
-        var user1 = await repository.GetByIdAsync("1", default);
-        var user2 = await repository.GetByIdAsync("2", default);
-        var user3 = await repository.GetByIdOrDefaultAsync("3", default);
-        var userNull = await repository.GetByIdOrDefaultAsync("5", default);
+        var user1 = await repository.GetByIdAsync("1", CancellationToken.None);
+        var user2 = await repository.GetByIdAsync("2", CancellationToken.None);
+        var user3 = await repository.GetByIdOrDefaultAsync("3", CancellationToken.None);
+        var userNull = await repository.GetByIdOrDefaultAsync("5", CancellationToken.None);
         
         Assert.Equal("Ivan", user1.Username);
         Assert.Equal("ivan@example.com", user1.EmailAddress);
@@ -45,7 +45,7 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         Assert.Null(userNull);
         await Assert.ThrowsAsync<EntityNotFoundException>(async () =>
         {
-            await repository.GetByIdAsync("4", default);
+            await repository.GetByIdAsync("4", CancellationToken.None);
         });
 
         // Arrange post Assert
@@ -64,7 +64,7 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act
-        var user = await repository.GetByUsernameAsync("Ivan", default);
+        var user = await repository.GetByUsernameAsync("Ivan", CancellationToken.None);
 
         // Assert
         Assert.Equal("Ivan", user.Username);
@@ -88,8 +88,8 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act and Assert
-        await Assert.ThrowsAsync<NonUniqueResultException>(async () => { await repository.GetByUsernameAsync("Ivan", default); });
-        await Assert.ThrowsAsync<EmptyResultException>(async () => { await repository.GetByUsernameAsync("Marta", default); });
+        await Assert.ThrowsAsync<NonUniqueResultException>(async () => { await repository.GetByUsernameAsync("Ivan", CancellationToken.None); });
+        await Assert.ThrowsAsync<EmptyResultException>(async () => { await repository.GetByUsernameAsync("Marta", CancellationToken.None); });
 
         // Arrange post Assert
         await DropUsersTableQueryAsync();
@@ -107,11 +107,11 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
 
         // Act
         var repository = unitOfWork.GetRepository<UserRepository>();
-        var user = await repository.GetByEmailAddressOrDefaultAsync("ivan@example.com", default);
-        var userNull = await repository.GetByEmailAddressOrDefaultAsync("ivan@example.net", default);
+        var user = await repository.GetByEmailAddressOrDefaultAsync("ivan@example.com", CancellationToken.None);
+        var userNull = await repository.GetByEmailAddressOrDefaultAsync("ivan@example.net", CancellationToken.None);
 
         // Assert
-        Assert.Equal("Ivan", user.Username);
+        Assert.Equal("Ivan", user!.Username);
         Assert.Equal("ivan@example.com", user.EmailAddress);
         Assert.True(user.IsActive);
         Assert.Null(userNull);
@@ -133,10 +133,10 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act and Assert
-        var user = await repository.GetByEmailAddressOrDefaultAsync("ivan@example.net", default);
+        var user = await repository.GetByEmailAddressOrDefaultAsync("ivan@example.net", CancellationToken.None);
         Assert.Null(user);
 
-        await Assert.ThrowsAsync<NonUniqueResultException>(async () => { await repository.GetByEmailAddressOrDefaultAsync("ivan@example.com", default); });
+        await Assert.ThrowsAsync<NonUniqueResultException>(async () => { await repository.GetByEmailAddressOrDefaultAsync("ivan@example.com", CancellationToken.None); });
 
         // Arrange post Assert
         await DropUsersTableQueryAsync();
@@ -155,7 +155,7 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act
-        var user = await repository.GetFirstActiveAsync(default);
+        var user = await repository.GetFirstActiveAsync(CancellationToken.None);
 
         // Assert
         Assert.Equal("Ivan", user.Username);
@@ -178,7 +178,7 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act and Assert
-        await Assert.ThrowsAsync<EmptyResultException>(async () => { await repository.GetFirstActiveAsync(default); });
+        await Assert.ThrowsAsync<EmptyResultException>(async () => { await repository.GetFirstActiveAsync(CancellationToken.None); });
 
         // Arrange post Assert
         await DropUsersTableQueryAsync();
@@ -197,8 +197,8 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act
-        var user = await repository.GetFirstByNameOrDefaultAsync("Ivan", default);
-        var userNull = await repository.GetFirstByNameOrDefaultAsync("Marta", default);
+        var user = await repository.GetFirstByNameOrDefaultAsync("Ivan", CancellationToken.None);
+        var userNull = await repository.GetFirstByNameOrDefaultAsync("Marta", CancellationToken.None);
 
         // Assert
         Assert.Equal("Ivan", user!.Username);
@@ -223,8 +223,8 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act
-        var users = await repository.GetMultipleByNameAsync(["Ivan", "Marta"], default);
-        var usersEmpty = await repository.GetMultipleByNameAsync(["Javier"], default);
+        var users = await repository.GetMultipleByNameAsync(["Ivan", "Marta"], CancellationToken.None);
+        var usersEmpty = await repository.GetMultipleByNameAsync(["Javier"], CancellationToken.None);
 
         // Assert
         Assert.Equal(2, users.Count);
@@ -249,7 +249,7 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act
-        var users = await repository.GetAllAsync(default);
+        var users = await repository.GetAllAsync(CancellationToken.None);
 
         // Assert
         Assert.Equal(2, users.Count);

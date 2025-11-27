@@ -6,7 +6,7 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.FileSystem;
 
 public class LocalFile : File
 {
-    internal Stream _fileContent;
+    internal Stream _fileContent = new MemoryStream();
     
     public override Task<Stream> OpenReadStreamAsync()
     {

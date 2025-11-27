@@ -10,7 +10,7 @@ namespace IOKode.OpinionatedFramework.SourceGenerators.Helpers;
 
 internal static class SourceGenerationHelper
 {
-    public static string GetMethodDocComment(IMethodSymbol methodSymbol)
+    public static string? GetMethodDocComment(IMethodSymbol methodSymbol)
     {
         var docComment = methodSymbol.GetDocumentationCommentXml();
         if (!string.IsNullOrEmpty(docComment))
@@ -46,7 +46,7 @@ internal static class SourceGenerationHelper
     {
         string nameSpace = string.Empty;
 
-        SyntaxNode potentialNamespaceParent = syntax.Parent;
+        SyntaxNode? potentialNamespaceParent = syntax.Parent;
 
         while (potentialNamespaceParent is not null &&
                potentialNamespaceParent is not NamespaceDeclarationSyntax &&
@@ -81,7 +81,7 @@ internal static class SourceGenerationHelper
         var usingDirectives = Enumerable.Empty<string>();
         if (rootSyntaxNode is CompilationUnitSyntax compilationUnit)
         {
-            usingDirectives = compilationUnit.Usings.Select(directive => directive.Name.ToString());
+            usingDirectives = compilationUnit.Usings.Select(directive => directive.Name!.ToString());
         }
 
         return usingDirectives;

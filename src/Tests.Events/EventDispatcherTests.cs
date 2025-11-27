@@ -29,7 +29,11 @@ public class EventDispatcherTests(ITestOutputHelper output, EventsTestsFixture f
         {
             {"Events:QueueName", "eventing"}
         }));
-        var @event = new Event1(3, "test");
+        var @event = new Event1
+        {
+            Prop1 = 3,
+            Prop2 = "test"
+        };
 
         // Act
         output.WriteLine("Pre Act");

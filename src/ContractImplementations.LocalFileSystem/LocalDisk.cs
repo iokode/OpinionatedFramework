@@ -55,7 +55,7 @@ public class LocalDisk : IFileDisk
 
         if (!file.Directory?.Exists ?? false)
         {
-            file.Directory.Create();
+            file.Directory?.Create();
         }
 
         await using (var fileStream = file.Create())

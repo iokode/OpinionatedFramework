@@ -112,12 +112,12 @@ public class LocalDirectoryTests : IDisposable
         // Arrange
         DeleteDirectory();
         Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname));
-        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file1.txt"));
-        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file2.txt"));
-        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file3.txt"));
+        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file1.txt")).DisposeAsync();
+        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file2.txt")).DisposeAsync();
+        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file3.txt")).DisposeAsync();
         Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname, "dir"));
-        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file1.txt"));
-        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file2.txt"));
+        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file1.txt")).DisposeAsync();
+        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file2.txt")).DisposeAsync();
 
         {
             // Act - List files in root
@@ -150,13 +150,13 @@ public class LocalDirectoryTests : IDisposable
         // Arrange
         DeleteDirectory();
         Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname));
-        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file1.txt"));
-        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file2.txt"));
-        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file3.txt"));
+        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file1.txt")).DisposeAsync();
+        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file2.txt")).DisposeAsync();
+        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file3.txt")).DisposeAsync();
         Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname, "dir"));
         Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname, "dir2"));
-        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file1.txt"));
-        File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir2", "file2.txt"));
+        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file1.txt")).DisposeAsync();
+        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir2", "file2.txt")).DisposeAsync();
 
         // Act
         var directories = (await FS.GetDisk(_diskname).ListDirectoriesAsync(_directoryname)).ToArray();
