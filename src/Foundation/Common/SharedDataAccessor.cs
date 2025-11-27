@@ -19,7 +19,7 @@ public interface ISharedDataAccessor
     /// <param name="key">The key of the value to retrieve.</param>
     /// <returns>The value associated with the specified key.</returns>
     /// <exception cref="System.Collections.Generic.KeyNotFoundException">The key does not exists.</exception>
-    public object Get(string key);
+    public object? Get(string key);
 
     /// <summary>
     /// Retrieves a value of type T from the shared data, if it exists.
@@ -27,7 +27,7 @@ public interface ISharedDataAccessor
     /// <param name="key">The key of the value to retrieve.</param>
     /// <returns>The value associated with the specified key, cast to type T.</returns>
     /// <exception cref="System.Collections.Generic.KeyNotFoundException">The key does not exists.</exception>
-    public T Get<T>(string key) => (T)Get(key);
+    public T? Get<T>(string key) => (T?) Get(key);
 
     /// <summary>
     /// Retrieves a value from the shared data, if it exists.

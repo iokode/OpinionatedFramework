@@ -3,7 +3,7 @@
     <Import Project="../MSBuild/Packable.props"/>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.16"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="$(MicrosoftPackagesVersion)"/>
     </ItemGroup>
 
     <ItemGroup>

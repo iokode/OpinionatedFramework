@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
@@ -242,5 +241,5 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
 
 public record TransactionRawProjectionDto
 {
-    public string Name { get; init; }
+    public required string Name { get; init; }
 }

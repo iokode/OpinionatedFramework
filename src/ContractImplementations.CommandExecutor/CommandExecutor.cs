@@ -14,7 +14,7 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 public class CommandExecutor : ICommandExecutor
 {
     private readonly IList<Type> middlewares;
-    private readonly Dictionary<string, object> sharedData;
+    private readonly Dictionary<string, object?> sharedData;
 
     public CommandExecutor(Action<CommandExecutorOptions> optionsAction)
     {

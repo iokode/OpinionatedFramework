@@ -27,7 +27,7 @@ public partial class FacadesGenerator : IIncrementalGenerator
             .Where(static declarationSyntax => declarationSyntax is not null);
 
         IncrementalValueProvider<(Compilation Compilation, ImmutableArray<InterfaceDeclarationSyntax> Declarations)>
-            compilationAndClasses = context.CompilationProvider.Combine(facadesDeclarations.Collect());
+            compilationAndClasses = context.CompilationProvider.Combine(facadesDeclarations.Collect())!;
 
         context.RegisterSourceOutput(compilationAndClasses,
             static (sourceProductionContext, source) => Execute(source.Compilation, source.Declarations, sourceProductionContext));
@@ -79,7 +79,7 @@ public partial class FacadesGenerator : IIncrementalGenerator
     /// <summary>
     /// Filter interfaces at the semantic level for code generation.
     /// </summary>
-    private static InterfaceDeclarationSyntax _GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+    private static InterfaceDeclarationSyntax? _GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
         var interfaceDeclarationSyntax = (InterfaceDeclarationSyntax) context.Node;
 

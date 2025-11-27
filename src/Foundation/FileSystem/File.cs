@@ -17,12 +17,12 @@ public abstract class File
     /// <summary>
     /// The name of the file, which includes only the name and excludes the path or directory.
     /// </summary>
-    public virtual string Name { get; init; }
+    public virtual string Name { get; init; } = string.Empty;
 
     /// <summary>
     /// The full name of the file, which includes its path within the filesystem.
     /// </summary>
-    public virtual string FullName { get; init; }
+    public virtual string FullName { get; init; } = string.Empty;
 
     /// <summary>
     /// The point in time when the file was originally created.

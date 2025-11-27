@@ -32,7 +32,7 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await CreateUsersTableQueryAsync();
         await InsertUsers();
 
-        var filter = new EqualsFilter("emailAddress", "marta@example.com");
+        var filter = new EqualsFilter(nameof(User.EmailAddress), "marta@example.com");
 
         // Act
         var users = await entitySet.ManyAsync(filter, default);
@@ -55,7 +55,7 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await CreateUsersTableQueryAsync();
         await InsertUsers();
 
-        var filter = new NotEqualsFilter("username", "Ivan");
+        var filter = new NotEqualsFilter(nameof(User.Username), "Ivan");
 
         // Act
         var users = await entitySet.ManyAsync(filter, default);
@@ -80,7 +80,7 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await CreateUsersTableQueryAsync();
         await InsertUsers();
 
-        var filter = new InFilter("username", "Javier", "Marta");
+        var filter = new InFilter(nameof(User.Username), "Javier", "Marta");
 
         // Act
         var users = await entitySet.ManyAsync(filter, default);
@@ -105,7 +105,7 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await CreateUsersTableQueryAsync();
         await InsertUsers();
 
-        var filter = new LikeFilter("username", "%v%");
+        var filter = new LikeFilter(nameof(User.Username), "%v%");
 
         // Act
         var users = await entitySet.ManyAsync(filter, default);
@@ -130,7 +130,7 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await CreateUsersTableQueryAsync();
         await InsertUsers();
 
-        var filter = new BetweenFilter("username", "Ana", "Javier");
+        var filter = new BetweenFilter(nameof(User.Username), "Ana", "Javier");
 
         // Act
         var users = await entitySet.ManyAsync(filter, default);
@@ -155,7 +155,7 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await CreateUsersTableQueryAsync();
         await InsertUsers();
 
-        var filter = new GreaterThanFilter("username", "Ivan");
+        var filter = new GreaterThanFilter(nameof(User.Username), "Ivan");
 
         // Act
         var users = await entitySet.ManyAsync(filter, default);
@@ -180,7 +180,7 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await CreateUsersTableQueryAsync();
         await InsertUsers();
 
-        var filter = new LessThanFilter("username", "Marta");
+        var filter = new LessThanFilter(nameof(User.Username), "Marta");
 
         // Act
         var users = await entitySet.ManyAsync(filter, default);
@@ -206,8 +206,8 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await InsertUsers();
 
         var filter = new AndFilter(
-            new EqualsFilter("isActive", true),
-            new LessThanFilter("username", "Marta"));
+            new EqualsFilter(nameof(User.IsActive), true),
+            new LessThanFilter(nameof(User.Username), "Marta"));
 
         // Act
         var users = await entitySet.ManyAsync(filter, default);
@@ -231,8 +231,8 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await InsertUsers();
 
         var filter = new OrFilter(
-            new LikeFilter("username", "%n"),
-            new EqualsFilter("emailAddress", "marta@example.com"));
+            new LikeFilter(nameof(User.Username), "%n"),
+            new EqualsFilter(nameof(User.EmailAddress), "marta@example.com"));
 
         // Act
         var users = await entitySet.ManyAsync(filter, default);
@@ -259,15 +259,15 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
 
         var filter1 = new NotFilter(
             new AndFilter(
-                new EqualsFilter("isActive", true),
-                new LessThanFilter("username", "Marta")
+                new EqualsFilter(nameof(User.IsActive), true),
+                new LessThanFilter(nameof(User.Username), "Marta")
             )
         );
 
         var filter2 = new NotFilter(
             new OrFilter(
-                new LikeFilter("username", "%n"),
-                new EqualsFilter("emailAddress", "marta@example.com")
+                new LikeFilter(nameof(User.Username), "%n"),
+                new EqualsFilter(nameof(User.EmailAddress), "marta@example.com")
             )
         );
 
