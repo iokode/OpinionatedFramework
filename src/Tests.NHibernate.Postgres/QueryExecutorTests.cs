@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Dapper;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Ensuring.Ensurers;
 using IOKode.OpinionatedFramework.Persistence.Queries;
@@ -60,7 +61,11 @@ public class QueryExecutorTests(NHibernateTestsFixture fixture, ITestOutputHelpe
 
 public record CountryCode
 {
-    public string IsoCode { get; }
+    public string IsoCode { get; private set; }
+
+    private CountryCode()
+    {
+    }
 
     public CountryCode(string code)
     {

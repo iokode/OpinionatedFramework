@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -39,22 +38,16 @@ public class ResourceControllersFixture : IAsyncLifetime
                 .BuildConfiguration();
         });
         Container.Services.AddControllers().AddApplicationPart(typeof(ResourceControllersFixture).Assembly);
-        var host = await new HostBuilder()
-            .ConfigureWebHost(webBuilder =>
+        var webHostBuilder = new WebHostBuilder()
+            .ConfigureServices(services => services.AddControllers().AddApplicationPart(typeof(ResourceControllersFixture).Assembly))
+            .Configure(app =>
             {
-                webBuilder
-                    .UseTestServer()
-                    .ConfigureServices(services =>
-                        services.AddControllers().AddApplicationPart(typeof(ResourceControllersFixture).Assembly))
-                    .Configure(app =>
-                    {
-                        app.UseRouting();
-                        app.UseEndpoints(endpoints => endpoints.MapControllers());
-                    });
-            })
-            .StartAsync();
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapControllers());
+            });
 
-        Client = host.GetTestClient();
+        var server = new TestServer(webHostBuilder);
+        Client = server.CreateClient();
 
         Container.Initialize();
     }

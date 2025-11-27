@@ -3,35 +3,42 @@ using IOKode.OpinionatedFramework.Common;
 
 namespace IOKode.OpinionatedFramework.Internals;
 
-public class DictionarySharedDataAccessor(Dictionary<string, object?> dict) : ISharedDataAccessor
+public class DictionarySharedDataAccessor : ISharedDataAccessor
 {
+    private readonly Dictionary<string, object?> dict;
+
+    public DictionarySharedDataAccessor(Dictionary<string, object?> dict)
+    {
+        this.dict = dict;
+    }
+
     public bool Exists(string key)
     {
-        return dict.ContainsKey(key);
+        return this.dict.ContainsKey(key);
     }
 
     public object? Get(string key)
     {
-        return dict[key];
+        return this.dict[key];
     }
 
     public object? GetOrDefault(string key)
     {
-        return dict.GetValueOrDefault(key);
+        return this.dict.GetValueOrDefault(key);
     }
 
     public void Set(string key, object? value)
     {
-        dict[key] = value;
+        this.dict[key] = value;
     }
 
     public void Remove(string key)
     {
-        dict.Remove(key);
+        this.dict.Remove(key);
     }
 
     public IReadOnlyDictionary<string, object?> ToReadonlyDictionary()
     {
-        return dict;
+        return this.dict;
     }
 }

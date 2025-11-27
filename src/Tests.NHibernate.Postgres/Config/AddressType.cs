@@ -79,7 +79,7 @@ public sealed class AddressType : IUserType
 
 class AddressDto
 {
-    public required string Line { get; init; }
-    public required string Region { get; init; }
-    public required string CountryCode { get; init; }
+    public string Line { get; init; }
+    public string Region { get; init; }
+    public string CountryCode { get; init; }
 }

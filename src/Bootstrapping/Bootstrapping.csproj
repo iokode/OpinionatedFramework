@@ -7,7 +7,7 @@
     </PropertyGroup>
     
     <ItemGroup Label="Package references">
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftPackagesVersion)"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0"/>
     </ItemGroup>
 
     <ItemGroup Label="Project references">

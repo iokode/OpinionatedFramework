@@ -14,7 +14,6 @@ public sealed class GoogleCloudStorageFile : File
     private readonly string _bucket;
     public Object Obj { get; }
 
-    public override string Name => Obj.Name.Split("/").Last();
     public GoogleCloudStorageClass StorageClass { get; private init; }
 
     public GoogleCloudStorageFile(StorageClient client, Object obj, string bucket)

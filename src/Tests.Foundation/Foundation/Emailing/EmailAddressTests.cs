@@ -47,9 +47,9 @@ public class EmailAddressTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Parse_EmptyEmailAddress_ThrowsArgumentNullException(string? input)
+    public void Parse_EmptyEmailAddress_ThrowsArgumentNullException(string input)
     {
-        Assert.Throws<ArgumentNullException>(() => EmailAddress.Parse(input!));
+        Assert.Throws<ArgumentNullException>(() => EmailAddress.Parse(input));
     }
 
     [Fact]

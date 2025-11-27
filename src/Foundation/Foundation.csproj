@@ -7,8 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup Label="Package references">
-        <PackageReference Include="Cronos" Version="0.11.1" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftPackagesVersion)"/>
+        <PackageReference Include="Cronos" Version="0.7.1"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0"/>
         <PackageReference Include="NodaTime" Version="3.2.2" />
         <PackageReference Include="Humanizer" Version="2.14.1" />
     </ItemGroup>

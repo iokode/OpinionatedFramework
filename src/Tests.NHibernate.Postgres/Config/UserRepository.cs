@@ -30,26 +30,26 @@ public class UserRepository : Repository
         CancellationToken cancellationToken = default)
     {
         return await GetEntitySet<User>()
-            .SingleOrDefaultAsync(new EqualsFilter(nameof(User.EmailAddress), emailAddress), cancellationToken);
+            .SingleOrDefaultAsync(new EqualsFilter("emailAddress", emailAddress), cancellationToken);
     }
 
     public async Task<User> GetFirstActiveAsync(CancellationToken cancellationToken = default)
     {
-        return await GetEntitySet<User>().FirstAsync(new EqualsFilter(nameof(User.IsActive), true), cancellationToken);
+        return await GetEntitySet<User>().FirstAsync(new EqualsFilter("isActive", true), cancellationToken);
     }
 
     public async Task<User?> GetFirstByNameOrDefaultAsync(string username,
         CancellationToken cancellationToken = default)
     {
         return await GetEntitySet<User>()
-            .FirstOrDefaultAsync(new EqualsFilter(nameof(User.Username), username), cancellationToken);
+            .FirstOrDefaultAsync(new EqualsFilter("username", username), cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<User>> GetMultipleByNameAsync(ICollection<string> usernames,
         CancellationToken cancellationToken = default)
     {
         return await GetEntitySet<User>()
-            .ManyAsync(new InFilter(nameof(User.Username), usernames.ToArray<object>()), cancellationToken);
+            .ManyAsync(new InFilter("username", usernames.ToArray<object>()), cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<User>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -73,7 +73,7 @@ public class ByUsernameSpecification : Specification
 {
     public ByUsernameSpecification(string username)
     {
-        this.AddFilter(new EqualsFilter(nameof(User.Username), username));
-        this.AddFilter(new EqualsFilter(nameof(User.IsActive), true));
+        this.AddFilter(new EqualsFilter("username", username));
+        this.AddFilter(new EqualsFilter("isActive", true));
     }
 }
