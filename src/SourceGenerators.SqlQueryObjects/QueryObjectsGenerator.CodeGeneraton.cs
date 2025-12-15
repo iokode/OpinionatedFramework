@@ -82,8 +82,8 @@ public partial class QueryObjectsGenerator
 
         public string QueryClassAccessor => IsInternal ? "internal" : "public"; 
         public string QueryResultClassName => $"{ClassName}Result";
-        private readonly string _QueryParameterRegex = @"--\s*@parameter\s+(.+?)\s+(\S+)\s*";
-        private readonly string _QueryResultParameterRegex = @"--\s*@result\s+(.+?)\s+(\S+)\s*";
+        private readonly string _QueryParameterRegex = @"--\s*@parameter\s+([^\n]+?)\s+(\S+)\s*";
+        private readonly string _QueryResultParameterRegex = @"--\s*@result\s+([^\n]+?)\s+(\S+)\s*";
         private readonly string _QueryNamespaceParameterRegex = @"--\s*@namespace\s+([\w.]+)";
         private readonly string _QueryUsingRegex = @"--\s*@using\s+([\w.]+)";
         private readonly string _QueryIsSingleResultRegex = @"--\s*@single(?!\w)";
