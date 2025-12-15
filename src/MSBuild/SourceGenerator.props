@@ -3,7 +3,7 @@
         <IsSourceGeneratorProject>true</IsSourceGeneratorProject>
         <TargetFramework>netstandard2.0</TargetFramework>
         <IncludeBuildOutput>false</IncludeBuildOutput>
-        <LangVersion>11</LangVersion>
+        <LangVersion>14</LangVersion>
         <PackageScribanIncludeSource>true</PackageScribanIncludeSource>
         <IncludeSymbols>false</IncludeSymbols>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>

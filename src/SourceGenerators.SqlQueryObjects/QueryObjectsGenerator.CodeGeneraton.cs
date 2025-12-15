@@ -26,36 +26,87 @@ public partial class QueryObjectsGenerator
     {
         public SqlFile SqlFile { get; }
         public ConfigOptions ConfigOptions { get; }
+        
+        public bool IsSingleResult { get; private set; }
+        public bool IsSingleOrDefaultResult { get; private set; }
+        public bool IsAbstract { get; private set; }
+        public bool IsInternal { get; private set; }
+
+        public string[] Usings { get; private set; }
+        public ParameterType[] QueryParameters { get; private set; }
+        public ParameterType[] ResultParameters { get; private set;}
+        public string[] Attributes { get; private set; }
+
+        public string? AbstractQueryParametersString
+        {
+            get;
+            set => field = string.IsNullOrWhiteSpace(value) || value!.Contains("CancellationToken") ? value : value + ", CancellationToken cancellationToken";
+        }
+        public string? AbstractQueryResultString { get; set; }
+
         public string Name => Path.GetFileNameWithoutExtension(SqlFile.FilePath);
         public string ClassName => Name.EndsWith("Query") ? Name : $"{Name}Query";
         public string FileName => $"{ClassName}.g.cs";
 
         public string Namespace => _GetNamespace();
         public string QueryContent => SqlFile.Content;
-        public bool IsSingleResult => Regex.IsMatch(SqlFile.Content, _QueryIsSingleResultRegex);
-        public bool IsSingleOrDefaultResult => Regex.IsMatch(SqlFile.Content, _QueryIsSingleOrDefaultResultRegex);
+        
+        public string QueryParametersString
+        {
+            get
+            {
+                var queryParameters = string.Join(", ", QueryParameters.Select(parameter => $"{parameter.Type} {parameter.CamelCaseName}"));
+                if (!string.IsNullOrWhiteSpace(queryParameters))
+                {
+                    queryParameters += ", ";
+                }
 
-        public string[] Usings;
-        public ParameterType[] QueryParameters;
-        public ParameterType[] ResultParameters;
-        public string[] Attributes;
+                queryParameters += "CancellationToken cancellationToken";
+                return queryParameters;
+            }
+        }
+
+        public string QueryResultString => IsSingleResult
+            ? QueryResultClassName
+            : IsSingleOrDefaultResult
+                ? $"{QueryResultClassName}?"
+                : $"IReadOnlyCollection<{QueryResultClassName}>";
+        
+        public string InvokeParametersString => IsAbstract && !string.IsNullOrWhiteSpace(AbstractQueryParametersString)
+            ? AbstractQueryParametersString!
+            : QueryParametersString;
+
+        public string InvokeResultString => IsAbstract && !string.IsNullOrWhiteSpace(AbstractQueryResultString)
+            ? AbstractQueryResultString!
+            : QueryResultString;
+
+        public string QueryClassAccessor => IsInternal ? "internal" : "public"; 
         public string QueryResultClassName => $"{ClassName}Result";
-        private readonly string _QueryParameterRegex = @"--\s*@parameter\s+(.+)\s+(\S+)\s*\n";
-        private readonly string _QueryResultParameterRegex = @"--\s*@result\s+(.+)\s+(\S+)\s*\n";
+        private readonly string _QueryParameterRegex = @"--\s*@parameter\s+(.+?)\s+(\S+)\s*";
+        private readonly string _QueryResultParameterRegex = @"--\s*@result\s+(.+?)\s+(\S+)\s*";
         private readonly string _QueryNamespaceParameterRegex = @"--\s*@namespace\s+([\w.]+)";
         private readonly string _QueryUsingRegex = @"--\s*@using\s+([\w.]+)";
         private readonly string _QueryIsSingleResultRegex = @"--\s*@single(?!\w)";
         private readonly string _QueryIsSingleOrDefaultResultRegex = @"--\s*@single_or_default";
-        private readonly string _QueryAttributeRegex = @"--\s*@attribute\s+(.+)\s*";
+        private readonly string _QueryAttributeRegex = @"--\s*@attribute\s+([^\n]+)\s*";
+        private readonly string _QueryInternalRegex = @"--\s*@internal\s*";
+        private readonly string _QueryAbstractRegex = @"--\s*@abstract(?:[ \t]+([^->\n]+))?(?:[ \t]*->[ \t]*([^\n]+))?";
 
         public QueryObjectClass(SqlFile sqlFile, ConfigOptions configOptions)
         {
             SqlFile = sqlFile;
             ConfigOptions = configOptions;
+
+            IsSingleResult = Regex.IsMatch(sqlFile.Content, _QueryIsSingleResultRegex);
+            IsSingleOrDefaultResult = Regex.IsMatch(sqlFile.Content, _QueryIsSingleOrDefaultResultRegex);
+            IsAbstract = Regex.IsMatch(sqlFile.Content, _QueryAbstractRegex);
+            IsInternal = Regex.IsMatch(sqlFile.Content, _QueryInternalRegex);
+
             var queryUsingMatches = Regex.Matches(sqlFile.Content, _QueryUsingRegex);
             var queryParameterMatches = Regex.Matches(sqlFile.Content, _QueryParameterRegex);
             var queryResultParameterMatches = Regex.Matches(sqlFile.Content, _QueryResultParameterRegex);
             var queryAttributeMatches = Regex.Matches(sqlFile.Content, _QueryAttributeRegex);
+            var queryAbstractMatches = Regex.Matches(sqlFile.Content, _QueryAbstractRegex);
 
             Usings = queryUsingMatches.Cast<Match>().Select(match => match.Groups[1].Value).ToArray();
             QueryParameters = queryParameterMatches
@@ -75,6 +126,9 @@ public partial class QueryObjectsGenerator
                     Name = SyntaxFactory.ParseName(match.Groups[2].Value).ToString(),
                 })
                 .ToArray();
+
+            AbstractQueryParametersString = queryAbstractMatches.Cast<Match>().FirstOrDefault()?.Groups[1].Value;
+            AbstractQueryResultString = queryAbstractMatches.Cast<Match>().FirstOrDefault()?.Groups[2].Value;
 
             Attributes = queryAttributeMatches
                 .Cast<Match>()
@@ -141,14 +195,14 @@ public partial class QueryObjectsGenerator
         {{~ for attribute in Attributes ~}}
         {{ attribute }}
         {{~ end ~}}
-        public static partial class {{ ClassName }}
+        {{ QueryClassAccessor }} static partial class {{ ClassName }}
         {
             public const string Query =
                 """
                 {{ QueryContent }}
                 """;
 
-            public static async Task<{{ if IsSingleResult }}{{ QueryResultClassName }}{{ else if IsSingleOrDefaultResult }}{{ QueryResultClassName }}?{{ else }}IReadOnlyCollection<{{ QueryResultClassName }}>{{ end }}> InvokeAsync({{ for parameter in QueryParameters }}{{ parameter.Type }} {{ parameter.CamelCaseName }}, {{ end }}CancellationToken cancellationToken)
+            private static async Task<{{ QueryResultString }}> QueryAsync({{ QueryParametersString }})
             {
                 var queryExecutor = Locator.Resolve<IQueryExecutor>();
                 var parameters = new
@@ -167,9 +221,18 @@ public partial class QueryObjectsGenerator
                 {{~ end ~}}
                 return queryResult;
             }
+
+            {{~ if IsAbstract ~}}
+            public static partial Task<{{ InvokeResultString }}> InvokeAsync({{ InvokeParametersString }});
+            {{~ else ~}}
+            public static async Task<{{ InvokeResultString }}> InvokeAsync({{ InvokeParametersString }})
+            {
+                return await QueryAsync({{ for parameter in QueryParameters }}{{ parameter.CamelCaseName }}, {{ end }}cancellationToken);
+            }
+            {{~ end ~}}
         }
 
-        public record {{ QueryResultClassName }}
+        public partial record {{ QueryResultClassName }}
         {
             {{~ for parameter in ResultParameters ~}}
             public required {{ parameter.Type }} {{ parameter.PascalCaseName }} { get; init; }
