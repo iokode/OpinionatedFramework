@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup Label="Build settings">
         <TargetFramework>net10.0</TargetFramework>
-        <Version>0.28.0-dev</Version>
+        <Version>0.29.0-dev</Version>
         <EnsuringVersion>1.2.2</EnsuringVersion>
         <Nullable>enable</Nullable>
         <AssemblyName>IOKode.OpinionatedFramework.$(MSBuildProjectName)</AssemblyName>
