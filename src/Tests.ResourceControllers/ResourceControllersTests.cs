@@ -320,4 +320,20 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal($"enabled-by-code-{code}", content);
     }
+    
+    [Fact]
+    public async Task ActionRenameUser_ByName_Success()
+    {
+        // Arrange
+        var name = "Angel";
+
+        // Act
+        var response = await this.client.PatchAsync($"/users/by-name/{name}/rename",
+            new StringContent(@"""Miguel""", Encoding.UTF8, "application/json"));
+
+        // Assert
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("Miguel", content);
+    }
 }

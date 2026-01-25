@@ -23,7 +23,7 @@ public partial class SourceGenerator
             .Cast<ResourceData>();
 
         var controllersData = resourcesData
-            .GroupBy(command => command.Resource.Kebaberize())
+            .GroupBy(command => command.Resource.Pluralize().Kebaberize())
             .Select(group => new ResourceControllerData
             {
                 AssemblyNamespace = generatorData.AssemblyNamespace,

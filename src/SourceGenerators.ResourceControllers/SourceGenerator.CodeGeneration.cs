@@ -62,7 +62,25 @@ public partial class SourceGenerator
         public Parameter[] InvocationParametersWithoutCancellationToken => InvocationParameters.Where(param => param.Name != "cancellationToken").ToArray();
         public virtual Parameter[] ControllerMethodParameters => InvocationParameters.Any(parameter => parameter.Type == "System.Threading.CancellationToken")
             ? InvocationParameters
-            : InvocationParameters.Concat(new[] {new Parameter {Name = "cancellationToken", Type = "System.Threading.CancellationToken"}}).ToArray();
+            : InvocationParameters.Concat([new Parameter {Name = "cancellationToken", Type = "System.Threading.CancellationToken"}]).ToArray();
+        
+        public string ControllerMethodParametersString => string.Join(", ", ControllerMethodParameters.Select((parameter, idx) =>
+            ResourceType switch
+            {
+                ResourceType.List when parameter.Type != "System.Threading.CancellationToken"
+                    => $"[FromQuery] {parameter.Type} {parameter.Name}",
+                ResourceType.Update or
+                    ResourceType.Replace or
+                    ResourceType.Delete or
+                    ResourceType.Action
+                    when idx != 0 
+                         && idx == ControllerMethodParameters
+                             .Select((p, i) => new { p, i })
+                             .LastOrDefault(x => x.p.Type != "System.Threading.CancellationToken")?.i
+                    => $"[FromBody] {parameter.Type} {parameter.Name}",
+                _ => $"{parameter.Type} {parameter.Name}"
+            }
+        ));
         public string? ConstructorKeyName => InvocationParametersWithoutCancellationToken.Length > 0 && ResourceType != ResourceType.List ? InvocationParametersWithoutCancellationToken[0].Name : null;
         public string FullClassName => $"{Namespace}.{ClassName}";
         public bool ThereIsResourceId => InvocationParametersWithoutCancellationToken.Any();
@@ -180,7 +198,7 @@ public partial class SourceGenerator
             {{~ for resource in ResourcesData ~}}
             {{ resource.HttpAttribute }}
             [SourceCommand("{{ resource.FullClassName }}")]
-            public async Task<IActionResult> {{ resource.ControllerMethodName }}({{ for parameter in resource.ControllerMethodParameters }}{{ if for.first && resource.ResourceType == 'List' }}[FromQuery] {{ end }}{{ parameter.Type }} {{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }})
+            public async Task<IActionResult> {{ resource.ControllerMethodName }}({{ resource.ControllerMethodParametersString }})
             {
                 try
                 {
