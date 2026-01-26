@@ -232,7 +232,7 @@ public partial class QueryObjectsGenerator
             {{~ end ~}}
         }
 
-        public partial record {{ QueryResultClassName }}
+        {{ QueryClassAccessor }} partial record {{ QueryResultClassName }}
         {
             {{~ for parameter in ResultParameters ~}}
             public required {{ parameter.Type }} {{ parameter.PascalCaseName }} { get; init; }
