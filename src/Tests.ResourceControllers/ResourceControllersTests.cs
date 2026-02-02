@@ -9,6 +9,9 @@ using IOKode.OpinionatedFramework.AspNetCoreIntegrations;
 using IOKode.OpinionatedFramework.Tests.ResourceControllers.Config;
 using IOKode.OpinionatedFramework.Tests.ResourceControllers.Resources.Controllers;
 using IOKode.OpinionatedFramework.Tests.Resources;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -60,7 +63,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.GetAsync($"/users/{id}");
 
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(id.ToString(), content);
     }
@@ -75,11 +78,11 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.GetAsync($"/users/by-code/{id}");
 
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<int>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(id.ToString(), content);
+        Assert.Equal(id, content);
     }
-    
+
     [Fact]
     public async Task RetrieveUser_Single_Success()
     {
@@ -87,7 +90,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.GetAsync("/user");
 
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("single-user", content);
     }
@@ -129,7 +132,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.GetAsync($"/orders/{id}");
 
         // Assert
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal($"order-{id}", result);
     }
@@ -157,7 +160,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(new[] {1, 2, 3}, content);
     }
-    
+
     [Fact]
     public async Task ListUsers_ByKeyAndFilters_Success()
     {
@@ -169,7 +172,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(new[] {1}, content);
     }
-    
+
     [Fact]
     public async Task ListProducts_FromQuery_Success()
     {
@@ -179,7 +182,8 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Assert
         var content = await response.Content.ReadFromJsonAsync<ListProductsQueryResult[]>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(["product1", "product2", "product3"], content?.Select(result => result.Name) ?? []);;
+        Assert.Equal(["product1", "product2", "product3"], content?.Select(result => result.Name) ?? []);
+        ;
     }
 
     [Fact]
@@ -211,7 +215,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.PatchAsync($"/users/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal($"updated-{id}", content);
     }
@@ -226,7 +230,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.PatchAsync($"/users/by-code/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal($"updated-{id}", content);
     }
@@ -239,7 +243,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.PutAsync($"/users/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Act
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<string>();
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -256,7 +260,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.PutAsync($"/users/by-code/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal($"replaced-{id}", content);
     }
@@ -271,7 +275,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.DeleteAsync($"/users/{id}");
 
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal($"deleted-{id}", content);
     }
@@ -286,7 +290,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.DeleteAsync($"/users/by-code/{id}");
 
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal($"deleted-{id}", content);
     }
@@ -301,7 +305,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.PatchAsync($"/users/{id}/enable", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal($"enabled-{id}", content);
     }
@@ -316,11 +320,11 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.PatchAsync($"/users/by-code/{code}/enable", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal($"enabled-by-code-{code}", content);
     }
-    
+
     [Fact]
     public async Task ActionRenameUser_ByName_Success()
     {
@@ -332,8 +336,35 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
             new StringContent(@"""Miguel""", Encoding.UTF8, "application/json"));
 
         // Assert
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("Miguel", content);
+    }
+
+    [Fact]
+    [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(OpenApiDocument))]
+    public async Task OpenApi_Success()
+    {
+        // Act
+        var response = await this.client.GetAsync("/openapi/v1.json");
+
+        // Assert
+        var stream = await response.Content.ReadAsStreamAsync();
+        var document = (await OpenApiDocument.LoadAsync(stream)).Document!;
+        var responses = document.Paths["/orders/do-action"].Operations![HttpMethod.Patch].Responses!;
+
+        Assert.Equal(3, responses.Count);
+
+        var content204 = responses["204"].Content!;
+        var content404 = responses["404"].Content!;
+        var content500 = responses["500"].Content!;
+        Assert.NotNull(responses["204"]);
+        Assert.Null(content204);
+
+        Assert.Single(content404);
+        Assert.True(content404.ContainsKey("application/json"));
+
+        Assert.Single(content500);
+        Assert.True(content500.ContainsKey("application/json"));
     }
 }

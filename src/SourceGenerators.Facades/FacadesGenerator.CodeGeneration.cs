@@ -97,7 +97,7 @@ public partial class FacadesGenerator
 
                         var methodName = methodDeclarationSyntax.Identifier.Text;
                         var methodReturnType = methodSymbol.ReturnType.ToDisplayString();
-                        var docComment = SourceGenerationHelper.GetMethodDocComment(methodSymbol);
+                        var docComment = SourceGenerationHelper.GetDocComment(methodSymbol);
                         var methodParameters = methodDeclarationSyntax.ParameterList.Parameters
                             .Select(parameterSyntax => (IParameterSymbol?) partialSemanticModel.GetDeclaredSymbol(parameterSyntax))
                             .Where(parameterSymbol => parameterSymbol is not null)

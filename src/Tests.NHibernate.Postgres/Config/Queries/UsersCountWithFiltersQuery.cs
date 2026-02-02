@@ -1,7 +1,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Queries;
+
+public record UsersFilters
+{
+    public string? Name { get; init; }
+    public Address? Address { get; init; }
+}
 
 public partial class UsersCountWithFiltersQuery
 {

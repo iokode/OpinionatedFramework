@@ -1,7 +1,7 @@
 -- @generate
 -- @using IOKode.OpinionatedFramework.Resources.Attributes
 -- @attribute [RetrieveResource("active user", key: "name")]
--- @parameter int id
+-- @parameter string id
 -- @result string name
 -- @single
 

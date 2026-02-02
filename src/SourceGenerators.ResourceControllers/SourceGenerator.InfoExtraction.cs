@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Humanizer;
+using IOKode.OpinionatedFramework.SourceGenerators.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -52,12 +53,14 @@ public partial class SourceGenerator
                 ClassName = typeSymbol.Name,
                 Namespace = typeSymbol.ContainingNamespace.ToDisplayString(),
                 Resource = (string) resourceAttribute.ConstructorArguments[0].Value!,
+                DocComment = SourceGenerationHelper.GetDocComment(typeSymbol),
                 InvocationParameters = ((IMethodSymbol) typeSymbol.GetMembers("InvokeAsync").Single())
                     .Parameters.Select(param => new Parameter
                     {
                         Name = param.Name,
                         Type = param.Type.ToDisplayString()
                     }).ToArray(),
+                MethodReturnType = ((IMethodSymbol) typeSymbol.GetMembers("InvokeAsync").Single()).ReturnType.ToDisplayString(),
                 KeyName = resourceAttribute.ConstructorArguments.Length > 1 ? resourceAttribute.ConstructorArguments[1].Value as string : null,
             };
             return queryData;
@@ -73,6 +76,7 @@ public partial class SourceGenerator
                 ClassName = typeSymbol.Name,
                 Namespace = typeSymbol.ContainingNamespace.ToDisplayString(),
                 Resource = (string) resourceAttribute.ConstructorArguments[0].Value!,
+                DocComment = SourceGenerationHelper.GetDocComment(typeSymbol),
                 GenericArgument = ((INamedTypeSymbol) baseCommand!).TypeArguments.FirstOrDefault()?.ToDisplayString(),
                 InvocationParameters = ((INamedTypeSymbol) typeSymbol).InstanceConstructors
                     .First().Parameters

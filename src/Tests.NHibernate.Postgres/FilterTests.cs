@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
 using Dapper;
-using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
+using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Entities;
 using Xunit;
 using Xunit.Abstractions;
 using NotFilter = IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters.NotFilter;
@@ -29,7 +29,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
-        await CreateUsersTableQueryAsync();
         await InsertUsers();
 
         var filter = new EqualsFilter(nameof(User.EmailAddress), "marta@example.com");
@@ -39,9 +38,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
 
         // Assert
         Assert.Collection(users, user => Assert.Equal("Marta", user.Username));
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -52,7 +48,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
-        await CreateUsersTableQueryAsync();
         await InsertUsers();
 
         var filter = new NotEqualsFilter(nameof(User.Username), "Ivan");
@@ -64,9 +59,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         Assert.Collection(users,
             user => Assert.Equal("Marta", user.Username),
             user => Assert.Equal("Javier", user.Username));
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -77,7 +69,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
-        await CreateUsersTableQueryAsync();
         await InsertUsers();
 
         var filter = new InFilter(nameof(User.Username), "Javier", "Marta");
@@ -89,9 +80,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         Assert.Collection(users,
             user => Assert.Equal("Marta", user.Username),
             user => Assert.Equal("Javier", user.Username));
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -102,7 +90,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
-        await CreateUsersTableQueryAsync();
         await InsertUsers();
 
         var filter = new LikeFilter(nameof(User.Username), "%v%");
@@ -114,9 +101,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         Assert.Collection(users,
             user => Assert.Equal("Ivan", user.Username),
             user => Assert.Equal("Javier", user.Username));
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -127,7 +111,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
-        await CreateUsersTableQueryAsync();
         await InsertUsers();
 
         var filter = new BetweenFilter(nameof(User.Username), "Ana", "Javier");
@@ -139,9 +122,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         Assert.Collection(users,
             user => Assert.Equal("Ivan", user.Username),
             user => Assert.Equal("Javier", user.Username));
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -152,7 +132,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
-        await CreateUsersTableQueryAsync();
         await InsertUsers();
 
         var filter = new GreaterThanFilter(nameof(User.Username), "Ivan");
@@ -164,9 +143,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         Assert.Collection(users,
             user => Assert.Equal("Marta", user.Username),
             user => Assert.Equal("Javier", user.Username));
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -177,7 +153,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
-        await CreateUsersTableQueryAsync();
         await InsertUsers();
 
         var filter = new LessThanFilter(nameof(User.Username), "Marta");
@@ -189,9 +164,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         Assert.Collection(users,
             user => Assert.Equal("Ivan", user.Username),
             user => Assert.Equal("Javier", user.Username));
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -202,7 +174,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
-        await CreateUsersTableQueryAsync();
         await InsertUsers();
 
         var filter = new AndFilter(
@@ -214,9 +185,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
 
         // Assert
         Assert.Collection(users, user => Assert.Equal("Ivan", user.Username));
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -227,7 +195,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
-        await CreateUsersTableQueryAsync();
         await InsertUsers();
 
         var filter = new OrFilter(
@@ -241,9 +208,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         Assert.Collection(users,
             user => Assert.Equal("Ivan", user.Username),
             user => Assert.Equal("Marta", user.Username));
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -254,7 +218,6 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
         var entitySet = unitOfWork.GetEntitySet<User>();
 
-        await CreateUsersTableQueryAsync();
         await InsertUsers();
 
         var filter1 = new NotFilter(
@@ -280,8 +243,5 @@ public class FilterTests(NHibernateTestsFixture fixture, ITestOutputHelper outpu
             user => Assert.Equal("Marta", user.Username),
             user => Assert.Equal("Javier", user.Username));
         Assert.Collection(users2, user => Assert.Equal("Javier", user.Username));
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 }

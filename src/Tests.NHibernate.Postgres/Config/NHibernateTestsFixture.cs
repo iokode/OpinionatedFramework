@@ -9,6 +9,7 @@ using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 using IOKode.OpinionatedFramework.Logging;
 using IOKode.OpinionatedFramework.Tests.Helpers;
 using IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;
@@ -39,7 +40,7 @@ public class NHibernateTestsFixture : IAsyncLifetime
         Container.Services.AddNHibernateWithPostgres(cfg =>
         {
             Configuration = cfg;
-            cfg.AddXmlFile("Config/user.hbm.xml");
+            cfg.AddXmlFile("Config/Entities/user.hbm.xml");
             Fluently.Configure(cfg)
                 .Database(PostgreSQLConfiguration.PostgreSQL83
                     .ConnectionString(connectionString))
@@ -47,6 +48,7 @@ public class NHibernateTestsFixture : IAsyncLifetime
         });
         Container.Initialize();
         UserTypeMapper.AddUserType<Address, AddressType>();
+        UserTypeMapper.AddUserType<CountryCode, CountryCodeType>();
     }
 
     public async Task DisposeAsync()

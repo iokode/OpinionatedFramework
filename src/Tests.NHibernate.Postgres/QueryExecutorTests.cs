@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Dapper;
-using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Ensuring.Ensurers;
 using IOKode.OpinionatedFramework.Persistence.Queries;
@@ -17,21 +16,16 @@ public class QueryExecutorTests(NHibernateTestsFixture fixture, ITestOutputHelpe
     public async Task QueryWithComplexValueObject()
     {
         // Arrange
-        UserTypeMapper.AddUserType<CountryCode, CountryCodeType>();
         var queryExecutor = Locator.Resolve<IQueryExecutor>();
-        await npgsqlClient.ExecuteAsync("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, country_code VARCHAR(3) NOT NULL);");
-        await npgsqlClient.ExecuteAsync("INSERT INTO users (id, country_code) VALUES (1, 'EST');");
+        await npgsqlClient.ExecuteAsync("INSERT INTO users (id, country_code) VALUES ('1', 'EST');");
 
         // Act
-        var result = await queryExecutor.QuerySingleAsync<UserResult>("select * from users where id = 1");
+        var result = await queryExecutor.QuerySingleAsync<UserResult>("select * from users where id = '1'");
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(1, result.Id);
+        Assert.Equal("1", result.Id);
         Assert.Equal("EST", result.CountryCode.IsoCode);
-
-        // Post Assert
-        await npgsqlClient.ExecuteAsync("DROP TABLE users;");
     }
     
     [Fact]
@@ -39,22 +33,15 @@ public class QueryExecutorTests(NHibernateTestsFixture fixture, ITestOutputHelpe
     {
         // Arrange
         var queryExecutor = Locator.Resolve<IQueryExecutor>();
-        await npgsqlClient.ExecuteAsync("CREATE TYPE address_type AS (line VARCHAR(100), region VARCHAR(100), country_code VARCHAR(3));");
-        await npgsqlClient.ReloadTypesAsync();
-        await npgsqlClient.ExecuteAsync("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, address address_type NOT NULL);");
-        await npgsqlClient.ExecuteAsync("INSERT INTO users (id, address) VALUES (1, ('Fake St. 123', 'Springfield', 'USA'));");
+        await npgsqlClient.ExecuteAsync("INSERT INTO users (id, address) VALUES ('1', ('Fake St. 123', 'Springfield', 'USA'));");
 
         // Act
-        var result = await queryExecutor.QuerySingleAsync<UserResult2>("select * from users where id = 1");
+        var result = await queryExecutor.QuerySingleAsync<UserResult2>("select * from users where id = '1'");
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(1, result.Id);
+        Assert.Equal("1", result.Id);
         Assert.Equal("USA", result.Address.CountryCode.IsoCode);
-
-        // Post Assert
-        await npgsqlClient.ExecuteAsync("DROP TABLE users;");
-        await npgsqlClient.ExecuteAsync("DROP TYPE address_type;");
     }
 }
 
@@ -89,12 +76,12 @@ public record Address
 
 public record UserResult
 {
-    public required int Id { get; init; }
+    public required string Id { get; init; }
     public required CountryCode CountryCode { get; init; }
 }
 
 public record UserResult2
 {
-    public required int Id { get; init; }
+    public required string Id { get; init; }
     public required Address Address { get; init; }
 }

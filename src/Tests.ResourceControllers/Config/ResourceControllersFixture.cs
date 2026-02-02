@@ -11,6 +11,7 @@ using IOKode.OpinionatedFramework.Tests.Helpers;
 using IOKode.OpinionatedFramework.Tests.Helpers.Containers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,18 +39,33 @@ public class ResourceControllersFixture : IAsyncLifetime
                     .ConnectionString(connectionString))
                 .BuildConfiguration();
         });
-        Container.Services.AddControllers().AddApplicationPart(typeof(ResourceControllersFixture).Assembly);
+        Container.Services.AddControllers(options =>
+        {
+            options.Filters.Add(new ProducesAttribute("application/json"));
+        }).AddApplicationPart(typeof(ResourceControllersFixture).Assembly);
+
+        Container.Services.AddOpenApi("v1");
         var host = await new HostBuilder()
             .ConfigureWebHost(webBuilder =>
             {
                 webBuilder
                     .UseTestServer()
                     .ConfigureServices(services =>
-                        services.AddControllers().AddApplicationPart(typeof(ResourceControllersFixture).Assembly))
+                    {
+                        services.AddControllers(options =>
+                        {
+                            options.Filters.Add(new ProducesAttribute("application/json"));
+                        }).AddApplicationPart(typeof(ResourceControllersFixture).Assembly);
+                        services.AddOpenApi("v1");
+                    })
                     .Configure(app =>
                     {
                         app.UseRouting();
-                        app.UseEndpoints(endpoints => endpoints.MapControllers());
+                        app.UseEndpoints(endpoints =>
+                        {
+                            endpoints.MapControllers();
+                            endpoints.MapOpenApi();
+                        });
                     });
             })
             .StartAsync();

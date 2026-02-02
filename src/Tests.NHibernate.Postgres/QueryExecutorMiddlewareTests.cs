@@ -26,7 +26,6 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
     public async Task MiddlewareIsInvoked_Success()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
 
         CounterMiddleware.Counter = 0;
@@ -39,16 +38,12 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         Assert.Equal(1, CounterMiddleware.Counter);
         Assert.Single(result);
         Assert.Equal("Test User", result.First().Name);
-
-        // Cleanup
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task MiddlewarePipelineExecutesInOrder_Success()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
 
         ExecutedMiddlewares.Clear();
@@ -66,16 +61,12 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         Assert.Equal(2, ExecutedMiddlewares.Count);
         Assert.Equal(new List<string> { "Counter", "Counter2" }, ExecutedMiddlewares);
         Assert.Single(result);
-
-        // Cleanup
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task MiddlewareCanModifyQuery_Success()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Another User', 'another@example.com', true);");
 
@@ -87,16 +78,12 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         // Assert
         Assert.Single(result);
         Assert.Equal("Test User", result.First().Name);
-
-        // Cleanup
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task MiddlewareCanHandleExceptions_Success()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
 
         ExceptionHandlingMiddleware.ExceptionHandled = false;
         var queryExecutor = CreateExecutor(new ExceptionHandlingMiddleware());
@@ -106,16 +93,12 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
 
         // Assert
         Assert.True(ExceptionHandlingMiddleware.ExceptionHandled);
-
-        // Cleanup
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task MiddlewareCanProcessDirectives_Success()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Another User', 'another@example.com', false);");
 
@@ -133,16 +116,12 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         Assert.Single(result);
         Assert.Equal("Test User", result.First().Name);
         Assert.True(result.First().IsActive);
-
-        // Cleanup
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task ComplexMiddlewarePipeline_Success()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Another User', 'another@example.com', false);");
 
@@ -171,16 +150,12 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         Assert.Contains("Counter", ExecutedMiddlewares);
         Assert.Contains("Logging: Before", ExecutedMiddlewares);
         Assert.Contains("Logging: After", ExecutedMiddlewares);
-
-        // Cleanup
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task MiddlewareWithTransaction_Success()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
 
         var queryExecutor = CreateExecutor(new TransactionAwareMiddleware());
         await using var transaction = await npgsqlClient.BeginTransactionAsync();
@@ -205,16 +180,12 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         // Assert the data was not committed
         var afterRollback = await npgsqlClient.QueryAsync<UserDto>("SELECT id, name, email, is_active FROM Users");
         Assert.Empty(afterRollback);
-
-        // Cleanup
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task MiddlewareWithParameters_Success()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Another User', 'another@example.com', true);");
 
@@ -230,16 +201,12 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         Assert.Equal("Test User", result.First().Name);
         Assert.True(ParameterLoggingMiddleware.ParametersPresent);
         Assert.Equal("1", ParameterLoggingMiddleware.LoggedParameterId);
-
-        // Cleanup
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task SameScopedIsUsedOverMiddlewarePipeline_Success()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
 
         var queryExecutor = CreateExecutor(new ScopeServiceMiddleware1(), new ScopeServiceMiddleware2());
@@ -259,9 +226,6 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         await queryExecutor.QueryAsync<UserDto>("SELECT id, name, email, is_active FROM Users WHERE id = '1'");
         Assert.NotEqual(firstExecutionGuid, ScopeServiceMiddleware1.Id);
         Assert.Equal(ScopeServiceMiddleware1.Id, ScopeServiceMiddleware2.Id);
-
-        // Cleanup
-        await DropUsersTableQueryAsync();
     }
 
     public class UserDto

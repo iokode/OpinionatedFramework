@@ -5,6 +5,7 @@
 
     <PropertyGroup>
         <ResourcesDllAssemblies>IOKode.OpinionatedFramework.Tests.Resources</ResourcesDllAssemblies>
+        <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.OpenApi.Generated</InterceptorsNamespaces>
     </PropertyGroup>
 
     <ItemGroup>
