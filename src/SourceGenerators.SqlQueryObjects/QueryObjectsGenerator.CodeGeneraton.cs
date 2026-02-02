@@ -31,11 +31,15 @@ public partial class QueryObjectsGenerator
         public bool IsSingleOrDefaultResult { get; private set; }
         public bool IsAbstract { get; private set; }
         public bool IsInternal { get; private set; }
+        public bool HasCount { get; private set; }
 
         public string[] Usings { get; private set; }
         public ParameterType[] QueryParameters { get; private set; }
         public ParameterType[] ResultParameters { get; private set;}
         public string[] Attributes { get; private set; }
+        public string CountName { get; private set; } = "count";
+        public string? QueryResultName { get; private set; }
+        public string PascalCountName => CountName.Pascalize();
 
         public string? AbstractQueryParametersString
         {
@@ -70,7 +74,9 @@ public partial class QueryObjectsGenerator
             ? QueryResultClassName
             : IsSingleOrDefaultResult
                 ? $"{QueryResultClassName}?"
-                : $"IReadOnlyCollection<{QueryResultClassName}>";
+                : HasCount
+                    ? $"QueryResultsWithCount<{QueryResultClassName}>"
+                    : $"IReadOnlyCollection<{QueryResultClassName}>";
         
         public string InvokeParametersString => IsAbstract && !string.IsNullOrWhiteSpace(AbstractQueryParametersString)
             ? AbstractQueryParametersString!
@@ -81,16 +87,18 @@ public partial class QueryObjectsGenerator
             : QueryResultString;
 
         public string QueryClassAccessor => IsInternal ? "internal" : "public"; 
-        public string QueryResultClassName => $"{ClassName}Result";
-        private readonly string _QueryParameterRegex = @"--\s*@parameter\s+([^\n]+?)\s+(\S+)\s*";
-        private readonly string _QueryResultParameterRegex = @"--\s*@result\s+([^\n]+?)\s+(\S+)\s*";
-        private readonly string _QueryNamespaceParameterRegex = @"--\s*@namespace\s+([\w.]+)";
-        private readonly string _QueryUsingRegex = @"--\s*@using\s+([\w.]+)";
+        public string QueryResultClassName => QueryResultName ?? $"{ClassName}Result";
+        private readonly string _QueryParameterRegex = @"--\s*@parameter[ \t]([^\n]+)[ \t]+(\S+)";
+        private readonly string _QueryResultParameterRegex = @"--\s*@result[ \t]([^\n]+)[ \t]+(\S+)";
+        private readonly string _QueryNamespaceParameterRegex = @"--\s*@namespace[ \t]+(\S+)";
+        private readonly string _QueryUsingRegex = @"--\s*@using[ \t]+([^\n]+)";
         private readonly string _QueryIsSingleResultRegex = @"--\s*@single(?!\w)";
         private readonly string _QueryIsSingleOrDefaultResultRegex = @"--\s*@single_or_default";
-        private readonly string _QueryAttributeRegex = @"--\s*@attribute\s+([^\n]+)\s*";
-        private readonly string _QueryInternalRegex = @"--\s*@internal\s*";
+        private readonly string _QueryAttributeRegex = @"--\s*@attribute[ \t]([^\n]+)\s*";
+        private readonly string _QueryInternalRegex = @"--\s*@internal";
         private readonly string _QueryAbstractRegex = @"--\s*@abstract(?:[ \t]+([^->\n]+))?(?:[ \t]*->[ \t]*([^\n]+))?";
+        private readonly string _QueryCountRegex = @"--\s*@count(?:[ \t]+(\S+))?";
+        private readonly string _QueryResultNameRegex = @"--\s*@query_result_name[ \t]+([\S]+)";
 
         public QueryObjectClass(SqlFile sqlFile, ConfigOptions configOptions)
         {
@@ -107,6 +115,8 @@ public partial class QueryObjectsGenerator
             var queryResultParameterMatches = Regex.Matches(sqlFile.Content, _QueryResultParameterRegex);
             var queryAttributeMatches = Regex.Matches(sqlFile.Content, _QueryAttributeRegex);
             var queryAbstractMatches = Regex.Matches(sqlFile.Content, _QueryAbstractRegex);
+            var queryCountMatch = Regex.Match(sqlFile.Content, _QueryCountRegex);
+            var queryResultNameMatch = Regex.Match(sqlFile.Content, _QueryResultNameRegex);
 
             Usings = queryUsingMatches.Cast<Match>().Select(match => match.Groups[1].Value).ToArray();
             QueryParameters = queryParameterMatches
@@ -143,6 +153,14 @@ public partial class QueryObjectsGenerator
                 .Where(attribute => !string.IsNullOrWhiteSpace(attribute))
                 .Cast<string>()
                 .ToArray();
+
+            HasCount = queryCountMatch.Success;
+            var countName = queryCountMatch.Groups[1].Value;
+            if (HasCount && !string.IsNullOrWhiteSpace(countName))
+            {
+                CountName = countName;
+            }
+            QueryResultName = queryResultNameMatch.Success ? queryResultNameMatch.Groups[1].Value : null;
         }
 
         private string _GetNamespace()
@@ -217,8 +235,18 @@ public partial class QueryObjectsGenerator
                 {{~ else if IsSingleOrDefaultResult ~}}
                 var queryResult = await queryExecutor.QuerySingleOrDefaultAsync<{{ QueryResultClassName }}>(Query, parameters, null, cancellationToken);
                 {{~ else ~}}
+                {{~ if HasCount ~}}
+                var queryResultsWithCount = await queryExecutor.QueryAsync<{{ QueryResultClassName }}WithCount>(Query, parameters, null, cancellationToken);
+                var queryResult = new {{ QueryResultString }}
+                {
+                    Results = queryResultsWithCount.Select(result => MapResultWithCount(result)).ToList(),
+                    Count = queryResultsWithCount.FirstOrDefault()?.{{ PascalCountName }} ?? 0
+                };
+                {{~ else ~}}
                 var queryResult = await queryExecutor.QueryAsync<{{ QueryResultClassName }}>(Query, parameters, null, cancellationToken);
                 {{~ end ~}}
+                {{~ end ~}}
+
                 return queryResult;
             }
 
@@ -228,6 +256,26 @@ public partial class QueryObjectsGenerator
             public static async Task<{{ InvokeResultString }}> InvokeAsync({{ InvokeParametersString }})
             {
                 return await QueryAsync({{ for parameter in QueryParameters }}{{ parameter.CamelCaseName }}, {{ end }}cancellationToken);
+            }
+            {{~ end ~}}
+            
+            {{~ if HasCount ~}}
+            private static {{ QueryResultClassName }} MapResultWithCount({{ QueryResultClassName }}WithCount resultWithCount)
+            { 
+                return new {{ QueryResultClassName }}
+                {
+                    {{~ for parameter in ResultParameters ~}}
+                    {{ parameter.PascalCaseName }} = resultWithCount.{{ parameter.PascalCaseName }},
+                    {{~ end ~}}
+                };
+            }
+
+            private partial record {{ QueryResultClassName }}WithCount
+            {
+                {{~ for parameter in ResultParameters ~}}
+                public required {{ parameter.Type }} {{ parameter.PascalCaseName }} { get; init; }
+                {{~ end ~}}
+                public required int {{ PascalCountName }} { get; init; }
             }
             {{~ end ~}}
         }
