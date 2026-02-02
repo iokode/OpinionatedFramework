@@ -2,9 +2,8 @@
 -- @using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config
 -- @parameter string? name
 -- @parameter Address? address
--- @result int count
 -- @abstract UsersFilters? filters -> int
--- @single
+-- @count
 
 select count(*) as "count"
 from users

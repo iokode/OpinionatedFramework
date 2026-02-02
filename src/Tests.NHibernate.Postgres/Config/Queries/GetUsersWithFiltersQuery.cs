@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Queries;
 
 public static partial class GetUsersWithFiltersQuery
 {

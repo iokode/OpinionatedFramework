@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Queries;
 
 internal partial class ListUsersByDescendingIdQuery
 {

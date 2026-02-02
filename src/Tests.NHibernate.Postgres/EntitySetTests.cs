@@ -6,6 +6,7 @@ using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
+using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Entities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +22,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var sessionFactory = configuration.BuildSessionFactory();
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', false);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('3', 'Javier', 'javier@example.com', false);");
@@ -47,9 +47,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         {
             await repository.GetByIdAsync("4", CancellationToken.None);
         });
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
     
     [Fact]
@@ -59,7 +56,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var sessionFactory = configuration.BuildSessionFactory();
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         var repository = unitOfWork.GetRepository<UserRepository>();
 
@@ -70,9 +66,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         Assert.Equal("Ivan", user.Username);
         Assert.Equal("ivan@example.com", user.EmailAddress);
         Assert.True(user.IsActive);
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -82,7 +75,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var sessionFactory = configuration.BuildSessionFactory();
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Ivan', 'ivan@example.com', true);");
         var repository = unitOfWork.GetRepository<UserRepository>();
@@ -90,9 +82,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         // Act and Assert
         await Assert.ThrowsAsync<NonUniqueResultException>(async () => { await repository.GetByUsernameAsync("Ivan", CancellationToken.None); });
         await Assert.ThrowsAsync<EmptyResultException>(async () => { await repository.GetByUsernameAsync("Marta", CancellationToken.None); });
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -102,7 +91,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var sessionFactory = configuration.BuildSessionFactory();
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
 
         // Act
@@ -115,9 +103,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         Assert.Equal("ivan@example.com", user.EmailAddress);
         Assert.True(user.IsActive);
         Assert.Null(userNull);
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -127,7 +112,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var sessionFactory = configuration.BuildSessionFactory();
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Ivan', 'ivan@example.com', true);");
         var repository = unitOfWork.GetRepository<UserRepository>();
@@ -137,9 +121,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         Assert.Null(user);
 
         await Assert.ThrowsAsync<NonUniqueResultException>(async () => { await repository.GetByEmailAddressOrDefaultAsync("ivan@example.com", CancellationToken.None); });
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -149,7 +130,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var sessionFactory = configuration.BuildSessionFactory();
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', true);");
         var repository = unitOfWork.GetRepository<UserRepository>();
@@ -161,9 +141,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         Assert.Equal("Ivan", user.Username);
         Assert.Equal("ivan@example.com", user.EmailAddress);
         Assert.True(user.IsActive);
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -173,15 +150,11 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var sessionFactory = configuration.BuildSessionFactory();
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', false);");
         var repository = unitOfWork.GetRepository<UserRepository>();
 
         // Act and Assert
         await Assert.ThrowsAsync<EmptyResultException>(async () => { await repository.GetFirstActiveAsync(CancellationToken.None); });
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -191,7 +164,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var sessionFactory = configuration.BuildSessionFactory();
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Ivan', 'ivan2@example.com', false);");
         var repository = unitOfWork.GetRepository<UserRepository>();
@@ -205,9 +177,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         Assert.Equal("ivan@example.com", user.EmailAddress);
         Assert.True(user.IsActive);
         Assert.Null(userNull);
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -217,7 +186,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var sessionFactory = configuration.BuildSessionFactory();
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', false);");
         var repository = unitOfWork.GetRepository<UserRepository>();
@@ -231,9 +199,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         Assert.Equal("Ivan", users.ToArray()[0].Username);
         Assert.Equal("Marta", users.ToArray()[1].Username);
         Assert.Empty(usersEmpty);
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -243,7 +208,6 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         var sessionFactory = configuration.BuildSessionFactory();
         await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
 
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Marta', 'marta@example.com', false);");
         var repository = unitOfWork.GetRepository<UserRepository>();
@@ -255,8 +219,5 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         Assert.Equal(2, users.Count);
         Assert.Equal("Ivan", users.ToArray()[0].Username);
         Assert.Equal("Marta", users.ToArray()[1].Username);
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 }

@@ -7,7 +7,7 @@ using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Entities;
 
 public class UserRepository : Repository
 {

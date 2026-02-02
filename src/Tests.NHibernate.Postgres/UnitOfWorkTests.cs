@@ -6,6 +6,7 @@ using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
+using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Entities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -19,7 +20,6 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
     public async Task IdentityMap_SameInstance()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         await using IUnitOfWork unitOfWork = new UnitOfWork(configuration.BuildSessionFactory());
         var repository = unitOfWork.GetRepository<UserRepository>();
@@ -30,16 +30,12 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
 
         // Assert
         Assert.Same(user1, user2);
-
-        // Arrange post assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task EnsureQueriedEntitiesAreTracked()
     {
         // Arrange 
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         await using IUnitOfWork unitOfWork = new UnitOfWork(configuration.BuildSessionFactory());
         var repository = unitOfWork.GetRepository<UserRepository>();
@@ -53,16 +49,12 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
 
         var queriedUser = await npgsqlClient.QuerySingleOrDefaultAsync<(string, string, string, bool)>("SELECT * FROM Users;");
         Assert.Equal("Marta", queriedUser.Item2);
-
-        // Arrange post assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task Add()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await using IUnitOfWork unitOfWork = new UnitOfWork(configuration.BuildSessionFactory());
         var repository = unitOfWork.GetRepository<UserRepository>();
 
@@ -82,16 +74,12 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
         var shouldSaved = await npgsqlClient.QuerySingleOrDefaultAsync<(string, string, string, bool)>("SELECT * FROM users;");
         Assert.Equal("Ivan", shouldSaved.Item2);
         await Assert.ThrowsAsync<ArgumentException>(async () => { await repository.AddAsync(user, default); });
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task Transaction()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await using IUnitOfWork unitOfWork = new UnitOfWork(configuration.BuildSessionFactory());
 
         Assert.False(unitOfWork.IsTransactionActive);
@@ -129,16 +117,12 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
         Assert.Equal("ivan2@example.com", shouldChanged!.Value.Item3);
 
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await unitOfWork.CommitTransactionAsync());
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task Rollback()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await using IUnitOfWork unitOfWork = new UnitOfWork(configuration.BuildSessionFactory());
 
         var repository = unitOfWork.GetRepository<UserRepository>();
@@ -156,16 +140,12 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
         await Assert.ThrowsAsync<UnitOfWorkRolledBackException>(async () => { await unitOfWork.HasChangesAsync(default); });
         Assert.Equal("ivan2@example.com", user.EmailAddress);
         Assert.Equal("ivan@example.com", userSaved.Item3);
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task StopTracking()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await using IUnitOfWork unitOfWork = new UnitOfWork(configuration.BuildSessionFactory());
 
         var repository = unitOfWork.GetRepository<UserRepository>();
@@ -176,16 +156,12 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
         Assert.True(await unitOfWork.IsTrackedAsync(user, default));
         await unitOfWork.StopTrackingAsync(user, default);
         Assert.False(await unitOfWork.IsTrackedAsync(user, default));
-
-        // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
     public async Task TransactionsRawProjections()
     {
         // Arrange
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
         await using IUnitOfWork unitOfWork = new UnitOfWork(configuration.BuildSessionFactory());
 
@@ -205,7 +181,6 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
 
         // Arrange post Assert
         await unitOfWork.RollbackTransactionAsync();
-        await DropUsersTableQueryAsync();
     }
 
     [Fact]
@@ -215,7 +190,6 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
         // todo and reasons to have more than one UoW.
 
         // Arrange
-        await CreateUsersTableQueryAsync();
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true);");
 
         await using IUnitOfWork unitOfWork1 = new UnitOfWork(configuration.BuildSessionFactory());
@@ -235,7 +209,6 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
         // Assert.True(await unitOfWork1.IsTrackedAsync(user2, default));
         //
         // Arrange post Assert
-        await DropUsersTableQueryAsync();
     }
 }
 

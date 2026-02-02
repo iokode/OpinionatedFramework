@@ -7,7 +7,7 @@ using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
 using Npgsql;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Entities;
 
 public sealed class AddressType : IUserType
 {

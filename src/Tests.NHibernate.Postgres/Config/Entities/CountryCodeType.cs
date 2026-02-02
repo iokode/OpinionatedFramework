@@ -5,7 +5,7 @@ using NHibernate.Engine;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Entities;
 
 public class CountryCodeType : IUserType
 {

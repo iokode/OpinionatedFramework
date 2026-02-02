@@ -2,7 +2,7 @@ using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Ensuring.Ensurers;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 
-namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
+namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Entities;
 
 public class User : Entity
 {
