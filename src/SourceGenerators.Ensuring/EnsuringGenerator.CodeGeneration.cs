@@ -92,7 +92,7 @@ internal partial class EnsuringGenerator
         }
 
         var methodName = methodDeclarationSyntax.Identifier.Text;
-        var docComment = SourceGenerationHelper.GetMethodDocComment(methodSymbol);
+        var docComment = SourceGenerationHelper.GetDocComment(methodSymbol);
         var methodParameters = methodDeclarationSyntax.ParameterList.Parameters
             .Select(parameterSyntax => (IParameterSymbol?) semanticModel.GetDeclaredSymbol(parameterSyntax))
             .Where(parameterSymbol => parameterSymbol is not null)

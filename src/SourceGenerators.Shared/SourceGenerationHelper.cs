@@ -10,9 +10,9 @@ namespace IOKode.OpinionatedFramework.SourceGenerators.Helpers;
 
 internal static class SourceGenerationHelper
 {
-    public static string? GetMethodDocComment(IMethodSymbol methodSymbol)
+    public static string? GetDocComment(ISymbol symbol)
     {
-        var docComment = methodSymbol.GetDocumentationCommentXml();
+        var docComment = symbol.GetDocumentationCommentXml();
         if (!string.IsNullOrEmpty(docComment))
         {
             var strBuilder = new StringBuilder();

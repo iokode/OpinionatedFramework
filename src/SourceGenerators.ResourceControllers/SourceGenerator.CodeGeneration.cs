@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Humanizer;
 using Microsoft.CodeAnalysis;
 
@@ -51,14 +52,16 @@ public partial class SourceGenerator
 
     public abstract class ResourceData
     {
+        public abstract string ReturnResponseType { get; }
         public abstract string DataType { get; } 
         public required string Resource { get; set; }
         public required string ClassName { get; set; }
         public required string Namespace { get; set; }
         public required ResourceType ResourceType { get; set; }
+        public string? DocComment { get; set; }
         public string? KeyName { get; set; }
         public string? Action { get; set; }
-        public Parameter[] InvocationParameters { get; set; } = Array.Empty<Parameter>();
+        public Parameter[] InvocationParameters { get; set; } = [];
         public Parameter[] InvocationParametersWithoutCancellationToken => InvocationParameters.Where(param => param.Name != "cancellationToken").ToArray();
         public virtual Parameter[] ControllerMethodParameters => InvocationParameters.Any(parameter => parameter.Type == "System.Threading.CancellationToken")
             ? InvocationParameters
@@ -158,12 +161,22 @@ public partial class SourceGenerator
 
     public class QueryData : ResourceData
     {
+        public required string MethodReturnType { get; set; }
+        public override string ReturnResponseType
+        {
+            get
+            {
+                var match = Regex.Match(MethodReturnType, "Task<(.+)>");
+                return match.Success ? match.Groups[1].Value : "Task";
+            }
+        }
         public override string DataType => "Query";
     }
 
     public class CommandData : ResourceData
     {
         public string? GenericArgument { get; set; }
+        public override string ReturnResponseType => GenericArgument ?? "Task";
         public override string DataType => "Command";
     }
 
@@ -196,8 +209,18 @@ public partial class SourceGenerator
         public partial class {{ ClassName }} : Controller
         {
             {{~ for resource in ResourcesData ~}}
+            {{~ if resource.DocComment ~}}
+            {{ resource.DocComment }}
+            {{~ end ~}}
             {{ resource.HttpAttribute }}
             [SourceCommand("{{ resource.FullClassName }}")]
+            {{~ if resource.ReturnResponseType == 'Task' ~}}
+            [ProducesResponseType(StatusCodes.Status204NoContent)]
+            {{~ else ~}}
+            [ProducesResponseType<{{ resource.ReturnResponseType }}>(StatusCodes.Status200OK)]
+            {{~ end ~}}
+            [ProducesResponseType<NotFoundResult>(StatusCodes.Status404NotFound)]
+            [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
             public async Task<IActionResult> {{ resource.ControllerMethodName }}({{ resource.ControllerMethodParametersString }})
             {
                 try
