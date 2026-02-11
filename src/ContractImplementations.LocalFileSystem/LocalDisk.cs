@@ -15,38 +15,55 @@ using FileNotFoundException = IOKode.OpinionatedFramework.FileSystem.Exceptions.
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
 
+/// <summary>
+/// Local filesystem implementation of <see cref="IFileDisk"/>.
+/// </summary>
+/// <remarks>
+/// All paths are resolved under the configured base path and rejected when they
+/// attempt to escape that base directory.
+/// </remarks>
 public class LocalDisk : IFileDisk
 {
-    private readonly string _basePath;
+    private readonly string basePath;
+    private readonly string basePathWithSeparator;
+    private readonly StringComparison pathComparison;
 
+    /// <summary>
+    /// Creates a local disk rooted at the given base path.
+    /// </summary>
+    /// <param name="basePath">Base directory for all file and directory operations.</param>
     public LocalDisk(string basePath)
     {
         Ensure.ArgumentNotNull(basePath);
         Ensure.Boolean.IsFalse(File.Exists(basePath))
-            .ElseThrowsIllegalArgument("The provided path corresponds to a file, a directory was expected.",
-                nameof(basePath));
+            .ElseThrowsIllegalArgument("The provided path corresponds to a file, a directory was expected.", nameof(basePath));
 
-        _basePath = basePath;
+        this.basePath = NormalizeBasePath(basePath);
+        this.basePathWithSeparator = this.basePath.EndsWith(Path.DirectorySeparatorChar) ? this.basePath : this.basePath + Path.DirectorySeparatorChar;
+        this.pathComparison = DetectPathComparison(this.basePath);
 
-        if (!Directory.Exists(_basePath))
+        if (!Directory.Exists(this.basePath))
         {
-            Directory.CreateDirectory(_basePath);
+            Directory.CreateDirectory(this.basePath);
         }
     }
 
+    /// <inheritdoc />
     public Task<bool> ExistsFileAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        string cleanPath = ClearFilePath(filePath);
-        bool exists = File.Exists(cleanPath);
-
+        cancellationToken.ThrowIfCancellationRequested();
+        string resolvedPath = this.ResolvePath(filePath, nameof(filePath));
+        bool exists = File.Exists(resolvedPath);
         return Task.FromResult(exists);
     }
 
+    /// <inheritdoc />
     public async Task<FileSystem.File> PutFileAsync(string filePath, Stream fileContent,
         CancellationToken cancellationToken = default)
     {
-        string cleanPath = ClearFilePath(filePath);
-        var file = new FileInfo(cleanPath);
+        cancellationToken.ThrowIfCancellationRequested();
+        string resolvedPath = this.ResolvePath(filePath, nameof(filePath));
+        var file = new FileInfo(resolvedPath);
 
         if (file.Exists)
         {
@@ -63,170 +80,307 @@ public class LocalDisk : IFileDisk
             await fileContent.CopyToAsync(fileStream, cancellationToken);
         }
 
-        return CreateFileRepresentation(cleanPath);
+        return this.CreateFileRepresentation(resolvedPath);
     }
 
+    /// <inheritdoc />
     public async Task<FileSystem.File> ReplaceFileAsync(string filePath, Stream fileContent,
         CancellationToken cancellationToken = default)
     {
-        string cleanPath = ClearFilePath(filePath);
-        bool exists = File.Exists(cleanPath);
+        cancellationToken.ThrowIfCancellationRequested();
+        string resolvedPath = this.ResolvePath(filePath, nameof(filePath));
 
-        if (exists)
+        if (File.Exists(resolvedPath))
         {
-            File.Delete(cleanPath);
+            File.Delete(resolvedPath);
         }
 
-        return await PutFileAsync(filePath, fileContent, cancellationToken);
+        return await this.PutFileAsync(filePath, fileContent, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<FileSystem.File> GetFileAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        string cleanPath = ClearFilePath(filePath);
+        cancellationToken.ThrowIfCancellationRequested();
+        string resolvedPath = this.ResolvePath(filePath, nameof(filePath));
 
-        if (!File.Exists(cleanPath))
+        if (!File.Exists(resolvedPath))
         {
             throw new FileNotFoundException(filePath);
         }
 
-        var fileRepresentation = CreateFileRepresentation(cleanPath);
+        var fileRepresentation = this.CreateFileRepresentation(resolvedPath);
         return Task.FromResult(fileRepresentation);
     }
 
+    /// <inheritdoc />
     public Task DeleteFileAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        string cleanPath = ClearFilePath(filePath);
-        bool exists = File.Exists(cleanPath);
-        if (!exists)
+        cancellationToken.ThrowIfCancellationRequested();
+        string resolvedPath = this.ResolvePath(filePath, nameof(filePath));
+
+        if (!File.Exists(resolvedPath))
         {
             throw new FileNotFoundException(filePath);
         }
 
-        File.Delete(cleanPath);
+        File.Delete(resolvedPath);
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public Task<bool> ExistsDirectoryAsync(string directoryPath, CancellationToken cancellationToken = default)
     {
-        string cleanPath = ClearFilePath(directoryPath);
-        bool exists = Directory.Exists(cleanPath);
+        cancellationToken.ThrowIfCancellationRequested();
+        string resolvedPath = this.ResolvePath(directoryPath, nameof(directoryPath));
+        bool exists = Directory.Exists(resolvedPath);
         return Task.FromResult(exists);
     }
 
+    /// <inheritdoc />
     public Task<FileSystem.Directory> CreateDirectoryAsync(string directoryPath,
         CancellationToken cancellationToken = default)
     {
-        string cleanPath = ClearFilePath(directoryPath);
+        cancellationToken.ThrowIfCancellationRequested();
+        string resolvedPath = this.ResolvePath(directoryPath, nameof(directoryPath));
 
-        if (Directory.Exists(cleanPath))
+        if (Directory.Exists(resolvedPath))
         {
             throw new DirectoryAlreadyExistsException(directoryPath);
         }
 
-        Directory.CreateDirectory(cleanPath);
-
-        var directoryRepresentation = CreateDirectoryRepresentation(cleanPath);
-        return Task.FromResult(directoryRepresentation);
+        Directory.CreateDirectory(resolvedPath);
+        return Task.FromResult(this.CreateDirectoryRepresentation(resolvedPath));
     }
 
+    /// <inheritdoc />
     public Task DeleteDirectoryAsync(string directoryPath, CancellationToken cancellationToken = default)
     {
-        string cleanPath = ClearFilePath(directoryPath);
+        cancellationToken.ThrowIfCancellationRequested();
+        string resolvedPath = this.ResolvePath(directoryPath, nameof(directoryPath));
 
-        if (!Directory.Exists(cleanPath))
+        if (!Directory.Exists(resolvedPath))
         {
             throw new DirectoryNotFoundException(directoryPath);
         }
 
-        Directory.Delete(cleanPath, true);
+        Directory.Delete(resolvedPath, true);
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public Task<IEnumerable<FileSystem.File>> ListFilesAsync(string? directoryPath = null,
         CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         directoryPath ??= string.Empty;
-        string cleanPath = ClearFilePath(directoryPath);
+        string resolvedPath = this.ResolvePath(directoryPath, nameof(directoryPath), allowEmpty: true);
 
-        if (directoryPath != string.Empty && !Directory.Exists(cleanPath))
+        if (directoryPath != string.Empty && !Directory.Exists(resolvedPath))
         {
             throw new DirectoryNotFoundException(directoryPath);
         }
 
-        var fileRepresentations = Directory.GetFiles(cleanPath).Select(CreateFileRepresentation);
+        var searchOption = directoryPath == string.Empty
+            ? SearchOption.TopDirectoryOnly
+            : SearchOption.AllDirectories;
+
+        var fileRepresentations = Directory
+            .GetFiles(resolvedPath, "*", searchOption)
+            .OrderBy(path => path, StringComparer.Ordinal)
+            .Select(this.CreateFileRepresentation);
+
         return Task.FromResult(fileRepresentations);
     }
 
+    /// <inheritdoc />
     public Task<IEnumerable<FileSystem.Directory>> ListDirectoriesAsync(string? directoryPath = null,
         CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         directoryPath ??= string.Empty;
-        string cleanPath = ClearFilePath(directoryPath);
+        string resolvedPath = this.ResolvePath(directoryPath, nameof(directoryPath), allowEmpty: true);
 
-        if (directoryPath != string.Empty && !Directory.Exists(cleanPath))
+        if (directoryPath != string.Empty && !Directory.Exists(resolvedPath))
         {
             throw new DirectoryNotFoundException(directoryPath);
         }
 
-        var directoryRepresentations = Directory.GetDirectories(cleanPath).Select(CreateDirectoryRepresentation);
+        var directoryRepresentations = Directory
+            .GetDirectories(resolvedPath)
+            .OrderBy(path => path, StringComparer.Ordinal)
+            .Select(this.CreateDirectoryRepresentation);
+
         return Task.FromResult(directoryRepresentations);
     }
 
-
-    private FileSystem.File CreateFileRepresentation(string cleanPath)
+    /// <summary>
+    /// Creates a local file abstraction for a physical file path.
+    /// </summary>
+    /// <param name="pathOnDisk">Absolute path of the file in the local filesystem.</param>
+    /// <returns>A <see cref="LocalFile"/> instance describing the file.</returns>
+    private FileSystem.File CreateFileRepresentation(string pathOnDisk)
     {
-        var fileInfo = new FileInfo(cleanPath);
+        var fileInfo = new FileInfo(pathOnDisk);
         fileInfo.Refresh();
         if (!fileInfo.Exists)
         {
             throw new ArgumentException("Trying to create a file representation of non-existent file.");
         }
 
-        if (fileInfo.Length == 0)
-        {
-            using var fileStream = fileInfo.OpenRead();
-            // If fileStream.Length is 0, then the file is indeed empty
-            if (fileStream.Length != 0)
-            {
-                // The file system may not update the file size immediately after writing to the file,
-                // so we loop until the file size is updated.
-                while (fileInfo.Length == 0)
-                {
-                    Task.Delay(100).Wait();
-                    fileInfo.Refresh();
-                }
-            }
-        }
-
         return new LocalFile
         {
             CreationTime = Instant.FromDateTimeUtc(fileInfo.CreationTimeUtc),
             UpdateTime = Instant.FromDateTimeUtc(fileInfo.LastWriteTimeUtc),
-            FullName = fileInfo.FullName,
             Name = fileInfo.Name,
-            Size = (uint)fileInfo.Length
+            FullName = this.GetRelativePath(pathOnDisk),
+            Size = (ulong)fileInfo.Length,
+            PathOnDisk = fileInfo.FullName
         };
     }
 
-    private FileSystem.Directory CreateDirectoryRepresentation(string cleanPath)
+    /// <summary>
+    /// Creates a local directory abstraction for a physical directory path.
+    /// </summary>
+    /// <param name="pathOnDisk">Absolute path of the directory in the local filesystem.</param>
+    /// <returns>A <see cref="LocalDirectory"/> instance describing the directory.</returns>
+    private FileSystem.Directory CreateDirectoryRepresentation(string pathOnDisk)
     {
-        var directoryInfo = new DirectoryInfo(cleanPath);
+        var directoryInfo = new DirectoryInfo(pathOnDisk);
         if (!directoryInfo.Exists)
         {
             throw new ArgumentException("Trying to create a directory representation of non-existent directory.");
         }
 
-        return new FileSystem.Directory
+        return new LocalDirectory
         {
             CreationTime = Instant.FromDateTimeUtc(directoryInfo.CreationTimeUtc),
             UpdateTime = Instant.FromDateTimeUtc(directoryInfo.LastWriteTimeUtc),
-            FullName = directoryInfo.FullName,
-            Name = directoryInfo.Name
+            Name = directoryInfo.Name,
+            FullName = this.GetRelativePath(pathOnDisk),
+            PathOnDisk = directoryInfo.FullName
         };
     }
 
-    private string ClearFilePath(string filePath)
+    /// <summary>
+    /// Normalizes a base path to an absolute path and trims trailing separators when possible.
+    /// </summary>
+    /// <param name="basePath">Base path provided to the disk constructor.</param>
+    /// <returns>The normalized absolute base path.</returns>
+    private static string NormalizeBasePath(string basePath)
     {
-        return Path.Combine(_basePath, filePath);
+        string fullPath = Path.GetFullPath(basePath);
+        string? root = Path.GetPathRoot(fullPath);
+
+        if (root is not null && string.Equals(fullPath, root, StringComparison.OrdinalIgnoreCase))
+        {
+            return fullPath;
+        }
+
+        return fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+    }
+
+    /// <summary>
+    /// Resolves and validates a path to ensure it remains inside the configured base path.
+    /// </summary>
+    /// <param name="path">Relative path provided by the caller.</param>
+    /// <param name="paramName">Caller parameter name used for exception metadata.</param>
+    /// <param name="allowEmpty">Whether empty paths are allowed and mapped to disk root.</param>
+    /// <returns>The validated absolute path on disk.</returns>
+    private string ResolvePath(string path, string paramName, bool allowEmpty = false)
+    {
+        Ensure.ArgumentNotNull(path);
+
+        if (!allowEmpty && string.IsNullOrWhiteSpace(path))
+        {
+            throw new ArgumentException("Path cannot be empty.", paramName);
+        }
+
+        string combinedPath = string.IsNullOrWhiteSpace(path)
+            ? this.basePath
+            : Path.Combine(this.basePath, path);
+
+        string resolvedPath = Path.GetFullPath(combinedPath);
+
+        if (!string.Equals(resolvedPath, this.basePath, this.pathComparison) &&
+            !resolvedPath.StartsWith(this.basePathWithSeparator, this.pathComparison))
+        {
+            throw new ArgumentException("Path must be inside disk base path.", paramName);
+        }
+
+        return resolvedPath;
+    }
+
+    /// <summary>
+    /// Converts an absolute path on the disk into a normalized disk-relative path.
+    /// </summary>
+    /// <param name="pathOnDisk">Absolute path on disk.</param>
+    /// <returns>Disk-relative path using forward slashes.</returns>
+    private string GetRelativePath(string pathOnDisk)
+    {
+        string relativePath = Path.GetRelativePath(this.basePath, pathOnDisk);
+        return relativePath.Replace('\\', '/');
+    }
+
+    /// <summary>
+    /// Detects whether the filesystem mounted at the base path is case-insensitive.
+    /// </summary>
+    /// <remarks>
+    /// This is implemented as a probe on the target filesystem instead of relying on
+    /// operating-system detection because case sensitivity is a filesystem or mount
+    /// characteristic, not an OS characteristic. The same OS can expose different
+    /// behaviors depending on the backing volume (for example, case-insensitive or
+    /// case-sensitive APFS variants, network shares, or mounted external drives).
+    /// Probing the configured base path gives the comparison mode that matches the
+    /// actual disk used by this <see cref="LocalDisk"/>.
+    /// </remarks>
+    /// <param name="basePath">Base path used by this disk.</param>
+    /// <returns>The <see cref="StringComparison"/> mode for path comparisons.</returns>
+    private static StringComparison DetectPathComparison(string basePath)
+    {
+        string fileName = $".fs-case-check-{Guid.NewGuid():N}.tmp";
+        string lowerFileName = fileName.ToLowerInvariant();
+        string upperFileName = fileName.ToUpperInvariant();
+        string lowerPath = Path.Combine(basePath, lowerFileName);
+        string upperPath = Path.Combine(basePath, upperFileName);
+
+        try
+        {
+            using var _ = File.Create(lowerPath);
+            bool ignoreCase = File.Exists(upperPath);
+            return ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StringComparison.Ordinal;
+        }
+        catch (IOException)
+        {
+            return StringComparison.Ordinal;
+        }
+        finally
+        {
+            try
+            {
+                if (File.Exists(lowerPath))
+                {
+                    File.Delete(lowerPath);
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                if (File.Exists(upperPath))
+                {
+                    File.Delete(upperPath);
+                }
+            }
+            catch
+            {
+            }
+        }
     }
 }

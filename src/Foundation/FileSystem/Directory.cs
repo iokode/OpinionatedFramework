@@ -19,6 +19,9 @@ public class Directory
     /// <summary>
     /// The full name of the directory, which includes its path within the filesystem.
     /// </summary>
+    /// <remarks>
+    /// The included path starts from the virtual disk, not from the physical drive.
+    /// </remarks>
     public virtual string FullName { get; set; } = string.Empty;
 
     /// <summary>

@@ -22,6 +22,9 @@ public abstract class File
     /// <summary>
     /// The full name of the file, which includes its path within the filesystem.
     /// </summary>
+    /// <remarks>
+    /// The included path starts from the virtual disk, not from the physical drive.
+    /// </remarks>
     public virtual string FullName { get; init; } = string.Empty;
 
     /// <summary>
