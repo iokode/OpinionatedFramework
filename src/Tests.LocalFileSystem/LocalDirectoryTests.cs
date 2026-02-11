@@ -1,30 +1,33 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.FileSystem;
+using IOKode.OpinionatedFramework.FileSystem.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Directory = System.IO.Directory;
-using File = System.IO.File;
+using DirectoryNotFoundException = IOKode.OpinionatedFramework.FileSystem.Exceptions.DirectoryNotFoundException;
 
 namespace IOKode.OpinionatedFramework.Tests.LocalFileSystem;
 
 public class LocalDirectoryTests : IDisposable
 {
-    private const string _diskname = "temp";
-    private const string _directoryname = "dirname";
+    private const string DiskName = "temp";
+    private readonly string basePath = Path.Combine(Path.GetTempPath(), $"localfs-dir-{Guid.NewGuid():N}");
 
     public LocalDirectoryTests()
     {
         Container.Advanced.Clear();
+        Directory.CreateDirectory(this.basePath);
         Container.Services.AddSingleton<IFileSystem>(_ =>
         {
             var fileSystem = new ContractImplementations.FileSystem.FileSystem();
-            fileSystem.AddDisk(_diskname, new LocalDisk(Path.GetTempPath()));
+            fileSystem.AddDisk(DiskName, new LocalDisk(this.basePath));
 
             return fileSystem;
         });
@@ -35,152 +38,100 @@ public class LocalDirectoryTests : IDisposable
     [Fact]
     public async Task CreateAndDeleteDirectory_Success()
     {
-        // Arrange
-        DeleteDirectory();
+        const string directoryName = "dirname";
+        var createdDirectory = await FS.GetDisk(DiskName).CreateDirectoryAsync(directoryName);
+        var localDirectory = Assert.IsType<LocalDirectory>(createdDirectory);
 
-        // Assert - directory does not exist initially
-        Assert.False(Directory.Exists(Path.Combine(Path.GetTempPath(), _directoryname)));
+        Assert.Equal(directoryName, localDirectory.Name);
+        Assert.Equal(directoryName, localDirectory.FullName);
+        Assert.True(await FS.GetDisk(DiskName).ExistsDirectoryAsync(directoryName));
 
-        // Act - create directory
-        await FS.GetDisk(_diskname).CreateDirectoryAsync(_directoryname);
-
-        // Assert - directory now exists
-        Assert.True(Directory.Exists(Path.Combine(Path.GetTempPath(), _directoryname)));
-
-        // Act - delete directory
-        await FS.GetDisk(_diskname).DeleteDirectoryAsync(_directoryname);
-
-        // Assert - directory no longer exists
-        Assert.False(Directory.Exists(Path.Combine(Path.GetTempPath(), _directoryname)));
+        await FS.GetDisk(DiskName).DeleteDirectoryAsync(directoryName);
+        Assert.False(await FS.GetDisk(DiskName).ExistsDirectoryAsync(directoryName));
     }
 
     [Fact]
-    public async Task PutFileInDirectory_Success()
+    public async Task CreateDirectory_WhenAlreadyExists_Throws()
     {
-        // Arrange
-        const string filename = "tempfile.txt";
-        DeleteDirectory();
+        const string directoryName = "existing";
+        await FS.GetDisk(DiskName).CreateDirectoryAsync(directoryName);
 
-        // Act - create directory and file within it
-        await FS.GetDisk(_diskname).CreateDirectoryAsync(_directoryname);
-
-        await using var file = new MemoryStream();
-        await using var writer = new StreamWriter(file);
-        await writer.WriteAsync("Text content.");
-        await writer.FlushAsync();
-        file.Position = 0;
-
-        await FS.GetDisk(_diskname).PutFileAsync(Path.Combine(_directoryname, filename), file);
-
-        // Assert file exists in directory
-        Assert.True(Directory.Exists(Path.Combine(Path.GetTempPath(), _directoryname)));
-        Assert.True(File.Exists(Path.Combine(Path.GetTempPath(), _directoryname, filename)));
-
-        // Act - Delete directory
-        await FS.GetDisk(_diskname).DeleteDirectoryAsync(_directoryname);
-
-        // Assert directory doesn't exists.
-        Assert.False(Directory.Exists(Path.Combine(Path.GetTempPath(), _directoryname)));
-        Assert.False(File.Exists(Path.Combine(Path.GetTempPath(), _directoryname, filename)));
+        await Assert.ThrowsAsync<DirectoryAlreadyExistsException>(async () =>
+            await FS.GetDisk(DiskName).CreateDirectoryAsync(directoryName));
     }
 
     [Fact]
-    public async Task ExistsDirectoryAsync_Success()
+    public async Task DeleteDirectory_WhenNotExists_Throws()
     {
-        // Arrange
-        DeleteDirectory();
-
-        // Assert directory does not exist initially
-        Assert.False(Directory.Exists(Path.Combine(Path.GetTempPath(), _directoryname)));
-
-        // Act - create directory
-        await FS.GetDisk(_diskname).CreateDirectoryAsync(_directoryname);
-
-        // Assert directory exists with FileSystem API
-        Assert.True(await FS.GetDisk(_diskname).ExistsDirectoryAsync(_directoryname));
-
-        // Act - delete directory
-        await FS.GetDisk(_diskname).DeleteDirectoryAsync(_directoryname);
-
-        // Assert directory does not exists with FileSystem API
-        Assert.False(await FS.GetDisk(_diskname).ExistsDirectoryAsync(_directoryname));
+        await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
+            await FS.GetDisk(DiskName).DeleteDirectoryAsync("missing"));
     }
 
     [Fact]
     public async Task ListFiles_Success()
     {
-        // Arrange
-        DeleteDirectory();
-        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname));
-        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file1.txt")).DisposeAsync();
-        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file2.txt")).DisposeAsync();
-        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file3.txt")).DisposeAsync();
-        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname, "dir"));
-        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file1.txt")).DisposeAsync();
-        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file2.txt")).DisposeAsync();
+        await FS.GetDisk(DiskName).PutFileAsync("file1.txt", new MemoryStream("x"u8.ToArray()));
+        await FS.GetDisk(DiskName).PutFileAsync("file2.txt", new MemoryStream("x"u8.ToArray()));
+        await FS.GetDisk(DiskName).PutFileAsync("file3.txt", new MemoryStream("x"u8.ToArray()));
+        await FS.GetDisk(DiskName).PutFileAsync("dir/file1.txt", new MemoryStream("x"u8.ToArray()));
+        await FS.GetDisk(DiskName).PutFileAsync("dir/nested/file2.txt", new MemoryStream("x"u8.ToArray()));
 
-        {
-            // Act - List files in root
-            var itemsInRoot = (await FS.GetDisk(_diskname).ListFilesAsync(_directoryname)).ToArray();
+        var itemsInRoot = (await FS.GetDisk(DiskName).ListFilesAsync()).ToArray();
+        Assert.Equal(3, itemsInRoot.Length);
+        Assert.All(itemsInRoot, item => Assert.IsType<LocalFile>(item));
+        Assert.Collection(
+            itemsInRoot.Select(item => item.FullName).ToArray(),
+            item => Assert.Equal("file1.txt", item),
+            item => Assert.Equal("file2.txt", item),
+            item => Assert.Equal("file3.txt", item));
 
-            // Assert three files in root
-            string[] names = itemsInRoot.Select(item => item.Name).ToArray();
-            Assert.Equal(3, itemsInRoot.Length);
-            Assert.Contains("file1.txt", names);
-            Assert.Contains("file2.txt", names);
-            Assert.Contains("file3.txt", names);
-        }
+        var itemsInDirectory = (await FS.GetDisk(DiskName).ListFilesAsync("dir")).ToArray();
+        Assert.Equal(2, itemsInDirectory.Length);
+        Assert.All(itemsInDirectory, item => Assert.IsType<LocalFile>(item));
+        Assert.Collection(
+            itemsInDirectory.Select(item => item.FullName).ToArray(),
+            item => Assert.Equal("dir/file1.txt", item),
+            item => Assert.Equal("dir/nested/file2.txt", item));
+    }
 
-        {
-            // Act - List files in directory
-            var itemsInDirectory =
-                (await FS.GetDisk(_diskname).ListFilesAsync(_directoryname + "/dir")).ToArray();
-
-            // Assert two files in root
-            string[] names = itemsInDirectory.Select(item => item.Name).ToArray();
-            Assert.Equal(2, itemsInDirectory.Length);
-            Assert.Contains("file1.txt", names);
-            Assert.Contains("file2.txt", names);
-        }
+    [Fact]
+    public async Task ListFiles_WhenDirectoryMissing_Throws()
+    {
+        await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
+            await FS.GetDisk(DiskName).ListFilesAsync("missing"));
     }
 
     [Fact]
     public async Task ListDirectories_Success()
     {
-        // Arrange
-        DeleteDirectory();
-        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname));
-        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file1.txt")).DisposeAsync();
-        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file2.txt")).DisposeAsync();
-        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "file3.txt")).DisposeAsync();
-        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname, "dir"));
-        Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), _directoryname, "dir2"));
-        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir", "file1.txt")).DisposeAsync();
-        await File.CreateText(Path.Combine(Path.GetTempPath(), _directoryname, "dir2", "file2.txt")).DisposeAsync();
+        await FS.GetDisk(DiskName).CreateDirectoryAsync("dir-a");
+        await FS.GetDisk(DiskName).CreateDirectoryAsync("dir-b");
+        await FS.GetDisk(DiskName).PutFileAsync("file.txt", new MemoryStream(Encoding.UTF8.GetBytes("x")));
 
-        // Act
-        var directories = (await FS.GetDisk(_diskname).ListDirectoriesAsync(_directoryname)).ToArray();
+        var directories = (await FS.GetDisk(DiskName).ListDirectoriesAsync()).ToArray();
 
-        // Assert
-        string[] names = directories.Select(directory => directory.Name).ToArray();
         Assert.Equal(2, directories.Length);
-        Assert.Contains("dir", names);
-        Assert.Contains("dir2", names);
+        Assert.All(directories, item => Assert.IsType<LocalDirectory>(item));
+        Assert.Collection(
+            directories.Select(directory => directory.FullName).ToArray(),
+            item => Assert.Equal("dir-a", item),
+            item => Assert.Equal("dir-b", item));
+    }
+
+    [Fact]
+    public async Task ListDirectories_WhenDirectoryMissing_Throws()
+    {
+        await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
+            await FS.GetDisk(DiskName).ListDirectoriesAsync("missing"));
     }
 
     public void Dispose()
     {
-        DeleteDirectory();
-        Container.Advanced.Clear();
-    }
-
-    private void DeleteDirectory()
-    {
-        string path = Path.Combine(Path.GetTempPath(), _directoryname);
-
-        if (Directory.Exists(path))
+        if (Directory.Exists(this.basePath))
         {
-            Directory.Delete(path, true);
+            Directory.Delete(this.basePath, true);
         }
+
+        Container.Advanced.Clear();
     }
 }
