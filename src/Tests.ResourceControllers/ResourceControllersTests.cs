@@ -256,18 +256,22 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     }
 
     [Fact]
-    public async Task ActionUserEnable_ByKeyWithBody_Success()
+    public async Task ActionUser_EnableByKeyWithBodyOnMultipleParameters_Success()
     {
         // Assert
         var code = "41";
 
         // Act
-        var response = await this.client.PatchAsync($"/users/code-{code}/enable", JsonContent.Create(true));
+        var response = await this.client.PatchAsync($"/users/code-{code}/enable", JsonContent.Create(new
+        {
+            Enable = true,
+            EnableName = "name",
+        }));
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal($"enabled-by-code-{code}-{true}", content);
+        Assert.Equal($"enabled-by-code-{code}-name-True", content);
     }
 
     [Fact]
