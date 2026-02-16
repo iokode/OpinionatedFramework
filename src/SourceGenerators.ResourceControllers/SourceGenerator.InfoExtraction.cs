@@ -16,7 +16,7 @@ public partial class SourceGenerator
     {
         var (assemblySymbols, generatorData) = tuple;
 
-        assemblySymbols = assemblySymbols.Prepend(generatorData.CompilationAssemblySymbol).ToImmutableArray();
+        assemblySymbols = [..assemblySymbols.Prepend(generatorData.CompilationAssemblySymbol)];
         var resourcesData = assemblySymbols
             .SelectMany(assemblySymbol => GetTypeSymbolsFromNamespace(assemblySymbol.GlobalNamespace))
             .Select(typeSymbol => GetResourceData(generatorData, typeSymbol))
@@ -24,7 +24,7 @@ public partial class SourceGenerator
             .Cast<ResourceData>();
 
         var controllersData = resourcesData
-            .GroupBy(command => command.Resource.Pluralize().Kebaberize())
+            .GroupBy(command => command.MainResource.Pluralize().Kebaberize())
             .Select(group => new ResourceControllerData
             {
                 AssemblyNamespace = generatorData.AssemblyNamespace,
@@ -52,7 +52,7 @@ public partial class SourceGenerator
                 ResourceType = resourceType,
                 ClassName = typeSymbol.Name,
                 Namespace = typeSymbol.ContainingNamespace.ToDisplayString(),
-                Resource = (string) resourceAttribute.ConstructorArguments[0].Value!,
+                ResourceValue = (string) resourceAttribute.ConstructorArguments[0].Value!,
                 DocComment = SourceGenerationHelper.GetDocComment(typeSymbol),
                 InvocationParameters = ((IMethodSymbol) typeSymbol.GetMembers("InvokeAsync").Single())
                     .Parameters.Select(param => new Parameter
@@ -61,7 +61,7 @@ public partial class SourceGenerator
                         Type = param.Type.ToDisplayString()
                     }).ToArray(),
                 MethodReturnType = ((IMethodSymbol) typeSymbol.GetMembers("InvokeAsync").Single()).ReturnType.ToDisplayString(),
-                KeyName = resourceAttribute.ConstructorArguments.Length > 1 ? resourceAttribute.ConstructorArguments[1].Value as string : null,
+                KeyValue = resourceAttribute.ConstructorArguments.Length > 1 ? resourceAttribute.ConstructorArguments[1].Value as string : null,
             };
             return queryData;
         }
@@ -75,7 +75,7 @@ public partial class SourceGenerator
                 ResourceType = resourceType,
                 ClassName = typeSymbol.Name,
                 Namespace = typeSymbol.ContainingNamespace.ToDisplayString(),
-                Resource = (string) resourceAttribute.ConstructorArguments[0].Value!,
+                ResourceValue = (string) resourceAttribute.ConstructorArguments[0].Value!,
                 DocComment = SourceGenerationHelper.GetDocComment(typeSymbol),
                 GenericArgument = ((INamedTypeSymbol) baseCommand!).TypeArguments.FirstOrDefault()?.ToDisplayString(),
                 InvocationParameters = ((INamedTypeSymbol) typeSymbol).InstanceConstructors
@@ -85,7 +85,7 @@ public partial class SourceGenerator
                         Name = param.Name,
                         Type = param.Type.ToDisplayString()
                     }).ToArray(),
-                KeyName = resourceAttribute.ConstructorArguments.Length switch
+                KeyValue = resourceAttribute.ConstructorArguments.Length switch
                 {
                     > 2 => resourceAttribute.ConstructorArguments[2].Value as string,
                     > 1 => resourceAttribute.ConstructorArguments[1].Value as string,
@@ -111,7 +111,7 @@ public partial class SourceGenerator
             return set;
         }
 
-        foreach (var token in rawValue!.Split(new[] {';', ','}, StringSplitOptions.RemoveEmptyEntries))
+        foreach (var token in rawValue!.Split([';', ','], StringSplitOptions.RemoveEmptyEntries))
         {
             var name = token.Trim();
             if (name.EndsWith(".dll", StringComparison.InvariantCultureIgnoreCase))

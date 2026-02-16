@@ -1,7 +1,7 @@
 -- @generate
 -- @using IOKode.OpinionatedFramework.Resources.Attributes
--- @attribute [RetrieveResource("user", "by global")]
 -- @result string name
--- @single
 
-select 'global-user' as name;
+-- @attribute [ListResources("users")]
+
+select unnest(array['user1','user2','user3']) as name;

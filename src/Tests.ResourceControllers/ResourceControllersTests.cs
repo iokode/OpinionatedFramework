@@ -28,46 +28,31 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     }
 
     [Fact]
-    public void SourceCommandForCommandIsApplied_Success()
+    public void SourceCommandAttribForCommandIsApplied_Success()
     {
         // Arrange
         var controllerType = typeof(UserResourceController);
         var controllerMethod = controllerType.GetMethod(nameof(UserResourceController.RetrieveByCodeAsync))!;
-        string sourceCommand = typeof(RetrieveUserByKeyCommand).ToString();
-        string sourceCommandInController = controllerMethod.GetCustomAttribute<SourceCommandAttribute>()!.CommandTypeString;
+        var sourceCommand = typeof(RetrieveUserByKeyCommand).ToString();
+        var sourceCommandInController = controllerMethod.GetCustomAttribute<SourceCommandAttribute>()!.CommandTypeString;
 
         // Assert
         Assert.Equal(sourceCommand, sourceCommandInController);
     }
 
     [Fact]
-    public void SourceCommandForQueryIsApplied_Success()
+    public void SourceCommandAttribForQueryIsApplied_Success()
     {
         // Arrange
         var controllerType = typeof(UserResourceController);
-        var controllerMethod = controllerType.GetMethod(nameof(UserResourceController.RetrieveByNameAsync))!;
-        string sourceQuery = typeof(GetUserByNameQuery).ToString();
-        string sourceQueryInController = controllerMethod.GetCustomAttribute<SourceCommandAttribute>()!.CommandTypeString;
+        var controllerMethod = controllerType.GetMethod(nameof(UserResourceController.RetrieveNameByUserNameAsync))!;
+        var sourceQuery = typeof(RetrieveUserSubResourceByResourceKeyQuery).ToString();
+        var sourceQueryInController = controllerMethod.GetCustomAttribute<SourceCommandAttribute>()!.CommandTypeString;
 
         // Assert
         Assert.Equal(sourceQuery, sourceQueryInController);
     }
-
-    [Fact]
-    public async Task RetrieveUser_Success()
-    {
-        // Arrange
-        int id = 321;
-
-        // Act
-        var response = await this.client.GetAsync($"/users/{id}");
-
-        // Assert
-        var content = await response.Content.ReadFromJsonAsync<string>();
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(id.ToString(), content);
-    }
-
+    
     [Fact]
     public async Task RetrieveUser_ByKey_Success()
     {
@@ -75,19 +60,19 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         int id = 123;
 
         // Act
-        var response = await this.client.GetAsync($"/users/by-code/{id}");
+        var response = await this.client.GetAsync($"/users/code-{id}");
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<int>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(id, content);
     }
-
+    
     [Fact]
-    public async Task RetrieveUser_Single_Success()
+    public async Task RetrieveUser_SubResourceParameterless_Success()
     {
         // Act
-        var response = await this.client.GetAsync("/user");
+        var response = await this.client.GetAsync("/users/single");
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
@@ -96,30 +81,18 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     }
 
     [Fact]
-    public async Task RetrieveUser_SingleFromSqlQuery_Success()
-    {
-        // Act
-        var response = await this.client.GetAsync("/user/by-global");
-
-        // Assert
-        var result = await response.Content.ReadFromJsonAsync<GetSingleUserQueryResult>();
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("global-user", result?.Name ?? string.Empty);
-    }
-
-    [Fact]
-    public async Task RetrieveUser_ByKeyFromSqlQuery_Success()
+    public async Task RetrieveUser_SubResourceByResourceKey_Success()
     {
         // Arrange
-        var name = "Angel";
+        var name = "name";
 
         // Act
-        var response = await this.client.GetAsync($"/users/by-name/{name}");
+        var response = await this.client.GetAsync($"/users/name-{name}/name");
 
         // Assert
-        var result = await response.Content.ReadFromJsonAsync<GetUserByNameQueryResult>();
+        var content = await response.Content.ReadFromJsonAsync<RetrieveUserSubResourceByResourceKeyQueryResult>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(name, result?.Name ?? string.Empty);
+        Assert.Equal(name, content!.Name);
     }
 
     [Fact]
@@ -129,7 +102,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         int id = 753;
 
         // Act
-        var response = await this.client.GetAsync($"/orders/{id}");
+        var response = await this.client.GetAsync($"/orders/id-{id}");
 
         // Assert
         var result = await response.Content.ReadFromJsonAsync<string>();
@@ -138,52 +111,63 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     }
 
     [Fact]
-    public async Task ListUsers_Success()
+    public async Task ListUsers_FromQuery_Success()
     {
         // Act
         var response = await this.client.GetAsync("/users");
 
         // Assert
+        var content = await response.Content.ReadFromJsonAsync<ListUsersQueryResult[]>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(["user1", "user2", "user3"], content?.Select(result => result.Name) ?? []);
+    }
+
+    [Fact]
+    public async Task ListUsers_SubresourceBySubresourceKeys_Success()
+    {
+        // Act
+        var response = await this.client.GetAsync($"/users/by-key/key1-k1/key2-1");
+
+        // Assert
         var content = await response.Content.ReadFromJsonAsync<string[]>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(new[] {"user1", "user2", "user3"}, content);
+        Assert.Equal(new []{"k1", "1"}, content);
+    }
+    
+    [Fact]
+    public async Task ListUsers_WithQueryParameters_Success()
+    {
+        // Act
+        var response = await this.client.GetAsync("/users/by-key/key1-k1/key2-1?param2=true&param1=-1");
+
+        // Assert
+        var content = await response.Content.ReadFromJsonAsync<string[]>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(new []{"k1", "1", "-1", "True"}, content);
     }
 
     [Fact]
-    public async Task ListUsers_ByKey_Success()
+    public async Task ListUsers_DeepSubresourceByKeyOnEachLevel_Success()
     {
         // Act
-        var response = await this.client.GetAsync("/users/by-actives");
+        var response = await this.client.GetAsync("/users/id-5/actives/is-active-true/related-users/key-3");
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<int[]>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(new[] {1, 2, 3}, content);
+        Assert.Equal(new[] {5, 1, 3, 0}, content);
     }
-
+    
     [Fact]
-    public async Task ListUsers_ByKeyAndFilters_Success()
+    public async Task ListUsers_WithQueryParametersForWrapperObject_Success()
     {
         // Act
-        var response = await this.client.GetAsync("/users/by-actives?isSingle=true");
+        var response = await this.client.GetAsync("/users/id-5/actives/is-active-true/related-users/key-3?isSingle=true");
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<int[]>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(new[] {1}, content);
-    }
-
-    [Fact]
-    public async Task ListProducts_FromQuery_Success()
-    {
-        // Act
-        var response = await this.client.GetAsync("/products");
-
-        // Assert
-        var content = await response.Content.ReadFromJsonAsync<ListProductsQueryResult[]>();
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(["product1", "product2", "product3"], content?.Select(result => result.Name) ?? []);
-        ;
+        Assert.Equal(new[] {5, 1, 3, 1}, content);
     }
 
     [Fact]
@@ -206,48 +190,21 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     }
 
     [Fact]
-    public async Task UpdateUser_Success()
-    {
-        // Arrange
-        int id = 10;
-
-        // Act
-        var response = await this.client.PatchAsync($"/users/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
-
-        // Assert
-        var content = await response.Content.ReadFromJsonAsync<string>();
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal($"updated-{id}", content);
-    }
-
-    [Fact]
     public async Task UpdateUser_ByKey_Success()
     {
         // Arrange
         int id = 11;
 
         // Act
-        var response = await this.client.PatchAsync($"/users/by-code/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+        var response = await this.client.PatchAsync($"/users/code-{id}", JsonContent.Create(new
+        {
+            Updated = true
+        }));
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal($"updated-{id}", content);
-    }
-
-    [Fact]
-    public async Task ReplaceUser_Success()
-    {
-        // Arrange
-        int id = 20;
-        var response = await this.client.PutAsync($"/users/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
-
-        // Act
-        var content = await response.Content.ReadFromJsonAsync<string>();
-
-        // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal($"replaced-{id}", content);
+        Assert.Equal($"updated-{id}-True", content);
     }
 
     [Fact]
@@ -257,27 +214,12 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         int id = 21;
 
         // Act
-        var response = await this.client.PutAsync($"/users/by-code/{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+        var response = await this.client.PutAsync($"/users/code-{id}", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal($"replaced-{id}", content);
-    }
-
-    [Fact]
-    public async Task DeleteUser_Success()
-    {
-        // Arrange
-        int id = 30;
-
-        // Act
-        var response = await this.client.DeleteAsync($"/users/{id}");
-
-        // Assert
-        var content = await response.Content.ReadFromJsonAsync<string>();
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal($"deleted-{id}", content);
     }
 
     [Fact]
@@ -287,7 +229,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         int id = 31;
 
         // Act
-        var response = await this.client.DeleteAsync($"/users/by-code/{id}");
+        var response = await this.client.DeleteAsync($"/users/code-{id}");
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
@@ -296,49 +238,51 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     }
 
     [Fact]
-    public async Task ActionEnableUser_Success()
+    public async Task DeleteUser_WithBody_Success()
     {
         // Arrange
-        int id = 40;
+        var request = new HttpRequestMessage(HttpMethod.Delete, "/users")
+        {
+            Content = JsonContent.Create(new[] { 1, 2, 3 })
+        };
 
         // Act
-        var response = await this.client.PatchAsync($"/users/{id}/enable", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+        var response = await this.client.SendAsync(request);
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal($"enabled-{id}", content);
+        Assert.Equal("deleted-1,2,3", content);
     }
 
     [Fact]
-    public async Task ActionEnableUser_ByKey_Success()
+    public async Task ActionUserEnable_ByKeyWithBody_Success()
     {
         // Assert
         var code = "41";
 
         // Act
-        var response = await this.client.PatchAsync($"/users/by-code/{code}/enable", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+        var response = await this.client.PatchAsync($"/users/code-{code}/enable", JsonContent.Create(true));
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal($"enabled-by-code-{code}", content);
+        Assert.Equal($"enabled-by-code-{code}-{true}", content);
     }
 
     [Fact]
-    public async Task ActionRenameUser_ByName_Success()
+    public async Task ActionUser_RenameByKey_Success()
     {
         // Arrange
         var name = "Angel";
 
         // Act
-        var response = await this.client.PatchAsync($"/users/by-name/{name}/rename",
-            new StringContent(@"""Miguel""", Encoding.UTF8, "application/json"));
+        var response = await this.client.PatchAsync($"/users/name-{name}/rename", JsonContent.Create("Miguel"));
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("Miguel", content);
+        Assert.Equal("Angel->Miguel", content);
     }
 
     [Fact]

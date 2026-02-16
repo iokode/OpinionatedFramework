@@ -1,15 +1,16 @@
+using System;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Commands;
 using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[ListResources("user", "by actives")]
-public class ListActiveUsersCommand(ListUsersFilter? filter = null) : Command<int[]>
+[ListResources("users/actives/related users", "id/isActive/key")]
+public class ListUsersSubResourcesByKeysAndWrapFilterCommand(int id, string key, bool isActive, ListUsersFilter? filter = null) : Command<int[]>
 {
     protected override Task<int[]> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        var result = (int[]) (filter?.IsSingle ?? false ? [1] : [1, 2, 3]);
+        int[] result = [id, Convert.ToInt32(isActive), Convert.ToInt32(key), Convert.ToInt32(filter?.IsSingle ?? false)];
         return Task.FromResult(result);
     }
 }

@@ -4,11 +4,11 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[ReplaceResource("user", "by code")]
-public class ReplaceUserByCodeCommand(int id) : Command<string>
+[ReplaceResource("user", "code")]
+public class ReplaceUserByCodeCommand(int code) : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        return Task.FromResult($"replaced-{id}");
+        return Task.FromResult($"replaced-{code}");
     }
 }

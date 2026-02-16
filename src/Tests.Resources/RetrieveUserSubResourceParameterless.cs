@@ -4,11 +4,11 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[RetrieveResource("user")]
-public class RetrieveUserCommand(int id) : Command<string>
+[RetrieveResource("user/single")]
+public class RetrieveUserSubResourceParameterless : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        return Task.FromResult(id.ToString());
+        return Task.FromResult("single-user");
     }
 }

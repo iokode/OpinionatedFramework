@@ -4,11 +4,12 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[ActionOnResource( "user", "rename", "by name")]
-public class RenameUserCommand(string name, string newName) : Command<string>
+[DeleteResource("user")]
+public class DeleteWithBodyCommand(int[] ids) : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        return Task.FromResult(newName);
+        var stringIds = string.Join(",", ids);
+        return Task.FromResult($"deleted-{stringIds}");
     }
 }
