@@ -77,7 +77,7 @@ public partial class SourceGenerator
 
         public string? BodyInputClassName =>
             NonRouteInvocationParameters.Length > 1 && ResourceType is not (ResourceType.List or ResourceType.Retrieve)
-                ? ControllerMethodName.Replace("Async", "Input")
+                ? MainResource.Pascalize() + ControllerMethodName.Replace("Async", "Input")
                 : null;
 
         public Parameter[] ControllerMethodParameters =>
