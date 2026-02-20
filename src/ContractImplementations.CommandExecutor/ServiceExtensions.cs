@@ -7,8 +7,9 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 
 public static class ServiceExtensions
 {
-    public static void AddDefaultCommandExecutor(this IOpinionatedServiceCollection services, Action<CommandExecutorOptions> optionsAction)
+    public static void AddDefaultCommandExecutor(this IOpinionatedServiceCollection services, Action<CommandExecutorOptions>? configuration = null)
     {
-        services.AddSingleton<ICommandExecutor>(_ => new CommandExecutor(optionsAction));
+        configuration ??= _ => { };
+        services.AddSingleton<ICommandExecutor>(_ => new CommandExecutor(configuration));
     }
 }

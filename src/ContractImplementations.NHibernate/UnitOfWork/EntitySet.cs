@@ -33,7 +33,7 @@ public class EntitySet<T> : IEntitySet<T> where T : Entity
         return entity;
     }
     
-    public async Task<T> GetByIdOrDefaultAsync(object id, CancellationToken cancellationToken = default)
+    public async Task<T?> GetByIdOrDefaultAsync(object id, CancellationToken cancellationToken = default)
     {
         return await _session.GetAsync<T>(id, cancellationToken);
     }

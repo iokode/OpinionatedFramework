@@ -342,7 +342,6 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     }
 
     [Fact]
-    [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(OpenApiDocument))]
     public async Task OpenApi_Success()
     {
         // Act
@@ -366,5 +365,31 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
 
         Assert.Single(content500);
         Assert.True(content500.ContainsKey("application/json"));
+    }
+
+    [Fact]
+    public async Task ResourceNotFound_Command_Returns404()
+    {
+        // Arrange
+        int id = 123;
+
+        // Act
+        var response = await this.client.GetAsync($"/not-found-commands/id/{id}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+    
+    [Fact]
+    public async Task ResourceNotFound_Query_Returns404()
+    {
+        // Arrange
+        int id = 123;
+
+        // Act
+        var response = await this.client.GetAsync($"/not-found-queries/id/{id}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
