@@ -37,11 +37,11 @@ public class NHibernateTestsFixture : IAsyncLifetime
         
         NpgsqlClient = new NpgsqlConnection(connectionString);
         await NpgsqlClient.OpenAsync();
-        Container.Services.AddNHibernateWithPostgres(cfg =>
+        Container.Services.AddNHibernateWithPostgres(options =>
         {
-            Configuration = cfg;
-            cfg.AddXmlFile("Config/Entities/user.hbm.xml");
-            Fluently.Configure(cfg)
+            Configuration = options;
+            options.AddXmlFile("Config/Entities/user.hbm.xml");
+            Fluently.Configure(options)
                 .Database(PostgreSQLConfiguration.PostgreSQL83
                     .ConnectionString(connectionString))
                 .BuildConfiguration();

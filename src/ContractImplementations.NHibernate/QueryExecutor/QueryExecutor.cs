@@ -4,22 +4,50 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Persistence.Queries;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
 using NHibernate;
 using NHibernate.Type;
+using NonUniqueResultException = IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions.NonUniqueResultException;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
 
-public class QueryExecutor(
+public partial class QueryExecutor(
     ISessionFactory sessionFactory,
     IQueryExecutorConfiguration configuration,
     params QueryMiddleware[] middlewares) : IQueryExecutor
 {
+    private enum ResultCardinality
+    {
+        Multiple,
+        Single,
+        SingleOrDefault
+    }
+
     public async Task<IReadOnlyCollection<TResult>> QueryAsync<TResult>(string query, object? parameters,
+        IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
+    {
+        return await QueryAsync<TResult>(ResultCardinality.Multiple, query, parameters, dbTransaction, cancellationToken);
+    }
+
+    public async Task<TResult> QuerySingleAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
+    {
+        var results = await QueryAsync<TResult>(ResultCardinality.Single, query, parameters, dbTransaction, cancellationToken);
+        return results.Single();
+    }
+
+    public async Task<TResult?> QuerySingleOrDefaultAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
+    {
+        var results = await QueryAsync<TResult>(ResultCardinality.SingleOrDefault, query, parameters, dbTransaction, cancellationToken);
+        return results.SingleOrDefault();
+    }
+
+    private async Task<IReadOnlyCollection<TResult>> QueryAsync<TResult>(ResultCardinality resultCardinality, string query, object? parameters,
         IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
     {
         var context = new NHibernateQueryExecutionExecutorContext
@@ -38,7 +66,7 @@ public class QueryExecutor(
         Container.Advanced.CreateScope();
         Log.Trace("Invoking query pipeline...");
 
-        await InvokeMiddlewarePipelineAsync<TResult>(context, 0);
+        await InvokeMiddlewarePipelineAsync<TResult>(resultCardinality, context, 0);
 
         Log.Trace("Invoked query pipeline.");
         Container.Advanced.DisposeScope();
@@ -50,32 +78,36 @@ public class QueryExecutor(
     private void ExtractDirectivesFromQuery(NHibernateQueryExecutionExecutorContext context)
     {
         var lines = context.RawQuery.Split('\n');
+        var directivePrefixRegex = GetDirectivePrefixRegex();
 
         foreach (string line in lines)
         {
             string trimmedLine = line.Trim();
-            if (trimmedLine.StartsWith("-- @"))
+            var match = directivePrefixRegex.Match(trimmedLine);
+            if (!match.Success)
             {
-                string directive = trimmedLine[4..].Trim();
-                context.Directives.Add(directive);
+                continue;
             }
+
+            string directive = trimmedLine[match.Length..].Trim();
+            context.Directives.Add(directive);
         }
     }
 
-    private async Task InvokeMiddlewarePipelineAsync<TResult>(NHibernateQueryExecutionExecutorContext context,
-        int index)
+    private async Task InvokeMiddlewarePipelineAsync<TResult>(ResultCardinality resultCardinality,
+        NHibernateQueryExecutionExecutorContext context, int index)
     {
         if (index >= middlewares.Length)
         {
-            await ExecuteQueryAsync<TResult>(context);
+            await ExecuteQueryAsync<TResult>(resultCardinality, context);
             return;
         }
 
         var middleware = middlewares[index];
-        await middleware.ExecuteAsync(context, () => InvokeMiddlewarePipelineAsync<TResult>(context, index + 1));
+        await middleware.ExecuteAsync(context, () => InvokeMiddlewarePipelineAsync<TResult>(resultCardinality, context, index + 1));
     }
 
-    private async Task ExecuteQueryAsync<TResult>(NHibernateQueryExecutionExecutorContext context)
+    private async Task ExecuteQueryAsync<TResult>(ResultCardinality resultCardinality, NHibernateQueryExecutionExecutorContext context)
     {
         using var session = context.Transaction == null
             ? sessionFactory.OpenStatelessSession()
@@ -93,6 +125,22 @@ public class QueryExecutor(
 
         context.Results = (await sqlQuery.ListAsync<object>(context.CancellationToken)).ToArray();
         context.IsExecuted = true;
+
+        if (resultCardinality != ResultCardinality.Multiple)
+        {
+            try
+            {
+                var singleResult = context.Results.SingleOrDefault();
+                if (singleResult == null && resultCardinality == ResultCardinality.Single)
+                {
+                    throw new EmptyResultException();
+                }
+            }
+            catch (InvalidOperationException exc)
+            {
+                throw new NonUniqueResultException(exc);
+            }
+        }
     }
 
     /// <summary>
@@ -153,4 +201,7 @@ public class QueryExecutor(
             query.SetParameter(paramName, value, GetNHTypeFor(prop.PropertyType));
         }
     }
+
+    [GeneratedRegex(@"--[ \t]*@")]
+    private static partial Regex GetDirectivePrefixRegex();
 }

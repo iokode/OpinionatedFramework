@@ -34,9 +34,9 @@ public class EventsTestsFixture : IAsyncLifetime
         await PostgresContainer.InitializeAsync();
         string postgresConnectionString = PostgresHelper.ConnectionString;
 
-        Container.Services.AddNHibernateWithPostgres(cfg =>
+        Container.Services.AddNHibernateWithPostgres(options =>
         {
-            Fluently.Configure(cfg)
+            Fluently.Configure(options)
                 .Database(PostgreSQLConfiguration.PostgreSQL83
                     .ConnectionString(postgresConnectionString))
                 .Mappings(mapCfg =>

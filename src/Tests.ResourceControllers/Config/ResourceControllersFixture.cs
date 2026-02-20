@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
+using IOKode.OpinionatedFramework.AspNetCoreIntegrations.Middlewares;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
@@ -31,13 +32,19 @@ public class ResourceControllersFixture : IAsyncLifetime
         await PostgresContainer.InitializeAsync();
         string connectionString = PostgresHelper.ConnectionString;
         Container.Services.AddTransient<ILogging>(_ => new XUnitLogging(TestOutputHelperFactory()));
-        Container.Services.AddDefaultCommandExecutor(_ => {});
-        Container.Services.AddNHibernateWithPostgres(cfg =>
+        Container.Services.AddDefaultCommandExecutor(options =>
         {
-            Fluently.Configure(cfg)
+            options.AddMiddleware<ResourceNotFoundCommandMiddleware>();
+        });
+        Container.Services.AddNHibernateWithPostgres(options =>
+        {
+            Fluently.Configure(options)
                 .Database(PostgreSQLConfiguration.PostgreSQL83
                     .ConnectionString(connectionString))
                 .BuildConfiguration();
+        }, options =>
+        {
+           options.Middlewares.Add(new ResourceNotFoundQueryMiddleware());
         });
         Container.Services.AddControllers(options =>
         {
