@@ -264,10 +264,10 @@ public partial class SourceGenerator
         using System.Threading.Tasks;
         using IOKode.OpinionatedFramework;
         using IOKode.OpinionatedFramework.AspNetCoreIntegrations;
+        using IOKode.OpinionatedFramework.AspNetCoreIntegrations.Exceptions;
         using IOKode.OpinionatedFramework.Commands;
         using IOKode.OpinionatedFramework.Commands.Extensions;
         using IOKode.OpinionatedFramework.Facades;
-        using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
         using Microsoft.AspNetCore.Http;
         using Microsoft.AspNetCore.Mvc;
 
@@ -308,22 +308,9 @@ public partial class SourceGenerator
                     {{~ end ~}}
                     {{~ end ~}}
                 }
-                catch (EntityNotFoundException)
+                catch (ResourceNotFoundException)
                 {
                     return NotFound();
-                }
-                catch (EmptyResultException)
-                {
-                    return NotFound();
-                }
-                catch (NonUniqueResultException)
-                {
-                    return Problem
-                    (
-                        title: "Internal Server Error",
-                        detail: "Multiple results found when expecting a unique result.",
-                        statusCode: StatusCodes.Status500InternalServerError
-                    );
                 }
                 catch (Exception ex)
                 {

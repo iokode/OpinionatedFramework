@@ -1,9 +1,9 @@
-using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
 using IOKode.OpinionatedFramework.Resources.Attributes;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Queries;
@@ -28,7 +28,7 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         Assert.NotNull(attribute);
         Assert.Equal("active user", attribute.Resource);
         Assert.Equal("name", attribute.Key);
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await GetUserNameQuery.InvokeAsync("2", default));
+        await Assert.ThrowsAsync<EmptyResultException>(async () => await GetUserNameQuery.InvokeAsync("2", default));
     }
 
     [Fact]
