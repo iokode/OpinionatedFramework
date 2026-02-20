@@ -38,13 +38,13 @@ public partial class QueryExecutor(
     public async Task<TResult> QuerySingleAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
     {
         var results = await QueryAsync<TResult>(ResultCardinality.Single, query, parameters, dbTransaction, cancellationToken);
-        return results.Single();
+        return results.First();
     }
 
     public async Task<TResult?> QuerySingleOrDefaultAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
     {
         var results = await QueryAsync<TResult>(ResultCardinality.SingleOrDefault, query, parameters, dbTransaction, cancellationToken);
-        return results.SingleOrDefault();
+        return results.FirstOrDefault();
     }
 
     private async Task<IReadOnlyCollection<TResult>> QueryAsync<TResult>(ResultCardinality resultCardinality, string query, object? parameters,
