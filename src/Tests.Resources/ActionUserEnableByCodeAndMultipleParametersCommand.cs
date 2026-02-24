@@ -4,11 +4,11 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[DeleteResource("user", "code")]
-public class DeleteUserByKeyCommand(int code) : Command<string>
+[ActionOnResource("user", key: "code", action: "enable")]
+public class ActionUserEnableByCodeAndMultipleParametersCommand(string code, string enableName, bool enable) : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        return Task.FromResult($"deleted-{code}");
+        return Task.FromResult($"enabled-by-code-{code}-{enableName}-{enable}");
     }
 }

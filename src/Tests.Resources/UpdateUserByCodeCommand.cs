@@ -4,11 +4,13 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[RetrieveResource("user", "code")]
-public class RetrieveUserByKeyCommand(int code) : Command<string>
+[UpdateResource("User", "code")]
+public class UpdateUserByCodeCommand(int code, UpdateUserByKeyWithBodyInput input) : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        return Task.FromResult(code.ToString());
+        return Task.FromResult($"updated-{code}-{input.Updated}");
     }
 }
+
+public record UpdateUserByKeyWithBodyInput(bool Updated);

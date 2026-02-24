@@ -6,7 +6,7 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
 [ListResources("users/actives/related users", "id/isActive/key")]
-public class ListUsersSubResourcesByKeysAndWrapFilterCommand(int id, string key, bool isActive, ListUsersFilter? filter = null) : Command<int[]>
+public class ListUsersRelatedUsersByKeysWithWrapFilterCommand(int id, string key, bool isActive, ListUsersFilter? filter = null) : Command<int[]>
 {
     protected override Task<int[]> ExecuteAsync(ICommandExecutionContext executionContext)
     {

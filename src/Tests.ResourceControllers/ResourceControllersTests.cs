@@ -33,7 +33,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Arrange
         var controllerType = typeof(UserResourceController);
         var controllerMethod = controllerType.GetMethod(nameof(UserResourceController.RetrieveByCodeAsync))!;
-        var sourceCommand = typeof(RetrieveUserByKeyCommand).ToString();
+        var sourceCommand = typeof(RetrieveUserByCodeCommand).ToString();
         var sourceCommandInController = controllerMethod.GetCustomAttribute<SourceCommandAttribute>()!.CommandTypeString;
 
         // Assert
@@ -46,7 +46,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Arrange
         var controllerType = typeof(UserResourceController);
         var controllerMethod = controllerType.GetMethod(nameof(UserResourceController.RetrieveNameByUserNameAsync))!;
-        var sourceQuery = typeof(RetrieveUserSubResourceByResourceKeyQuery).ToString();
+        var sourceQuery = typeof(RetrieveUserFullNameByNameQuery).ToString();
         var sourceQueryInController = controllerMethod.GetCustomAttribute<SourceCommandAttribute>()!.CommandTypeString;
 
         // Assert
@@ -90,7 +90,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var response = await this.client.GetAsync($"/users/name-{name}/name");
 
         // Assert
-        var content = await response.Content.ReadFromJsonAsync<RetrieveUserSubResourceByResourceKeyQueryResult>();
+        var content = await response.Content.ReadFromJsonAsync<RetrieveUserFullNameByNameQueryResult>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(name, content!.Name);
     }

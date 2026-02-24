@@ -5,7 +5,7 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
 [ActionOnResource("user", "rename", "name")]
-public class ActionUserRenameByKeyCommand(string name, string newName) : Command<string>
+public class ActionUserRenameByNameCommand(string name, string newName) : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
     {
