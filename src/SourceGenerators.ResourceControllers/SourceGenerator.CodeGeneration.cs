@@ -196,7 +196,7 @@ public partial class SourceGenerator
         using System.Threading.Tasks;
         using IOKode.OpinionatedFramework;
         using IOKode.OpinionatedFramework.AspNetCoreIntegrations;
-        using IOKode.OpinionatedFramework.AspNetCoreIntegrations.Exceptions;
+        using IOKode.OpinionatedFramework.Resources.Exceptions;
         using IOKode.OpinionatedFramework.Commands;
         using IOKode.OpinionatedFramework.Facades;
         using Microsoft.AspNetCore.Http;

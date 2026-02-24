@@ -38,7 +38,7 @@ public partial class QueryExecutor(
     public async Task<TResult> QuerySingleAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
     {
         var results = await QueryAsync<TResult>(ResultCardinality.Single, query, parameters, dbTransaction, cancellationToken);
-        return results.First(); // Exception related to single already thrown by QueryAsync
+        return results.FirstOrDefault()!; // Exception related to single already thrown by QueryAsync
     }
 
     public async Task<TResult?> QuerySingleOrDefaultAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)

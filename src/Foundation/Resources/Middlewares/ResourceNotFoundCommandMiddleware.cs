@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.AspNetCoreIntegrations.Exceptions;
 using IOKode.OpinionatedFramework.Commands;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
+using IOKode.OpinionatedFramework.Resources.Exceptions;
 
-namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.Middlewares;
+namespace IOKode.OpinionatedFramework.Resources.Middlewares;
 
 public class ResourceNotFoundCommandMiddleware : CommandMiddleware
 {
