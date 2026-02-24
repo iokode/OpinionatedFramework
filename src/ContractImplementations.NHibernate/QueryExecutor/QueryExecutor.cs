@@ -38,7 +38,7 @@ public partial class QueryExecutor(
     public async Task<TResult> QuerySingleAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
     {
         var results = await QueryAsync<TResult>(ResultCardinality.Single, query, parameters, dbTransaction, cancellationToken);
-        return results.First(); // Exception related to single already thrown by QueryAsync
+        return results.FirstOrDefault()!; // Exception related to single already thrown by QueryAsync
     }
 
     public async Task<TResult?> QuerySingleOrDefaultAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
@@ -126,20 +126,14 @@ public partial class QueryExecutor(
         context.Results = (await sqlQuery.ListAsync<object>(context.CancellationToken)).ToArray();
         context.IsExecuted = true;
 
-        if (resultCardinality != ResultCardinality.Multiple)
+        if (resultCardinality is ResultCardinality.Single or ResultCardinality.SingleOrDefault && context.Results.Count > 1)
         {
-            try
-            {
-                var singleResult = context.Results.SingleOrDefault();
-                if (singleResult == null && resultCardinality == ResultCardinality.Single)
-                {
-                    throw new EmptyResultException();
-                }
-            }
-            catch (InvalidOperationException exc)
-            {
-                throw new NonUniqueResultException(exc);
-            }
+            throw new NonUniqueResultException();
+        }
+
+        if (resultCardinality is ResultCardinality.Single && context.Results.Count == 0)
+        {
+            throw new EmptyResultException();
         }
     }
 

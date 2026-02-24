@@ -1,6 +1,6 @@
 using System;
 
-namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.Exceptions;
+namespace IOKode.OpinionatedFramework.Resources.Exceptions;
 
 /// <summary>
 /// The exception that is thrown when a resource is not found.
