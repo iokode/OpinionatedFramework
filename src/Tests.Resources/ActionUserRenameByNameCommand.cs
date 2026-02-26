@@ -4,11 +4,11 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[UpdateResource("user")]
-public class UpdateUserCommand(int id) : Command<string>
+[ActionOnResource("user", "rename", "name")]
+public class ActionUserRenameByNameCommand(string name, string newName) : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        return Task.FromResult($"updated-{id}");
+        return Task.FromResult($"{name}->{newName}");
     }
 }

@@ -4,11 +4,11 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[ActionOnResource( "user", "rename", "by name")]
-public class RenameUserCommand(string name, string newName) : Command<string>
+[ActionOnResource("user", key: "code", action: "enable")]
+public class ActionUserEnableByCodeAndMultipleParametersCommand(string code, string enableName, bool enable) : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        return Task.FromResult(newName);
+        return Task.FromResult($"enabled-by-code-{code}-{enableName}-{enable}");
     }
 }

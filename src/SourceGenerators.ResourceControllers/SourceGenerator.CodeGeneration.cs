@@ -44,49 +44,103 @@ public partial class SourceGenerator
     {
         public required string AssemblyNamespace { get; set; }
         public required ResourceData[] ResourcesData { get; set; }
-        public string BaseRoute => ResourcesData[0].Resource.Pluralize().Kebaberize();
-        public string ClassName => $"{ResourcesData[0].Resource.Pascalize()}ResourceController";
+        public string BaseRoute => ResourcesData[0].MainResource.Pluralize().Kebaberize();
+        public string ClassName => $"{ResourcesData[0].MainResource.Pascalize()}ResourceController";
         public string Namespace => $"{AssemblyNamespace}.Resources.Controllers";
         public string ClassFileName => $"{ClassName}.g.cs";
+        public ResourceData[] ResourcesDataWithBodyClass => ResourcesData.Where(resource => resource.BodyInputClassName != null).ToArray();
     }
 
     public abstract class ResourceData
     {
         public abstract string ReturnResponseType { get; }
         public abstract string DataType { get; } 
-        public required string Resource { get; set; }
+        public required string ResourceValue { get; set; }
         public required string ClassName { get; set; }
         public required string Namespace { get; set; }
         public required ResourceType ResourceType { get; set; }
         public string? DocComment { get; set; }
-        public string? KeyName { get; set; }
+        public string? KeyValue { get; set; }
         public string? Action { get; set; }
         public Parameter[] InvocationParameters { get; set; } = [];
-        public Parameter[] InvocationParametersWithoutCancellationToken => InvocationParameters.Where(param => param.Name != "cancellationToken").ToArray();
-        public virtual Parameter[] ControllerMethodParameters => InvocationParameters.Any(parameter => parameter.Type == "System.Threading.CancellationToken")
-            ? InvocationParameters
-            : InvocationParameters.Concat([new Parameter {Name = "cancellationToken", Type = "System.Threading.CancellationToken"}]).ToArray();
-        
-        public string ControllerMethodParametersString => string.Join(", ", ControllerMethodParameters.Select((parameter, idx) =>
-            ResourceType switch
+
+        public Parameter[] InvocationParametersWithToken =>
+            InvocationParameters.Any(parameter => parameter.Type == "System.Threading.CancellationToken")
+                ? InvocationParameters
+                : InvocationParameters.Concat([new Parameter {Name = "cancellationToken", Type = "System.Threading.CancellationToken"}]).ToArray();
+
+        public Parameter[] NonRouteInvocationParameters => 
+            InvocationParameters
+                .Where(param => param.Name != "cancellationToken").ToArray()
+                .Where(parameter => !KeysByResource.Values.Any(keys => keys.Contains(parameter.Name)))
+                .ToArray();
+
+        public string? BodyInputClassName =>
+            NonRouteInvocationParameters.Length > 1 && ResourceType is not (ResourceType.List or ResourceType.Retrieve)
+                ? MainResource.Pascalize() + ControllerMethodName.Replace("Async", "Input")
+                : null;
+
+        public Parameter[] ControllerMethodParameters =>
+            BodyInputClassName == null
+                ? InvocationParametersWithToken
+                : InvocationParametersWithToken
+                    .Select(parameter => !NonRouteInvocationParameters.Contains(parameter)
+                        ? parameter
+                        : parameter == NonRouteInvocationParameters.First()
+                            ? new Parameter
+                            {
+                                Type = BodyInputClassName,
+                                Name = "input",
+                            }
+                            : null)
+                    .Where(parameter => parameter != null)
+                    .Cast<Parameter>()
+                    .ToArray();
+
+        public string CommandParametersString => string.Join(", ", InvocationParameters
+            .Select(parameter => BodyInputClassName != null && NonRouteInvocationParameters.Contains(parameter)
+                ? $"input.{parameter.PascalizedName}"
+                : parameter.Name));
+
+        public string FullClassName => $"{Namespace}.{ClassName}";
+        public string[] Resources => ResourceValue.Split('/').Select(resource => resource.Trim()).ToArray();
+        public string MainResource => Resources.FirstOrDefault() ?? string.Empty;
+        public Dictionary<string, string[]> KeysByResource
+        {
+            get
             {
-                ResourceType.List when parameter.Type != "System.Threading.CancellationToken"
+                var keysSplitByResource = KeyValue?.Split('/').Select(key => key.Trim()).ToArray() ?? [];
+                return Resources.Select((resource, idx) =>
+                (
+                    resource,
+                    keys: idx < keysSplitByResource.Length
+                        ? keysSplitByResource[idx].Split(',').Select(key => key.Trim().Camelize()).ToArray()
+                        : []
+                )).Select(tuple => tuple.keys.Length == 1 && string.IsNullOrEmpty(tuple.keys[0])
+                    ? tuple with {keys = []}
+                    : tuple
+                ).ToDictionary(tuple => tuple.resource, x => x.keys);
+            }
+        }
+
+        public string ControllerMethodParametersString =>
+            string.Join(", ", ControllerMethodParameters.Select(parameter => ResourceType switch
+            {
+                _ when parameter.Type == "System.Threading.CancellationToken"
+                    => $"{parameter.Type} {parameter.Name}",
+                _ when KeysByResource.Values.Any(keys => keys.Contains(parameter.Name, StringComparer.InvariantCultureIgnoreCase))
+                    => $"[FromRoute] {parameter.Type} {parameter.Name}",
+                ResourceType.Retrieve or
+                    ResourceType.List 
                     => $"[FromQuery] {parameter.Type} {parameter.Name}",
-                ResourceType.Update or
+                ResourceType.Create or
+                    ResourceType.Update or
                     ResourceType.Replace or
                     ResourceType.Delete or
                     ResourceType.Action
-                    when idx != 0 
-                         && idx == ControllerMethodParameters
-                             .Select((p, i) => new { p, i })
-                             .LastOrDefault(x => x.p.Type != "System.Threading.CancellationToken")?.i
                     => $"[FromBody] {parameter.Type} {parameter.Name}",
-                _ => $"{parameter.Type} {parameter.Name}"
-            }
-        ));
-        public string? ConstructorKeyName => InvocationParametersWithoutCancellationToken.Length > 0 && ResourceType != ResourceType.List ? InvocationParametersWithoutCancellationToken[0].Name : null;
-        public string FullClassName => $"{Namespace}.{ClassName}";
-        public bool ThereIsResourceId => InvocationParametersWithoutCancellationToken.Any();
+                _ => throw new ArgumentOutOfRangeException()
+            }));
 
         public string HttpVerb => ResourceType switch
         {
@@ -105,26 +159,25 @@ public partial class SourceGenerator
             ResourceType.Create => $"[Http{HttpVerb}]",
             _ => string.IsNullOrEmpty(HttpRoute) ? $"[Http{HttpVerb}]" : $"[Http{HttpVerb}(\"{HttpRoute}\")]"
         };
-
+        
         public string HttpRoute
         {
             get
             {
                 var builder = new StringBuilder();
 
-                if(ResourceType == ResourceType.Retrieve && !ThereIsResourceId)
+                foreach (var resource in Resources)
                 {
-                    builder.Append($"/{Resource.Kebaberize()}/");
-                }
+                    if (resource != MainResource)
+                    {
+                        builder.Append($"{resource.Kebaberize()}/");
+                    }
 
-                if (KeyName != null)
-                {
-                    builder.Append($"{KeyName.Kebaberize()}/");
-                }
-
-                if (ConstructorKeyName != null)
-                {
-                    builder.Append($"{{{ConstructorKeyName}}}/");
+                    var notEmptyKeys = KeysByResource[resource].Where(str => !string.IsNullOrEmpty(str));
+                    foreach (var key in notEmptyKeys)
+                    {
+                        builder.Append($"{key.Kebaberize()}-{{{key}}}/");
+                    }
                 }
 
                 if (Action != null)
@@ -143,14 +196,28 @@ public partial class SourceGenerator
                 var builder = new StringBuilder();
                 builder.Append(ResourceType.ToString().Pascalize());
 
-                if (KeyName != null)
+                var subresources = Resources.Skip(1);
+                foreach (var resource in subresources)
                 {
-                    builder.Append(KeyName.Pascalize());
+                    builder.Append(resource.Pascalize());
                 }
 
                 if (Action != null)
                 {
                     builder.Append(Action.Pascalize());
+                }
+
+                if (KeysByResource.Values.Any(values => values.Any()))
+                {
+                    builder.Append("By");
+
+                    var resourceKeys = KeysByResource
+                        .Where(keyValue => keyValue.Value.Any())
+                        .SelectMany(keyValue => keyValue.Key == Resources.Last()
+                            ? keyValue.Value.Select(value => value.Pascalize())
+                            : keyValue.Value.Select(value => $"{keyValue.Key.Pascalize()}{value.Pascalize()}"));
+                    var resourceKeysString = string.Join("And", resourceKeys);
+                    builder.Append(resourceKeysString);
                 }
 
                 builder.Append("Async");
@@ -184,6 +251,7 @@ public partial class SourceGenerator
     {
         public required string Name { get; set; }
         public required string Type { get; set; }
+        public string PascalizedName => Name.Pascalize();
     }
 
     private static readonly string ControllerClassTemplate =
@@ -198,6 +266,7 @@ public partial class SourceGenerator
         using IOKode.OpinionatedFramework.AspNetCoreIntegrations;
         using IOKode.OpinionatedFramework.Resources.Exceptions;
         using IOKode.OpinionatedFramework.Commands;
+        using IOKode.OpinionatedFramework.Commands.Extensions;
         using IOKode.OpinionatedFramework.Facades;
         using Microsoft.AspNetCore.Http;
         using Microsoft.AspNetCore.Mvc;
@@ -229,13 +298,12 @@ public partial class SourceGenerator
                     var result = await {{ resource.FullClassName }}.InvokeAsync({{ for parameter in resource.InvocationParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }});
                     return Ok(result);
                     {{~ else if resource.DataType == 'Command' ~}}
-                    var commandExecutor = Locator.Resolve<ICommandExecutor>();
-                    var command = new {{ resource.FullClassName }}({{ for parameter in resource.InvocationParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }});
+                    var command = new {{ resource.FullClassName }}({{ resource.CommandParametersString }});
                     {{~ if resource.GenericArgument ~}}
-                    var result = await commandExecutor.InvokeAsync<{{ resource.FullClassName }}, {{ resource.GenericArgument }}>(command, cancellationToken);
+                    var result = await command.InvokeAsync(cancellationToken);
                     return Ok(result);
                     {{~ else ~}}
-                    await commandExecutor.InvokeAsync<{{ resource.FullClassName }}>(command, cancellationToken);
+                    await command.InvokeAsync(cancellationToken);
                     return NoContent();
                     {{~ end ~}}
                     {{~ end ~}}
@@ -255,8 +323,16 @@ public partial class SourceGenerator
                     );
                 }
             }
-
             {{~ end ~}}
         }
+
+        {{~ for resource in ResourcesDataWithBodyClass ~}}
+        public record {{ resource.BodyInputClassName }}
+        {
+            {{~ for parameter in resource.NonRouteInvocationParameters ~}}
+            public required {{ parameter.Type }} {{ parameter.PascalizedName }} { get; init; }
+            {{~ end ~}}
+        }
+        {{~ end ~}}
         """;
 }

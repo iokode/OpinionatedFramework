@@ -8,7 +8,7 @@ namespace IOKode.OpinionatedFramework.Tests.ResourceControllers;
 /// This command is in the same project as the test to ensure that we can generate controllers
 /// from commands that exists in the same project.
 /// </summary>
-[RetrieveResource("order")]
+[RetrieveResource("order", "id")]
 public class RetrieveOrderCommand(int id) : Command<string>
 {
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
