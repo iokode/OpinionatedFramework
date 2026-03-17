@@ -123,6 +123,13 @@ public partial class SourceGenerator
             }
         }
 
+        public string SourceResourceAttributeString => DataType switch
+        {
+            "Command" => $"[SourceCommand<{FullClassName}>]",
+            "Query" => $"[SourceQuery(typeof({FullClassName}))]",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
         public string ControllerMethodParametersString =>
             string.Join(", ", ControllerMethodParameters.Select(parameter => ResourceType switch
             {
@@ -154,11 +161,7 @@ public partial class SourceGenerator
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        public string HttpAttribute => ResourceType switch
-        {
-            ResourceType.Create => $"[Http{HttpVerb}]",
-            _ => string.IsNullOrEmpty(HttpRoute) ? $"[Http{HttpVerb}]" : $"[Http{HttpVerb}(\"{HttpRoute}\")]"
-        };
+        public string HttpAttribute => string.IsNullOrEmpty(HttpRoute) ? $"[Http{HttpVerb}]" : $"[Http{HttpVerb}(\"{HttpRoute}\")]";
         
         public string HttpRoute
         {
@@ -282,46 +285,27 @@ public partial class SourceGenerator
             {{ resource.DocComment }}
             {{~ end ~}}
             {{ resource.HttpAttribute }}
-            [SourceCommand("{{ resource.FullClassName }}")]
+            {{ resource.SourceResourceAttributeString }}
             {{~ if resource.ReturnResponseType == 'Task' ~}}
             [ProducesResponseType(StatusCodes.Status204NoContent)]
             {{~ else ~}}
             [ProducesResponseType<{{ resource.ReturnResponseType }}>(StatusCodes.Status200OK)]
             {{~ end ~}}
-            [ProducesResponseType<NotFoundResult>(StatusCodes.Status404NotFound)]
-            [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
             public async Task<IActionResult> {{ resource.ControllerMethodName }}({{ resource.ControllerMethodParametersString }})
             {
-                try
-                {
-                    {{~ if resource.DataType == 'Query' ~}}
-                    var result = await {{ resource.FullClassName }}.InvokeAsync({{ for parameter in resource.InvocationParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }});
-                    return Ok(result);
-                    {{~ else if resource.DataType == 'Command' ~}}
-                    var command = new {{ resource.FullClassName }}({{ resource.CommandParametersString }});
-                    {{~ if resource.GenericArgument ~}}
-                    var result = await command.InvokeAsync(cancellationToken);
-                    return Ok(result);
-                    {{~ else ~}}
-                    await command.InvokeAsync(cancellationToken);
-                    return NoContent();
-                    {{~ end ~}}
-                    {{~ end ~}}
-                }
-                catch (ResourceNotFoundException)
-                {
-                    return NotFound();
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "An unexpected error occurred.");
-                    return Problem
-                    (
-                        title: "Internal Server Error",
-                        detail: "An unexpected error occurred. Please contact support if the problem persists.",
-                        statusCode: StatusCodes.Status500InternalServerError
-                    );
-                }
+                {{~ if resource.DataType == 'Query' ~}}
+                var result = await {{ resource.FullClassName }}.InvokeAsync({{ for parameter in resource.InvocationParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }});
+                return Ok(result);
+                {{~ else if resource.DataType == 'Command' ~}}
+                var command = new {{ resource.FullClassName }}({{ resource.CommandParametersString }});
+                {{~ if resource.GenericArgument ~}}
+                var result = await command.InvokeAsync(cancellationToken);
+                return Ok(result);
+                {{~ else ~}}
+                await command.InvokeAsync(cancellationToken);
+                return NoContent();
+                {{~ end ~}}
+                {{~ end ~}}
             }
             {{~ end ~}}
         }

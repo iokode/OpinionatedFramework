@@ -9,8 +9,6 @@ using IOKode.OpinionatedFramework.AspNetCoreIntegrations;
 using IOKode.OpinionatedFramework.Tests.ResourceControllers.Config;
 using IOKode.OpinionatedFramework.Tests.ResourceControllers.Resources.Controllers;
 using IOKode.OpinionatedFramework.Tests.Resources;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
 using Xunit;
 using Xunit.Abstractions;
@@ -33,11 +31,11 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Arrange
         var controllerType = typeof(UserResourceController);
         var controllerMethod = controllerType.GetMethod(nameof(UserResourceController.RetrieveByCodeAsync))!;
-        var sourceCommand = typeof(RetrieveUserByCodeCommand).ToString();
-        var sourceCommandInController = controllerMethod.GetCustomAttribute<SourceCommandAttribute>()!.CommandTypeString;
+        var sourceCommandType = typeof(RetrieveUserByCodeCommand);
+        var sourceCommandTypeInController = controllerMethod.GetCustomAttribute<SourceCommandAttribute>()!.CommandType;
 
         // Assert
-        Assert.Equal(sourceCommand, sourceCommandInController);
+        Assert.Equal(sourceCommandType, sourceCommandTypeInController);
     }
 
     [Fact]
@@ -46,11 +44,11 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Arrange
         var controllerType = typeof(UserResourceController);
         var controllerMethod = controllerType.GetMethod(nameof(UserResourceController.RetrieveNameByUserNameAsync))!;
-        var sourceQuery = typeof(RetrieveUserFullNameByNameQuery).ToString();
-        var sourceQueryInController = controllerMethod.GetCustomAttribute<SourceCommandAttribute>()!.CommandTypeString;
+        var sourceQueryType = typeof(RetrieveUserFullNameByNameQuery);
+        var sourceQueryTypeInController = controllerMethod.GetCustomAttribute<SourceQueryAttribute>()!.QueryType;
 
         // Assert
-        Assert.Equal(sourceQuery, sourceQueryInController);
+        Assert.Equal(sourceQueryType, sourceQueryTypeInController);
     }
     
     [Fact]
@@ -322,7 +320,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         int id = 123;
 
         // Act
-        var response = await this.client.GetAsync($"/not-found-commands/id/{id}");
+        var response = await this.client.GetAsync($"/not-found-commands/id-{id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -335,7 +333,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         int id = 123;
 
         // Act
-        var response = await this.client.GetAsync($"/not-found-queries/id/{id}");
+        var response = await this.client.GetAsync($"/not-found-queries/id-{id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

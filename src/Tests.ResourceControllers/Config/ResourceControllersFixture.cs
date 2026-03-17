@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
+using IOKode.OpinionatedFramework.AspNetCoreIntegrations.Middlewares;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
@@ -12,6 +13,7 @@ using IOKode.OpinionatedFramework.Tests.Helpers;
 using IOKode.OpinionatedFramework.Tests.Helpers.Containers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -62,11 +64,18 @@ public class ResourceControllersFixture : IAsyncLifetime
                         services.AddControllers(options =>
                         {
                             options.Filters.Add(new ProducesAttribute("application/json"));
+                            options.Filters.Add(new ProducesResponseTypeAttribute(typeof(ProblemDetails), StatusCodes.Status500InternalServerError));
+                            options.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status404NotFound));
                         }).AddApplicationPart(typeof(ResourceControllersFixture).Assembly);
+                        services.AddProblemDetails();
+                        services.AddTransient<ResourceNotFoundControllerMiddleware>();
+                        services.AddTransient<UnhandledExceptionControllerMiddleware>();
                         services.AddOpenApi("v1");
                     })
                     .Configure(app =>
                     {
+                        app.UseMiddleware<UnhandledExceptionControllerMiddleware>();
+                        app.UseMiddleware<ResourceNotFoundControllerMiddleware>();
                         app.UseRouting();
                         app.UseEndpoints(endpoints =>
                         {
