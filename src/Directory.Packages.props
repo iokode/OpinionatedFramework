@@ -1,0 +1,88 @@
+<Project>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <CentralPackageFloatingVersionsEnabled>true</CentralPackageFloatingVersionsEnabled>
+        <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+        <MicrosoftAspNetCorePackagesVersion>10.0.8</MicrosoftAspNetCorePackagesVersion>
+        <MicrosoftExtensionsPackagesVersion>10.0.8</MicrosoftExtensionsPackagesVersion>
+    </PropertyGroup>
+    <ItemGroup Label="General">
+        <PackageVersion Include="BCrypt.Net-Next" Version="4.2.0"/>
+        <PackageVersion Include="Cronos" Version="0.13.0"/>
+        <PackageVersion Include="Dapper" Version="2.1.79"/>
+        <PackageVersion Include="Docker.DotNet" Version="3.125.15"/>
+        <PackageVersion Include="Flurl.Http" Version="4.0.2"/>
+        <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.14.0"/>
+        <PackageVersion Include="MailKit" Version="4.17.0"/>
+        <PackageVersion Include="NodaTime" Version="3.3.2"/>
+        <PackageVersion Include="Npgsql" Version="10.0.3"/>
+        <PackageVersion Include="PolySharp" Version="1.15.0"/>
+        <PackageVersion Include="Scriban" Version="7.2.3"/>
+    </ItemGroup>
+
+    <ItemGroup Label="FluentMigrator">
+        <PackageVersion Include="FluentMigrator" Version="8.0.1"/>
+        <PackageVersion Include="FluentMigrator.Runner.Postgres" Version="8.0.1"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Hangfire">
+        <PackageVersion Include="Hangfire.Core" Version="1.8.23"/>
+        <PackageVersion Include="Hangfire.Mongo" Version="1.15.0"/>
+        <PackageVersion Include="Hangfire.PostgreSql" Version="1.21.1"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Humanizer">
+        <PackageVersion Include="Humanizer" Version="3.0.10"/>
+        <PackageVersion Include="Humanizer.Core" Version="3.0.10"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Microsoft.AspNetCore">
+        <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(MicrosoftAspNetCorePackagesVersion)"/>
+        <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(MicrosoftAspNetCorePackagesVersion)"/>
+        <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="$(MicrosoftAspNetCorePackagesVersion)"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Microsoft.CodeAnalysis">
+        <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0"/>
+        <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Microsoft.Extensions">
+        <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsPackagesVersion)"/>
+        <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(MicrosoftExtensionsPackagesVersion)"/>
+        <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(MicrosoftExtensionsPackagesVersion)"/>
+        <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="$(MicrosoftExtensionsPackagesVersion)"/>
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsPackagesVersion)"/>
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsPackagesVersion)"/>
+        <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackagesVersion)"/>
+        <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsPackagesVersion)"/>
+        <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsPackagesVersion)"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Microsoft">
+        <PackageVersion Include="Microsoft.CSharp" Version="4.7.0"/>
+        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0"/>
+        <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300"/>
+    </ItemGroup>
+
+    <ItemGroup Label="NHibernate">
+        <PackageVersion Include="FluentNHibernate" Version="3.4.1"/>
+        <PackageVersion Include="NHibernate" Version="5.6.1"/>
+    </ItemGroup>
+
+    <ItemGroup Label="System">
+        <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.6.3"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Transitive">
+        <PackageVersion Include="Newtonsoft.Json" Version="13.0.4"/>
+        <PackageVersion Include="SharpCompress" Version="0.49.1"/>
+        <PackageVersion Include="Snappier" Version="1.3.1"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Testing">
+        <PackageVersion Include="coverlet.collector" Version="10.0.1"/>
+        <PackageVersion Include="xunit" Version="2.9.3"/>
+        <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5"/>
+    </ItemGroup>
+</Project>

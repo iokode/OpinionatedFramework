@@ -2,14 +2,9 @@
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Packable.props"/>
 
-    <PropertyGroup Label="Package versions">
-        <FluentNHibernateVersion>3.4.*</FluentNHibernateVersion>
-        <NHibernateVersion>5.5.*</NHibernateVersion>
-    </PropertyGroup>
-    
     <ItemGroup Label="Package references">
-        <PackageReference Include="FluentNHibernate" Version="$(FluentNHibernateVersion)" />
-        <PackageReference Include="NHibernate" Version="$(NHibernateVersion)"/>
+        <PackageReference Include="FluentNHibernate" />
+        <PackageReference Include="NHibernate"/>
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">

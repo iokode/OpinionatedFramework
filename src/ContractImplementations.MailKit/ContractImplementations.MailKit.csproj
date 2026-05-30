@@ -3,9 +3,9 @@
     <Import Project="../MSBuild/Packable.props"/>
 
     <ItemGroup Label="Package references">
-        <PackageReference Include="MailKit" Version="4.16.0"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(MicrosoftPackagesVersion)"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftPackagesVersion)"/>
+        <PackageReference Include="MailKit"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"/>
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">

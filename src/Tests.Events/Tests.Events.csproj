@@ -2,10 +2,6 @@
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Test.props"/>
     
-    <PropertyGroup>
-        <FluentMigratorVersion>6.1.0</FluentMigratorVersion>
-    </PropertyGroup>
-
     <ItemGroup Label="Project references">
         <ProjectReference Include="..\ContractImplementations.Events\ContractImplementations.Events.csproj" />
         <ProjectReference Include="..\ContractImplementations.Hangfire\ContractImplementations.Hangfire.csproj" />
@@ -13,7 +9,7 @@
     </ItemGroup>
 
     <ItemGroup Label="Package references">
-        <PackageReference Include="FluentMigrator.Runner.Postgres" Version="$(FluentMigratorVersion)" />
-        <PackageReference Include="Hangfire.PostgreSql" Version="1.20.10" />
+        <PackageReference Include="FluentMigrator.Runner.Postgres" />
+        <PackageReference Include="Hangfire.PostgreSql" />
     </ItemGroup>
 </Project>

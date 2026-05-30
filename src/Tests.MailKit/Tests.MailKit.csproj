@@ -3,7 +3,7 @@
     <Import Project="../MSBuild/Test.props"/>
 
     <ItemGroup Label="Package references">
-        <PackageReference Include="Docker.DotNet" Version="3.125.15" />
+        <PackageReference Include="Docker.DotNet" />
     </ItemGroup>
 
     <ItemGroup Label="Project references">

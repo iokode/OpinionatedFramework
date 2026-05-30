@@ -2,4 +2,7 @@
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Packable.props"/>
     <Import Project="../MSBuild/SourceGenerator.props"/>
+    <ItemGroup>
+      <PackageReference Update="Scriban" PrivateAssets="all" IncludeAssets="build" />
+    </ItemGroup>
 </Project>

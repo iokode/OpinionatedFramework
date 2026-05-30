@@ -6,14 +6,9 @@
         <AdditionalFiles Include="**\*.sql"/>
     </ItemGroup>
 
-    <PropertyGroup Label="Package versions">
-        <FluentMigratorVersion>6.2.*</FluentMigratorVersion>
-        <NpgsqlVersion>9.0.*</NpgsqlVersion>
-    </PropertyGroup>
-
     <ItemGroup Label="Package references">
-        <PackageReference Include="Npgsql" Version="$(NpgsqlVersion)"/>
-        <PackageReference Include="FluentMigrator" Version="$(FluentMigratorVersion)"/>
+        <PackageReference Include="Npgsql"/>
+        <PackageReference Include="FluentMigrator"/>
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">

@@ -24,7 +24,7 @@ public static class MailHogHelper
 
             try
             {
-                await "http://localhost:8025/api/v2/messages".GetJsonAsync();
+                await "http://localhost:8025/api/v2/messages".GetJsonAsync<object>();
                 return true;
             }
             catch (Exception)
