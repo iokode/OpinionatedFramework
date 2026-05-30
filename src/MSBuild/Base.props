@@ -4,6 +4,7 @@
         <Version>0.35.1-dev</Version>
         <EnsuringVersion>1.2.2</EnsuringVersion>
         <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <AssemblyName>IOKode.OpinionatedFramework.$(MSBuildProjectName)</AssemblyName>
         <TargetName>IOKode.OpinionatedFramework.$(MSBuildProjectName)</TargetName>
         <RootNamespace>IOKode.OpinionatedFramework.$(MSBuildProjectName)</RootNamespace>
