@@ -33,7 +33,11 @@ public class MailKitEmailSender : IEmailSender, IDisposable
             var message = new MimeMessage();
             var bodyBuilder = new BodyBuilder();
 
-            message.Subject = email.Subject;
+            if (email.Subject != null)
+            {
+                message.Subject = email.Subject;
+            }
+            
             message.MessageId = email.MessageId.ToString();
             message.From.Add(MailboxAddress.Parse(email.From.ToString()));
             message.To.AddRange(email.To.Select(to => MailboxAddress.Parse(to.ToString())));

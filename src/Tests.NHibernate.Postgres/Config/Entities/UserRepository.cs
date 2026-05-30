@@ -16,7 +16,7 @@ public class UserRepository : Repository
         return await GetEntitySet<User>().GetByIdAsync(id, cancellationToken);
     }
 
-    public async Task<User> GetByIdOrDefaultAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<User?> GetByIdOrDefaultAsync(string id, CancellationToken cancellationToken = default)
     {
         return await GetEntitySet<User>().GetByIdOrDefaultAsync(id, cancellationToken);
     }

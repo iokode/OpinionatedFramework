@@ -39,6 +39,7 @@ public class EntitySetTests(NHibernateTestsFixture fixture, ITestOutputHelper ou
         Assert.Equal("Marta", user2.Username);
         Assert.Equal("marta@example.com", user2.EmailAddress);
         Assert.False(user2.IsActive);
+        Assert.NotNull(user3);
         Assert.Equal("Javier", user3.Username);
         Assert.Equal("javier@example.com", user3.EmailAddress);
         Assert.False(user3.IsActive);

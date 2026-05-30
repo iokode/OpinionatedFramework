@@ -2,6 +2,7 @@
     <PropertyGroup Label="Test settings">
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
+        <NoWarn>$(NoWarn);DAP005</NoWarn>
     </PropertyGroup>
 
     <ItemGroup Label="Project references">

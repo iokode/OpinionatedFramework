@@ -26,8 +26,8 @@ public sealed class GoogleCloudStorageFile : File
         Name = obj.Name.Split("/").Last();
         FullName = obj.Name;
         Size = obj.Size!.Value;
-        CreationTime = Instant.FromDateTimeUtc(obj.TimeCreated!.Value.ToUniversalTime());
-        UpdateTime = Instant.FromDateTimeUtc(obj.Updated!.Value.ToUniversalTime());
+        CreationTime = Instant.FromDateTimeOffset(obj.TimeCreatedDateTimeOffset!.Value.ToUniversalTime());
+        UpdateTime = Instant.FromDateTimeOffset(obj.UpdatedDateTimeOffset!.Value.ToUniversalTime());
         StorageClass = GoogleCloudStorageHelpers.GetStorageClassFromString(obj.StorageClass);
     }
     
