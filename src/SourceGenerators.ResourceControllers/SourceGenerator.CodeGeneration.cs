@@ -25,6 +25,7 @@ public partial class SourceGenerator
     {
         public required ITypeSymbol CommandBaseSymbol { get; set; }
         public required ITypeSymbol GenericCommandBaseSymbol { get; set; }
+        public required ITypeSymbol GenericQuerySymbol { get; set; }
         public required IAssemblySymbol CompilationAssemblySymbol { get; set; }
         public required string AssemblyNamespace { get; set; }
 
@@ -101,6 +102,9 @@ public partial class SourceGenerator
             .Select(parameter => BodyInputClassName != null && NonRouteInvocationParameters.Contains(parameter)
                 ? $"input.{parameter.PascalizedName}"
                 : parameter.Name));
+
+        public string QueryPropertiesString => string.Join(",\n", InvocationParameters
+            .Select(parameter => $"{parameter.PascalizedName} = {parameter.Name}"));
 
         public string FullClassName => $"{Namespace}.{ClassName}";
         public string[] Resources => ResourceValue.Split('/').Select(resource => resource.Trim()).ToArray();
@@ -271,6 +275,7 @@ public partial class SourceGenerator
         using IOKode.OpinionatedFramework.Commands;
         using IOKode.OpinionatedFramework.Commands.Extensions;
         using IOKode.OpinionatedFramework.Facades;
+        using IOKode.OpinionatedFramework.Persistence.Queries;
         using Microsoft.AspNetCore.Http;
         using Microsoft.AspNetCore.Mvc;
 
@@ -294,7 +299,11 @@ public partial class SourceGenerator
             public async Task<IActionResult> {{ resource.ControllerMethodName }}({{ resource.ControllerMethodParametersString }})
             {
                 {{~ if resource.DataType == 'Query' ~}}
-                var result = await {{ resource.FullClassName }}.InvokeAsync({{ for parameter in resource.InvocationParameters }}{{ parameter.Name }}{{ if !for.last }}, {{ end }}{{ end }});
+                var query = new {{ resource.FullClassName }}
+                {
+                    {{ resource.QueryPropertiesString }}
+                };
+                var result = await query.InvokeAsync(cancellationToken);
                 return Ok(result);
                 {{~ else if resource.DataType == 'Command' ~}}
                 var command = new {{ resource.FullClassName }}({{ resource.CommandParametersString }});

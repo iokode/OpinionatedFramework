@@ -3,7 +3,7 @@
 -- @parameter string? name
 -- @parameter Address? address
 -- @result int id
--- @abstract CancellationToken cancellationToken, UsersFilters? filters
+-- @map UsersFilters? filters
 
 select id
 from users

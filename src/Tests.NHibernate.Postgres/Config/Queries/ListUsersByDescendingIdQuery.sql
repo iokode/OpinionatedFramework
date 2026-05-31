@@ -1,6 +1,6 @@
 -- @generate
 -- @result int id
 -- @internal
--- @abstract
+-- @map
 
 select id from users;

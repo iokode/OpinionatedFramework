@@ -3,6 +3,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
+using IOKode.OpinionatedFramework;
+using IOKode.OpinionatedFramework.Persistence.Queries;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
 using IOKode.OpinionatedFramework.Resources.Attributes;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
@@ -22,13 +24,16 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('1', 'Ivan');");
 
         // Act and Assert
-        var result = await GetUserNameQuery.InvokeAsync("1", default);
+        var query = new GetUserNameQuery { Id = "1" };
+        var result = await query.InvokeAsync(default);
         var attribute = typeof(GetUserNameQuery).GetCustomAttribute<RetrieveResourceAttribute>();
         Assert.Equal("Ivan", result.Name);
+        Assert.Contains("generate", query.Directives);
+        Assert.Contains("parameter string id", query.Directives);
         Assert.NotNull(attribute);
         Assert.Equal("active user", attribute.Resource);
         Assert.Equal("name", attribute.Key);
-        await Assert.ThrowsAsync<EmptyResultException>(async () => await GetUserNameQuery.InvokeAsync("2", default));
+        await Assert.ThrowsAsync<EmptyResultException>(async () => await new GetUserNameQuery { Id = "2" }.InvokeAsync(default));
     }
 
     [Fact]
@@ -38,8 +43,9 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('1', 'Ivan');");
 
         // Act
-        var result1 = await GetUserIfExistsQuery.InvokeAsync("Ivan", default);
-        var result2 = await GetUserIfExistsQuery.InvokeAsync("Marta", default);
+        var queryExecutor = Locator.Resolve<IQueryExecutor>();
+        var result1 = await queryExecutor.InvokeAsync(new GetUserIfExistsQuery { Name = "Ivan" }, default);
+        var result2 = await new GetUserIfExistsQuery { Name = "Marta" }.InvokeAsync(default);
 
         // Assert
         Assert.NotNull(result1);
@@ -58,10 +64,17 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name, address) VALUES (4, 'Javier', ('Fake St. 123', 'Springfield', 'ESP'));");
 
         // Act
-        var collectionWithoutFilter = await GetUserByFilterQuery.InvokeAsync(null, null, default);
-        var collectionByAddress = await GetUserByFilterQuery.InvokeAsync(null, new Address("Fake St. 123", "Springfield", new CountryCode("ESP")), default);
-        var collectionByName = await GetUserByFilterQuery.InvokeAsync("Ivan", null, default);
-        var collectionNameAndAddress = await GetUserByFilterQuery.InvokeAsync("Ivan", new Address("Fake St. 123", "Springfield", new CountryCode("USA")), default);
+        var collectionWithoutFilter = await new GetUserByFilterQuery().InvokeAsync(default);
+        var collectionByAddress = await new GetUserByFilterQuery
+        {
+            Address = new Address("Fake St. 123", "Springfield", new CountryCode("ESP"))
+        }.InvokeAsync(default);
+        var collectionByName = await new GetUserByFilterQuery { UserName = "Ivan" }.InvokeAsync(default);
+        var collectionNameAndAddress = await new GetUserByFilterQuery
+        {
+            UserName = "Ivan",
+            Address = new Address("Fake St. 123", "Springfield", new CountryCode("USA"))
+        }.InvokeAsync(default);
 
         // Assert
         Assert.Equal(4, collectionWithoutFilter.Count);
@@ -80,7 +93,7 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
     }
 
     [Fact]
-    public async Task Abstract()
+    public async Task Map_WithResultCollection()
     {
         // Arrange
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('1', 'Ivan');");
@@ -88,7 +101,7 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('3', 'Marta');");
 
         // Act
-        var results = await ListUsersByDescendingIdQuery.InvokeAsync(CancellationToken.None);
+        var results = await new ListUsersByDescendingIdQuery().InvokeAsync(CancellationToken.None);
 
         // Assert
         Assert.Equal(3, results.Count);
@@ -96,7 +109,7 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
     }
 
     [Fact]
-    public async Task Abstract_WithParameters()
+    public async Task Map_WithParameters()
     {
         // Arrange
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name, address) VALUES ('1', 'Ivan', ('Fake St. 123', 'Springfield', 'USA'));");
@@ -114,9 +127,9 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         };
 
         // Act
-        var usersWithNoFilters = await GetUsersWithFiltersQuery.InvokeAsync(CancellationToken.None);
-        var usersWithFilters1 = await GetUsersWithFiltersQuery.InvokeAsync(CancellationToken.None, filters1);
-        var usersWithFilters2 = await GetUsersWithFiltersQuery.InvokeAsync(CancellationToken.None, filters2);
+        var usersWithNoFilters = await new GetUsersWithFiltersQuery().InvokeAsync(CancellationToken.None);
+        var usersWithFilters1 = await new GetUsersWithFiltersQuery { Filters = filters1 }.InvokeAsync(CancellationToken.None);
+        var usersWithFilters2 = await new GetUsersWithFiltersQuery { Filters = filters2 }.InvokeAsync(CancellationToken.None);
 
         // Assert
         Assert.Equal([1, 2, 3, 4], usersWithNoFilters.Select(user => user.Id));
@@ -125,14 +138,14 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
     }
 
     [Fact]
-    public async Task Abstract_WithResult()
+    public async Task Map_WithResult()
     {
         // Arrange
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('1', 'Ivan');");
 
         // Act
-        var user1Exists = await UserExistsQuery.InvokeAsync("Ivan", CancellationToken.None);
-        var user2Exists = await UserExistsQuery.InvokeAsync("Marta", CancellationToken.None);
+        var user1Exists = await new UserExistsQuery { Name = "Ivan" }.InvokeAsync(CancellationToken.None);
+        var user2Exists = await new UserExistsQuery { Name = "Marta" }.InvokeAsync(CancellationToken.None);
 
         // Assert
         Assert.True(user1Exists);
@@ -140,7 +153,7 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
     }
 
     [Fact]
-    public async Task Abstract_WithParametersAndResultAndCount()
+    public async Task Map_WithParametersAndResultAndCount()
     {
         // Arrange
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name, address) VALUES ('1', 'Ivan', ('Fake St. 123', 'Springfield', 'USA'));");
@@ -158,9 +171,9 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         };
 
         // Act
-        var countWithNoFilters = await UsersCountWithFiltersQuery.InvokeAsync(CancellationToken.None);
-        var countWithFilters1 = await UsersCountWithFiltersQuery.InvokeAsync(filters1, CancellationToken.None);
-        var countWithFilters2 = await UsersCountWithFiltersQuery.InvokeAsync(filters2, CancellationToken.None);
+        var countWithNoFilters = await new UsersCountWithFiltersQuery().InvokeAsync(CancellationToken.None);
+        var countWithFilters1 = await new UsersCountWithFiltersQuery { Filters = filters1 }.InvokeAsync(CancellationToken.None);
+        var countWithFilters2 = await new UsersCountWithFiltersQuery { Filters = filters2 }.InvokeAsync(CancellationToken.None);
 
         // Assert
         Assert.Equal(4, countWithNoFilters);
@@ -180,9 +193,9 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('6', 'Javier');");
 
         // Act
-        var page1 = await ListPaginatedUsersWithTotalQuery.InvokeAsync(0, 2, CancellationToken.None);
-        var page2 = await ListPaginatedUsersWithTotalQuery.InvokeAsync(2, 1, CancellationToken.None);
-        var page3 = await ListPaginatedUsersWithTotalQuery.InvokeAsync(3, 3, CancellationToken.None);
+        var page1 = await new ListPaginatedUsersWithTotalQuery { Skip = 0, Take = 2 }.InvokeAsync(CancellationToken.None);
+        var page2 = await new ListPaginatedUsersWithTotalQuery { Skip = 2, Take = 1 }.InvokeAsync(CancellationToken.None);
+        var page3 = await new ListPaginatedUsersWithTotalQuery { Skip = 3, Take = 3 }.InvokeAsync(CancellationToken.None);
 
         // Assert
         Assert.Equal(6, page1.Count);
