@@ -4,20 +4,20 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Persistence.Queries;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions;
+using IOKode.OpinionatedFramework.Utilities;
 using NHibernate;
 using NHibernate.Type;
 using NonUniqueResultException = IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Exceptions.NonUniqueResultException;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
 
-public partial class QueryExecutor(
+public class QueryExecutor(
     ISessionFactory sessionFactory,
     IQueryExecutorConfiguration configuration,
     params QueryMiddleware[] middlewares) : IQueryExecutor
@@ -53,7 +53,7 @@ public partial class QueryExecutor(
         var context = new NHibernateQueryExecutionExecutorContext
         {
             CancellationToken = cancellationToken,
-            Directives = new List<string>(),
+            Directives = SqlUtilities.GetDirectives(query).ToList(),
             Parameters = parameters,
             RawQuery = query,
             Results = new List<object>(),
@@ -61,8 +61,6 @@ public partial class QueryExecutor(
             IsExecuted = false,
             TraceID = Guid.NewGuid()
         };
-        ExtractDirectivesFromQuery(context);
-
         Container.Advanced.CreateScope();
         Log.Trace("Invoking query pipeline...");
 
@@ -73,25 +71,6 @@ public partial class QueryExecutor(
 
         var results = context.Results.Cast<TResult>().ToList();
         return results;
-    }
-
-    private void ExtractDirectivesFromQuery(NHibernateQueryExecutionExecutorContext context)
-    {
-        var lines = context.RawQuery.Split('\n');
-        var directivePrefixRegex = GetDirectivePrefixRegex();
-
-        foreach (string line in lines)
-        {
-            string trimmedLine = line.Trim();
-            var match = directivePrefixRegex.Match(trimmedLine);
-            if (!match.Success)
-            {
-                continue;
-            }
-
-            string directive = trimmedLine[match.Length..].Trim();
-            context.Directives.Add(directive);
-        }
     }
 
     private async Task InvokeMiddlewarePipelineAsync<TResult>(ResultCardinality resultCardinality,
@@ -195,7 +174,4 @@ public partial class QueryExecutor(
             query.SetParameter(paramName, value, GetNHTypeFor(prop.PropertyType));
         }
     }
-
-    [GeneratedRegex(@"--[ \t]*@")]
-    private static partial Regex GetDirectivePrefixRegex();
 }

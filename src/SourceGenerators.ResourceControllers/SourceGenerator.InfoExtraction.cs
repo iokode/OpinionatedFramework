@@ -44,7 +44,8 @@ public partial class SourceGenerator
         }
 
         var resourceType = generatorData.ResourceTypes[resourceAttribute.AttributeClass!.OriginalDefinition.ToDisplayString()];
-        var isQueryClass = typeSymbol is {IsStatic: true} && typeSymbol.Name.EndsWith("Query") && resourceType is ResourceType.Retrieve or ResourceType.List;
+        var baseQuery = GetBaseQuery(typeSymbol, generatorData);
+        var isQueryClass = baseQuery is not null && resourceType is ResourceType.Retrieve or ResourceType.List;
         if (isQueryClass)
         {
             var queryData = new QueryData
@@ -54,13 +55,15 @@ public partial class SourceGenerator
                 Namespace = typeSymbol.ContainingNamespace.ToDisplayString(),
                 ResourceValue = (string) resourceAttribute.ConstructorArguments[0].Value!,
                 DocComment = SourceGenerationHelper.GetDocComment(typeSymbol),
-                InvocationParameters = ((IMethodSymbol) typeSymbol.GetMembers("InvokeAsync").Single())
-                    .Parameters.Select(param => new Parameter
+                InvocationParameters = typeSymbol.GetMembers()
+                    .OfType<IPropertySymbol>()
+                    .Where(property => property is { IsStatic: false, DeclaredAccessibility: Accessibility.Public } && property.SetMethod is not null)
+                    .Select(property => new Parameter
                     {
-                        Name = param.Name,
-                        Type = param.Type.ToDisplayString()
+                        Name = property.Name.Camelize(),
+                        Type = property.Type.ToDisplayString()
                     }).ToArray(),
-                MethodReturnType = ((IMethodSymbol) typeSymbol.GetMembers("InvokeAsync").Single()).ReturnType.ToDisplayString(),
+                MethodReturnType = $"Task<{((INamedTypeSymbol)baseQuery!).TypeArguments.First().ToDisplayString()}>",
                 KeyValue = resourceAttribute.ConstructorArguments.Length > 1 ? resourceAttribute.ConstructorArguments[1].Value as string : null,
             };
             return queryData;
@@ -134,8 +137,9 @@ public partial class SourceGenerator
         configOptionsProvider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
         var commandBaseSymbol = compilation.GetTypeByMetadataName("IOKode.OpinionatedFramework.Commands.Command");
         var genericCommandBaseSymbol = compilation.GetTypeByMetadataName("IOKode.OpinionatedFramework.Commands.Command`1");
+        var genericQuerySymbol = compilation.GetTypeByMetadataName("IOKode.OpinionatedFramework.Persistence.Queries.IQuery`1");
 
-        if (commandBaseSymbol is null || genericCommandBaseSymbol is null)
+        if (commandBaseSymbol is null || genericCommandBaseSymbol is null || genericQuerySymbol is null)
         {
             return null;
         }
@@ -144,6 +148,7 @@ public partial class SourceGenerator
         {
             CommandBaseSymbol = commandBaseSymbol,
             GenericCommandBaseSymbol = genericCommandBaseSymbol,
+            GenericQuerySymbol = genericQuerySymbol,
             CompilationAssemblySymbol = compilation.Assembly,
             AssemblyNamespace = rootNamespace ?? compilation.AssemblyName ?? compilation.GlobalNamespace.Name,
         };
@@ -172,6 +177,17 @@ public partial class SourceGenerator
         }
 
         return null;
+    }
+
+    private static ITypeSymbol? GetBaseQuery(ITypeSymbol typeSymbol, GeneratorContextData generatorData)
+    {
+        if (typeSymbol.IsStatic)
+        {
+            return null;
+        }
+
+        return typeSymbol.AllInterfaces.FirstOrDefault(currentSymbol =>
+            SymbolEqualityComparer.Default.Equals(currentSymbol.OriginalDefinition, generatorData.GenericQuerySymbol));
     }
 
     private static IEnumerable<ITypeSymbol> GetTypeSymbolsFromNamespace(INamespaceSymbol @namespace)

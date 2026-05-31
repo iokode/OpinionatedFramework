@@ -1,13 +1,13 @@
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Queries;
 
 public partial class UserExistsQuery
 {
-    public static partial async Task<bool> InvokeAsync(string name, CancellationToken cancellationToken)
+    private partial bool MapResult(IReadOnlyCollection<UserExistsQueryResult> rawResults)
     {
-        var result = await QueryAsync(name, cancellationToken);
+        var result = rawResults.FirstOrDefault();
         return result != null;
     }
 }

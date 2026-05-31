@@ -1,5 +1,5 @@
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Queries;
 
@@ -11,15 +11,17 @@ public record UsersFilters
 
 public partial class UsersCountWithFiltersQuery
 {
-    public static partial async Task<int> InvokeAsync(UsersFilters? filters, CancellationToken cancellationToken)
+    private partial UsersCountWithFiltersQueryParameters MapParameters()
     {
-        var result = await QueryAsync(filters?.Name, filters?.Address, cancellationToken);
-        return result.Count;
+        return new UsersCountWithFiltersQueryParameters
+        {
+            Name = this.Filters?.Name,
+            Address = this.Filters?.Address
+        };
     }
 
-    public static async Task<int> InvokeAsync(CancellationToken cancellationToken)
+    private partial int MapResult(IReadOnlyCollection<UsersCountWithFiltersQueryResultWithCount> rawResults)
     {
-        var result = await InvokeAsync(null, cancellationToken);
-        return result;
+        return rawResults.FirstOrDefault()?.Count ?? 0;
     }
 }
