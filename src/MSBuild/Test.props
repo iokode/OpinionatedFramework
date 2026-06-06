@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup Label="Project references">
-        <ProjectReference Include="..\Tests.Helpers\Tests.Helpers.csproj"/>
+        <ProjectReference Include="..\TestHelpers\TestHelpers.csproj"/>
     </ItemGroup>
     
     <ItemGroup Label="Test dependencies">

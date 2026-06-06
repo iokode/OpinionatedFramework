@@ -4,7 +4,7 @@ using Dapper;
 using FluentMigrator.Runner;
 using FluentMigrator.Runner.Initialization;
 using IOKode.OpinionatedFramework.Bootstrapping;
-using IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+using IOKode.OpinionatedFramework.TestHelpers.Containers;
 using IOKode.OpinionatedFramework.Tests.Migrations.Config.MigrationFiles;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;

@@ -1,18 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using IOKode.OpinionatedFramework.TestHelpers.Configuration;
 using IOKode.OpinionatedFramework.Utilities;
 using Npgsql;
 using Xunit.Abstractions;
 
-namespace IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+namespace IOKode.OpinionatedFramework.TestHelpers.Containers;
 
 public static class PostgresHelper
 {
-    public static async Task WaitUntilPostgresServerIsReady(DockerClient docker, string postgresContainerId, string postgresConnectionString, ITestOutputHelper? output = null)
+    public static async Task WaitUntilPostgresServerIsReady(DockerClient docker, string postgresContainerId, PostgresOptions postgresOptions, ITestOutputHelper? output = null)
     {
         bool postgresServerIsReady = await PollingUtility.WaitUntilTrueAsync(async () =>
         {
@@ -27,8 +29,7 @@ public static class PostgresHelper
 
             try
             {
-                await using var client = new NpgsqlConnection(postgresConnectionString);
-                await client.OpenAsync();
+                await using var client = await postgresOptions.OpenConnectionAsync(CancellationToken.None);
                 await client.QuerySingleAsync<int>("SELECT 1");
                 await client.CloseAsync();
 
@@ -48,16 +49,16 @@ public static class PostgresHelper
         }
     }
 
-    public static async Task<string> RunPostgresContainer(DockerClient docker, ITestOutputHelper? output = null)
+    public static async Task<string> RunPostgresContainer(DockerClient docker, PostgresOptions options)
     {
         var container = await docker.Containers.CreateContainerAsync(new CreateContainerParameters()
         {
-            Image = "postgres",
+            Image = options.ImageWithTag,
             HostConfig = new HostConfig
             {
                 PortBindings = new Dictionary<string, IList<PortBinding>>
                 {
-                    {"5432/tcp", [new PortBinding {HostPort = "5432"}]},
+                    {"5432/tcp", [new PortBinding {HostPort = options.HostPort}]},
                 }
             },
             Env =
@@ -66,7 +67,7 @@ public static class PostgresHelper
                 "POSTGRES_USER=iokode",
                 "POSTGRES_DB=testdb"
             ],
-            Name = "oftest_nhibernate_postgres"
+            Name = options.ContainerName
         });
 
         var postgresContainerId = container.ID;
@@ -74,19 +75,16 @@ public static class PostgresHelper
         return postgresContainerId;
     }
 
-    public static async Task PullPostgresImage(DockerClient docker, ITestOutputHelper? output = null)
+    public static async Task PullPostgresImage(DockerClient docker, PostgresOptions options, ITestOutputHelper? output = null)
     {
         await docker.Images.CreateImageAsync(new ImagesCreateParameters
         {
-            FromImage = "postgres",
-            Tag = "latest"
+            FromImage = options.Image,
+            Tag = options.Tag
         }, null, new Progress<JSONMessage>(message => { output?.WriteLine(message.Status); }));
     }
 
     public static readonly string DefaultConnectionString = "Server=localhost; Database=testdb; User Id=iokode; Password=secret; Timeout=60; Connection Lifetime=90;";
-
-    private static string? connectionString;
-    public static string ConnectionString => connectionString ??= GetEnvConnectionString() ?? DefaultConnectionString;
-
-    public static string? GetEnvConnectionString() => Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING");
+    
+    public static string ConnectionString => Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING") ?? DefaultConnectionString;
 }

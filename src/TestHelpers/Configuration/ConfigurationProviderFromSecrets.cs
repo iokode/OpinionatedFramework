@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using IConfigurationProvider = IOKode.OpinionatedFramework.Configuration.IConfigurationProvider;
 
-namespace IOKode.OpinionatedFramework.Tests.Helpers;
+namespace IOKode.OpinionatedFramework.TestHelpers;
 
 /// <typeparam name="TFromAssembly">The type from the assembly to search for an instance of <code>UserSecretsIdAttribute</code>.</typeparam>
 public class ConfigurationProviderFromSecrets<TFromAssembly> : IConfigurationProvider

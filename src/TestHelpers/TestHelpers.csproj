@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Packable.props"/>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\ContractImplementations.MicrosoftConfiguration\ContractImplementations.MicrosoftConfiguration.csproj"/>
+        <ProjectReference Include="..\Foundation\Foundation.csproj" />
+    </ItemGroup>
+
+    <ItemGroup Label="Package references">
+        <PackageReference Include="Flurl.Http" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
+        <PackageReference Include="xunit" />
+        <PackageReference Include="Dapper" />
+        <PackageReference Include="Docker.DotNet" />
+        <PackageReference Include="Hangfire.Mongo" />
+        <PackageReference Include="Npgsql" />
+    </ItemGroup>
+</Project>

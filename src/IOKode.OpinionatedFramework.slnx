@@ -48,4 +48,5 @@
   <Project Path="Ensuring/Ensuring.csproj" />
   <Project Path="Foundation/Foundation.csproj" />
   <Project Path="Internals/Internals.csproj" />
+  <Project Path="TestHelpers/TestHelpers.csproj" />
 </Solution>

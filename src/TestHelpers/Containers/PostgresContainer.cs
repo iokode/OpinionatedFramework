@@ -1,9 +1,9 @@
-using System;
 using System.Threading.Tasks;
 using Docker.DotNet;
+using IOKode.OpinionatedFramework.TestHelpers.Configuration;
 using Xunit;
 
-namespace IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+namespace IOKode.OpinionatedFramework.TestHelpers.Containers;
 
 public class PostgresContainer : IAsyncLifetime
 {
@@ -12,11 +12,10 @@ public class PostgresContainer : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        var connectionString = PostgresHelper.ConnectionString;
-
-        await PostgresHelper.PullPostgresImage(docker);
-        ContainerId = await PostgresHelper.RunPostgresContainer(docker);
-        await PostgresHelper.WaitUntilPostgresServerIsReady(docker, ContainerId, connectionString);
+        var options = PostgresOptions.Default;
+        await PostgresHelper.PullPostgresImage(docker, options);
+        ContainerId = await PostgresHelper.RunPostgresContainer(docker, options);
+        await PostgresHelper.WaitUntilPostgresServerIsReady(docker, ContainerId, options);
     }
 
     public async Task DisposeAsync()
@@ -26,6 +25,6 @@ public class PostgresContainer : IAsyncLifetime
             await DockerHelper.RemoveContainer(docker, ContainerId);
             docker.Dispose();
         }
-        catch (ObjectDisposedException){}
+        catch (System.ObjectDisposedException){}
     }
 }

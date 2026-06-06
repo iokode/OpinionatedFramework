@@ -7,7 +7,7 @@ using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Tests.Events.Config;
-using IOKode.OpinionatedFramework.Tests.Helpers;
+using IOKode.OpinionatedFramework.TestHelpers;
 using IOKode.OpinionatedFramework.Utilities;
 using Xunit;
 using Xunit.Abstractions;

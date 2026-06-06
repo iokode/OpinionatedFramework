@@ -6,7 +6,7 @@ using Cronos;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 using IOKode.OpinionatedFramework.Jobs;
-using IOKode.OpinionatedFramework.Tests.Helpers;
+using IOKode.OpinionatedFramework.TestHelpers;
 using Xunit;
 using Xunit.Abstractions;
 

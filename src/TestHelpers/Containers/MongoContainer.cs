@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Docker.DotNet;
 using Xunit;
 
-namespace IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+namespace IOKode.OpinionatedFramework.TestHelpers.Containers;
 
 public class MongoContainer : IAsyncLifetime
 {

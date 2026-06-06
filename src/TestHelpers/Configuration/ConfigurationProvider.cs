@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using IOKode.OpinionatedFramework.Configuration;
 
-namespace IOKode.OpinionatedFramework.Tests.Helpers;
+namespace IOKode.OpinionatedFramework.TestHelpers;
 
 public class ConfigurationProvider(IDictionary<string, object> values) : IConfigurationProvider
 {

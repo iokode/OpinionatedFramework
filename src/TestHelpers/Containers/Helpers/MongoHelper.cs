@@ -5,13 +5,13 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
-using IOKode.OpinionatedFramework.Tests.Helpers.Configuration;
+using IOKode.OpinionatedFramework.TestHelpers.Configuration;
 using IOKode.OpinionatedFramework.Utilities;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Xunit.Abstractions;
 
-namespace IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+namespace IOKode.OpinionatedFramework.TestHelpers.Containers;
 
 public static class MongoHelper
 {

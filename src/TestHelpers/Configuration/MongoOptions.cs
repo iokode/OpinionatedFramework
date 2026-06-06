@@ -1,4 +1,4 @@
-namespace IOKode.OpinionatedFramework.Tests.Helpers.Configuration;
+namespace IOKode.OpinionatedFramework.TestHelpers.Configuration;
 
 public class MongoOptions
 {

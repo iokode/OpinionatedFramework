@@ -3,7 +3,7 @@ using IOKode.OpinionatedFramework.Logging;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
-namespace IOKode.OpinionatedFramework.Tests.Helpers;
+namespace IOKode.OpinionatedFramework.TestHelpers;
 
 public class XUnitLogging(ITestOutputHelper testOutputHelper) : ILogging
 {

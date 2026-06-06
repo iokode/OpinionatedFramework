@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Flurl.Http;
 using IOKode.OpinionatedFramework.ContractImplementations.MailKit;
 using IOKode.OpinionatedFramework.Emailing;
-using IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+using IOKode.OpinionatedFramework.TestHelpers.Containers;
 using IOKode.OpinionatedFramework.Utilities;
 using MailKit.Security;
 using Xunit;

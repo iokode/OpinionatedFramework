@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
-namespace IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+namespace IOKode.OpinionatedFramework.TestHelpers.Containers;
 
 public static class DockerHelper
 {

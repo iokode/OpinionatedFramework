@@ -14,7 +14,7 @@ using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.Mappings;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.Migrations;
 using IOKode.OpinionatedFramework.Events;
-using IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+using IOKode.OpinionatedFramework.TestHelpers.Containers;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;

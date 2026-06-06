@@ -7,7 +7,7 @@ using Flurl.Http;
 using IOKode.OpinionatedFramework.Utilities;
 using Xunit.Abstractions;
 
-namespace IOKode.OpinionatedFramework.Tests.Helpers.Containers;
+namespace IOKode.OpinionatedFramework.TestHelpers.Containers;
 
 public static class MailHogHelper
 {
