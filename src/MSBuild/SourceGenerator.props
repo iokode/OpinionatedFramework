@@ -14,13 +14,13 @@
 
     <ItemGroup Label="Source generation references">
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all"/>
     </ItemGroup>
 
     <ItemGroup Label="Scriban dependencies">
-        <PackageReference Include="Scriban" Pack="true" IncludeAssets="Build" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.CSharp"/>
-        <PackageReference Include="System.Threading.Tasks.Extensions"/>
+        <PackageReference Include="Scriban" Pack="true" IncludeAssets="build" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.CSharp" PrivateAssets="all"/>
+        <PackageReference Include="System.Threading.Tasks.Extensions" PrivateAssets="all"/>
         <PackageReference Include="PolySharp" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers"/>
     </ItemGroup>
 
