@@ -1,6 +1,7 @@
 <Project>
     <PropertyGroup Label="Source generator settings">
         <IsSourceGeneratorProject>true</IsSourceGeneratorProject>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
         <TargetFramework>netstandard2.0</TargetFramework>
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <LangVersion>14</LangVersion>
