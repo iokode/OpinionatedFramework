@@ -81,6 +81,72 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
     }
 
     [Fact]
+    public async Task MiddlewareCanModifyImplicitResultSetQuery_Success()
+    {
+        // Arrange
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Another User', 'another@example.com', true);");
+
+        var queryExecutor = CreateExecutor(new ImplicitResultSetQueryModifierMiddleware());
+
+        // Act
+        var result = await queryExecutor.QueryAsync<UserDto>("SELECT id, name, email, is_active FROM Users", null);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("Test User", result.First().Name);
+        Assert.False(ImplicitResultSetQueryModifierMiddleware.HasMultipleResultSets);
+        Assert.Single(ImplicitResultSetQueryModifierMiddleware.ResultSets);
+        Assert.Null(ImplicitResultSetQueryModifierMiddleware.ResultSets.Single().Name);
+    }
+
+    [Fact]
+    public async Task MiddlewareCanModifyNamedResultSetQuery_Success()
+    {
+        // Arrange
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Active User', 'active@example.com', true);");
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Inactive User', 'inactive@example.com', false);");
+
+        var queryExecutor = CreateExecutor(new NamedResultSetQueryModifierMiddleware());
+        var resultSets = new[]
+        {
+            new QueryResultSet
+            {
+                Name = "active_users",
+                RawSql = "SELECT id, name, email, is_active FROM Users",
+                Directives = new[] { "result_set active_users" },
+                Cardinality = QueryCardinality.ZeroOrMore,
+                Shape = QueryResultShape.Object,
+                ResultType = typeof(UserDto),
+            },
+            new QueryResultSet
+            {
+                Name = "inactive_users",
+                RawSql = "SELECT id, name, email, is_active FROM Users",
+                Directives = new[] { "result_set inactive_users" },
+                Cardinality = QueryCardinality.ZeroOrMore,
+                Shape = QueryResultShape.Object,
+                ResultType = typeof(UserDto),
+            }
+        };
+
+        // Act
+        var rawResults = await queryExecutor.QueryResultSetsAsync(resultSets, new[] { "global_directive" }, null);
+
+        // Assert
+        var activeUsers = Assert.IsAssignableFrom<IReadOnlyCollection<UserDto>>(rawResults[0]);
+        var inactiveUsers = Assert.IsAssignableFrom<IReadOnlyCollection<UserDto>>(rawResults[1]);
+
+        Assert.True(NamedResultSetQueryModifierMiddleware.HasMultipleResultSets);
+        Assert.Equal(new[] { "global_directive" }, NamedResultSetQueryModifierMiddleware.Directives);
+        Assert.Equal(new[] { "active_users", "inactive_users" }, NamedResultSetQueryModifierMiddleware.ResultSets.Select(resultSet => resultSet.Name));
+        Assert.Single(activeUsers);
+        Assert.Equal("Active User", activeUsers.Single().Name);
+        Assert.Single(inactiveUsers);
+        Assert.Equal("Inactive User", inactiveUsers.Single().Name);
+    }
+
+    [Fact]
     public async Task MiddlewareCanHandleExceptions_Success()
     {
         // Arrange
@@ -93,6 +159,17 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
 
         // Assert
         Assert.True(ExceptionHandlingMiddleware.ExceptionHandled);
+    }
+
+    [Fact]
+    public async Task MiddlewareCannotReadResultsBeforeExecution()
+    {
+        // Arrange
+        var queryExecutor = CreateExecutor(new ReadResultsBeforeExecutionMiddleware());
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            queryExecutor.QueryAsync<UserDto>("SELECT id, name, email, is_active FROM Users", null));
     }
 
     [Fact]
@@ -268,7 +345,43 @@ public class QueryModifierMiddleware : QueryMiddleware
     public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
         InvokeNextMiddlewareDelegate nextAsync)
     {
-        executionContext.RawQuery += " WHERE id = '1'";
+        executionContext.ResultSets.Single().RawQuery += " WHERE id = '1'";
+
+        await nextAsync();
+    }
+}
+
+public class ImplicitResultSetQueryModifierMiddleware : QueryMiddleware
+{
+    public static bool HasMultipleResultSets { get; private set; }
+    public static IReadOnlyList<IQueryResultSetExecutionContext> ResultSets { get; private set; } = Array.Empty<IQueryResultSetExecutionContext>();
+
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
+        InvokeNextMiddlewareDelegate nextAsync)
+    {
+        HasMultipleResultSets = executionContext.HasMultipleResultSets;
+        ResultSets = executionContext.ResultSets;
+        executionContext.ResultSets.Single().RawQuery += " WHERE id = '1'";
+
+        await nextAsync();
+    }
+}
+
+public class NamedResultSetQueryModifierMiddleware : QueryMiddleware
+{
+    public static bool HasMultipleResultSets { get; private set; }
+    public static IReadOnlyList<string> Directives { get; private set; } = Array.Empty<string>();
+    public static IReadOnlyList<IQueryResultSetExecutionContext> ResultSets { get; private set; } = Array.Empty<IQueryResultSetExecutionContext>();
+
+    public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
+        InvokeNextMiddlewareDelegate nextAsync)
+    {
+        HasMultipleResultSets = executionContext.HasMultipleResultSets;
+        Directives = executionContext.Directives.ToList();
+        ResultSets = executionContext.ResultSets;
+
+        executionContext.ResultSets.Single(resultSet => resultSet.Name == "active_users").RawQuery += " WHERE is_active = true";
+        executionContext.ResultSets.Single(resultSet => resultSet.Name == "inactive_users").RawQuery += " WHERE is_active = false";
 
         await nextAsync();
     }
@@ -292,6 +405,16 @@ public class ExceptionHandlingMiddleware : QueryMiddleware
     }
 }
 
+public class ReadResultsBeforeExecutionMiddleware : QueryMiddleware
+{
+    public override Task ExecuteAsync(IQueryExecutionContext executionContext,
+        InvokeNextMiddlewareDelegate nextAsync)
+    {
+        _ = executionContext.Results;
+        return nextAsync();
+    }
+}
+
 public class OnlyActiveDirectiveProcessingMiddleware : QueryMiddleware
 {
     public override async Task ExecuteAsync(IQueryExecutionContext executionContext,
@@ -299,8 +422,7 @@ public class OnlyActiveDirectiveProcessingMiddleware : QueryMiddleware
     {
         if (executionContext.Directives.Contains("OnlyActive"))
         {
-            string modifiedQuery = executionContext.RawQuery + " WHERE is_active = true";
-            executionContext.RawQuery = modifiedQuery;
+            executionContext.ResultSets.Single().RawQuery += " WHERE is_active = true";
         }
 
         await nextAsync();

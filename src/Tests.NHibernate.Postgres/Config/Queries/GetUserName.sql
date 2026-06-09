@@ -2,7 +2,7 @@
 -- @using IOKode.OpinionatedFramework.Resources.Attributes
 -- @attribute [RetrieveResource("active user", key: "name")]
 -- @parameter string id
+-- @cardinality one
 -- @result string name
--- @single
 
 select name from users where id = :id;

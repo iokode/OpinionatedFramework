@@ -27,6 +27,18 @@ public interface IQueryExecutor
     public Task<IReadOnlyCollection<TResult>> QueryAsync<TResult>(string query, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Executes multiple SQL result sets in a single database call and returns one typed collection per result set.
+    /// </summary>
+    /// <param name="resultSets">The result sets to execute.</param>
+    /// <param name="parameters">The parameters to pass to the queries. Can be null if no parameters are required.</param>
+    /// <param name="dbTransaction">The transaction within which the queries should be executed. Can be null.</param>
+    /// <param name="cancellationToken">A token to cancel the query.</param>
+    /// <returns>
+    /// A task representing the asynchronous operation. Each item in the result is a typed <see cref="IReadOnlyCollection{T}"/>.
+    /// </returns>
+    public Task<IReadOnlyList<object>> QueryResultSetsAsync(IReadOnlyList<QueryResultSet> resultSets, IReadOnlyList<string> directives, object? parameters, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Executes an asynchronous query and retrieves a single result of type TResult.
     /// </summary>
     /// <typeparam name="TResult">The type of the result object to retrieve. It only accepts DTO objects with writable properties.</typeparam>
@@ -80,7 +92,8 @@ public interface IQueryExecutor
     /// <returns>
     /// A task representing the asynchronous operation. The task result contains a single TResult object.
     /// </returns>
-    /// <exception cref="InvalidOperationException">Thrown if the query does not return exactly one result.</exception>
+    /// <exception cref="EmptyResultException">Thrown if the query returns no results.</exception>
+    /// <exception cref="NonUniqueResultException">Thrown if the query returns more than one result.</exception>
     public Task<TResult> QuerySingleAsync<TResult>(string query, IDbTransaction? dbTransaction = null, CancellationToken cancellationToken = default)
     {
         return QuerySingleAsync<TResult>(query, null, dbTransaction, cancellationToken);

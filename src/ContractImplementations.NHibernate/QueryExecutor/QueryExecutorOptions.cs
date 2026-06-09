@@ -6,5 +6,5 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryEx
 public class QueryExecutorOptions
 {
     public IQueryExecutorConfiguration? QueryExecutorConfiguration { get; set; }
-    public List<QueryMiddleware> Middlewares { get; set; } = [];
+    public List<QueryMiddleware> Middlewares { get; set; } = new();
 }

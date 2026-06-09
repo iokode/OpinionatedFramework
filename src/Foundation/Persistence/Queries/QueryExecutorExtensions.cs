@@ -31,73 +31,43 @@ public static class QueryExecutorExtensions
     {
         var queryType = query.GetType();
         var mapParametersMethod = queryType.GetMethod("MapParameters", BindingFlags.Instance | BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException($"Query type '{queryType.FullName}' does not declare MapParameters.");
+            ?? throw new QueryDefinitionException($"Query type '{queryType.FullName}' does not declare MapParameters.");
         var mapResultMethod = queryType.GetMethod("MapResult", BindingFlags.Instance | BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException($"Query type '{queryType.FullName}' does not declare MapResult.");
-        var rowType = GetRowType(mapResultMethod, queryType);
+            ?? throw new QueryDefinitionException($"Query type '{queryType.FullName}' does not declare MapResult.");
         var parameters = mapParametersMethod.Invoke(query, Array.Empty<object?>());
-        var cardinality = query.Cardinality;
-        var invokeTypedMethod = typeof(QueryExecutorExtensions)
-            .GetMethod(nameof(InvokeTypedAsync), BindingFlags.Static | BindingFlags.NonPublic)!
-            .MakeGenericMethod(typeof(TResult), rowType);
-        var resultTask = (Task<TResult>) invokeTypedMethod.Invoke(null,
-            new object?[] { queryExecutor, query, parameters, mapResultMethod, cardinality, cancellationToken })!;
+        var rawResultSets = await queryExecutor.QueryResultSetsAsync(query.ResultSets, query.Directives, parameters, null, cancellationToken);
+        var mapResultArgument = GetMapResultArgument(mapResultMethod, queryType, rawResultSets);
 
-        return await resultTask;
+        return (TResult) mapResultMethod.Invoke(query, new[] { mapResultArgument })!;
     }
 
     /// <summary>
     /// Gets the raw row type from the generated <c>MapResult</c> method signature.
     /// </summary>
-    private static Type GetRowType(MethodInfo mapResultMethod, Type queryType)
+    private static object GetMapResultArgument(MethodInfo mapResultMethod, Type queryType, IReadOnlyList<object> rawResultSets)
     {
         var parameters = mapResultMethod.GetParameters();
         if (parameters.Length != 1)
         {
-            throw new InvalidOperationException($"Query type '{queryType.FullName}' must declare MapResult with a single parameter.");
+            throw new QueryDefinitionException($"Query type '{queryType.FullName}' must declare MapResult with a single parameter.");
         }
 
         var rawResultsType = parameters[0].ParameterType;
-        if (!rawResultsType.IsGenericType || rawResultsType.GetGenericTypeDefinition() != typeof(IReadOnlyCollection<>))
+        if (rawResultsType == typeof(IReadOnlyList<object>))
         {
-            throw new InvalidOperationException($"Query type '{queryType.FullName}' must declare MapResult with an IReadOnlyCollection<T> parameter.");
+            return rawResultSets;
         }
 
-        return rawResultsType.GetGenericArguments()[0];
-    }
-
-    /// <summary>
-    /// Executes the raw SQL with a statically known row type and maps the raw rows to the public result type.
-    /// </summary>
-    private static async Task<TResult> InvokeTypedAsync<TResult, TRow>(
-        IQueryExecutor queryExecutor,
-        IQuery<TResult> query,
-        object? parameters,
-        MethodInfo mapResultMethod,
-        QueryCardinality cardinality,
-        CancellationToken cancellationToken)
-    {
-        IReadOnlyCollection<TRow> rawResults = cardinality switch
+        if (rawResultsType.IsGenericType && rawResultsType.GetGenericTypeDefinition() == typeof(IReadOnlyCollection<>))
         {
-            QueryCardinality.ZeroOrMore => await queryExecutor.QueryAsync<TRow>(query.RawSql, parameters, null, cancellationToken),
-            QueryCardinality.One => new[] { await queryExecutor.QuerySingleAsync<TRow>(query.RawSql, parameters, null, cancellationToken) },
-            QueryCardinality.ZeroOrOne => await QuerySingleOrDefaultAsCollectionAsync<TRow>(queryExecutor, query.RawSql, parameters, cancellationToken),
-            _ => throw new ArgumentOutOfRangeException(nameof(cardinality))
-        };
+            if (rawResultSets.Count != 1)
+            {
+                throw new QueryDefinitionException($"Query type '{queryType.FullName}' must declare MapResult with IReadOnlyList<object> for multiple result sets.");
+            }
 
-        return (TResult) mapResultMethod.Invoke(query, new object?[] { rawResults })!;
-    }
+            return rawResultSets[0];
+        }
 
-    /// <summary>
-    /// Executes a single-or-default query and normalizes the optional row into a collection for <c>MapResult</c>.
-    /// </summary>
-    private static async Task<IReadOnlyCollection<TRow>> QuerySingleOrDefaultAsCollectionAsync<TRow>(
-        IQueryExecutor queryExecutor,
-        string rawSql,
-        object? parameters,
-        CancellationToken cancellationToken)
-    {
-        var rawResult = await queryExecutor.QuerySingleOrDefaultAsync<TRow>(rawSql, parameters, null, cancellationToken);
-        return rawResult is null ? Array.Empty<TRow>() : new[] { rawResult };
+        throw new QueryDefinitionException($"Query type '{queryType.FullName}' must declare MapResult with an IReadOnlyCollection<T> or IReadOnlyList<object> parameter.");
     }
 }
