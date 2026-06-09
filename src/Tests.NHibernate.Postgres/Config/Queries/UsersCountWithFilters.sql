@@ -3,7 +3,8 @@
 -- @parameter string? name
 -- @parameter Address? address
 -- @map UsersFilters? filters -> int
--- @count
+-- @cardinality one
+-- @result int count
 
 select count(*) as "count"
 from users

@@ -2,7 +2,7 @@
 -- @using IOKode.OpinionatedFramework.Resources.Attributes
 -- @attribute [RetrieveResource("user/name", "name")]
 -- @parameter string name
+-- @cardinality one
 -- @result string name
--- @single
 
 select :name as name;

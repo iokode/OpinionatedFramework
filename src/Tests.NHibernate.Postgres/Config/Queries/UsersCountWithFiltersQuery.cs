@@ -20,8 +20,8 @@ public partial class UsersCountWithFiltersQuery
         };
     }
 
-    private partial int MapResult(IReadOnlyCollection<UsersCountWithFiltersQueryResultWithCount> rawResults)
+    private partial int MapResult(IReadOnlyCollection<UsersCountWithFiltersQueryResult> rawResults)
     {
-        return rawResults.FirstOrDefault()?.Count ?? 0;
+        return rawResults.First().Count;
     }
 }

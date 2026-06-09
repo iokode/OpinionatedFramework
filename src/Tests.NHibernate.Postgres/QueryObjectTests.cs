@@ -18,7 +18,7 @@ namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres;
 public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper outputHelper) : NHibernateTestsBase(fixture, outputHelper)
 {
     [Fact]
-    public async Task Single()
+    public async Task One()
     {
         // Arrange
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('1', 'Ivan');");
@@ -30,6 +30,11 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         Assert.Equal("Ivan", result.Name);
         Assert.Contains("generate", query.Directives);
         Assert.Contains("parameter string id", query.Directives);
+        Assert.Contains("cardinality one", query.Directives);
+        Assert.Single(query.ResultSets);
+        Assert.Null(query.ResultSets[0].Name);
+        Assert.Contains("cardinality one", query.ResultSets[0].Directives);
+        Assert.Contains("result string name", query.ResultSets[0].Directives);
         Assert.NotNull(attribute);
         Assert.Equal("active user", attribute.Resource);
         Assert.Equal("name", attribute.Key);
@@ -37,7 +42,7 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
     }
 
     [Fact]
-    public async Task SingleOrDefault()
+    public async Task ZeroOrOne()
     {
         // Arrange
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('1', 'Ivan');");
@@ -55,7 +60,7 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
     }
 
     [Fact]
-    public async Task Many()
+    public async Task ZeroOrMore()
     {
         // Arrange
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name, address) VALUES (1, 'Ivan', ('Fake St. 123', 'Springfield', 'USA'));");
@@ -105,7 +110,7 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
 
         // Assert
         Assert.Equal(3, results.Count);
-        Assert.Equal([3, 2, 1], results.Select(user => user.Id));
+        Assert.Equal(new[] { 3, 2, 1 }, results.Select(user => user.Id));
     }
 
     [Fact]
@@ -132,9 +137,9 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         var usersWithFilters2 = await new GetUsersWithFiltersQuery { Filters = filters2 }.InvokeAsync(CancellationToken.None);
 
         // Assert
-        Assert.Equal([1, 2, 3, 4], usersWithNoFilters.Select(user => user.Id));
-        Assert.Equal([1], usersWithFilters1.Select(user => user.Id));
-        Assert.Equal([1, 2], usersWithFilters2.Select(user => user.Id));
+        Assert.Equal(new[] { 1, 2, 3, 4 }, usersWithNoFilters.Select(user => user.Id));
+        Assert.Equal(new[] { 1 }, usersWithFilters1.Select(user => user.Id));
+        Assert.Equal(new[] { 1, 2 }, usersWithFilters2.Select(user => user.Id));
     }
 
     [Fact]
@@ -182,7 +187,21 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
     }
 
     [Fact]
-    public async Task Count_WithQueryResultName()
+    public async Task ScalarResult_ReturnsSingleValue()
+    {
+        // Arrange
+        await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('1', 'Ivan');");
+        await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('2', 'Marta');");
+
+        // Act
+        var count = await new UsersScalarCountQuery().InvokeAsync(CancellationToken.None);
+
+        // Assert
+        Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public async Task MultipleResultSets_WithScalarAndCollection()
     {
         // Arrange
         await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('1', 'Ivan');");
@@ -196,18 +215,32 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         var page1 = await new ListPaginatedUsersWithTotalQuery { Skip = 0, Take = 2 }.InvokeAsync(CancellationToken.None);
         var page2 = await new ListPaginatedUsersWithTotalQuery { Skip = 2, Take = 1 }.InvokeAsync(CancellationToken.None);
         var page3 = await new ListPaginatedUsersWithTotalQuery { Skip = 3, Take = 3 }.InvokeAsync(CancellationToken.None);
+        var page4 = await new ListPaginatedUsersWithTotalQuery { Skip = 6, Take = 3 }.InvokeAsync(CancellationToken.None);
 
         // Assert
-        Assert.Equal(6, page1.Count);
-        Assert.Equal(2, page1.Results.Count);
-        Assert.True(page1.Results.All(result => result.Name == "Ivan"));
+        var query = new ListPaginatedUsersWithTotalQuery { Skip = 0, Take = 1 };
+        Assert.Contains("custom_global_directive", query.Directives);
+        Assert.DoesNotContain("custom_total_directive", query.Directives);
+        Assert.DoesNotContain("custom_users_directive", query.Directives);
+        Assert.Equal(new[] { "total", "users" }, query.ResultSets.Select(resultSet => resultSet.Name));
+        Assert.Contains("custom_total_directive", query.ResultSets[0].Directives);
+        Assert.Contains("scalar_result int total", query.ResultSets[0].Directives);
+        Assert.Contains("custom_users_directive", query.ResultSets[1].Directives);
+        Assert.Contains("result string name", query.ResultSets[1].Directives);
+
+        Assert.Equal(6, page1.Total);
+        Assert.Equal(2, page1.Users.Count);
+        Assert.True(page1.Users.All(result => result.Name == "Ivan"));
         
-        Assert.Equal(6, page2.Count);
-        Assert.Single(page2.Results);
-        Assert.Equal("Marta", page2.Results.Single().Name);
+        Assert.Equal(6, page2.Total);
+        Assert.Single(page2.Users);
+        Assert.Equal("Marta", page2.Users.Single().Name);
         
-        Assert.Equal(6, page3.Count);
-        Assert.Equal(3, page3.Results.Count);
-        Assert.Equal(["Marta", "Javier", "Javier"], page3.Results.Select(result => result.Name));
+        Assert.Equal(6, page3.Total);
+        Assert.Equal(3, page3.Users.Count);
+        Assert.Equal(new[] { "Marta", "Javier", "Javier" }, page3.Users.Select(result => result.Name));
+
+        Assert.Equal(6, page4.Total);
+        Assert.Empty(page4.Users);
     }
 }
