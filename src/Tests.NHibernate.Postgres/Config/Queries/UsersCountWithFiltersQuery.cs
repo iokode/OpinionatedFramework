@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Queries;
 
 public record UsersFilters
@@ -20,8 +17,8 @@ public partial class UsersCountWithFiltersQuery
         };
     }
 
-    private partial int MapResult(IReadOnlyCollection<UsersCountWithFiltersQueryResult> rawResults)
+    private partial int MapResult(UsersCountWithFiltersQueryResult result)
     {
-        return rawResults.First().Count;
+        return result.Count;
     }
 }

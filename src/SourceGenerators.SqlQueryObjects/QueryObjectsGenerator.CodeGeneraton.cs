@@ -51,7 +51,7 @@ public partial class QueryObjectsGenerator
         public bool HasMappedParameters { get; private set; }
         public bool HasMappedResult => !string.IsNullOrWhiteSpace(MappedQueryResultString);
         public bool RequiresCustomMapParameters => HasMapDirective && HasMappedParameters;
-        public bool RequiresCustomMapResult => !HasExplicitResultSets && HasMapDirective && (!HasMappedParameters || HasMappedResult);
+        public bool RequiresCustomMapResult => HasMapDirective && (!HasMappedParameters || HasMappedResult);
 
         public string Name => Path.GetFileNameWithoutExtension(SqlFile.FilePath);
         public string ClassName => Name.EndsWith("Query") ? Name : $"{Name}Query";
@@ -80,6 +80,8 @@ public partial class QueryObjectsGenerator
         public string QueryResultString => HasExplicitResultSets
             ? CompositeQueryResultClassName
             : SingleResultSet.ResultString;
+
+        public string MapResultParametersString => string.Join(", ", ResultSets.Select(resultSet => $"{resultSet.ResultString} {resultSet.MapResultParameterName}"));
 
         public string InvokeResultString => RequiresCustomMapResult && !string.IsNullOrWhiteSpace(MappedQueryResultString)
             ? MappedQueryResultString!
@@ -225,6 +227,7 @@ public partial class QueryObjectsGenerator
             QueryCardinality.ZeroOrOne => $"{ElementType}?",
             _ => $"IReadOnlyCollection<{ElementType}>"
         };
+        public string MapResultParameterName => Name == null ? "result" : PropertyName.Camelize();
 
         public static ResultSetDefinition ParseImplicit(SqlQueryResultSetBlock block, string objectResultClassName)
         {
@@ -401,22 +404,21 @@ public partial class QueryObjectsGenerator
             }
             {{~ end ~}}
 
-            {{~ if HasExplicitResultSets ~}}
-            private {{ InvokeResultString }} MapResult(IReadOnlyList<object> rawResultSets)
+            {{~ if RequiresCustomMapResult ~}}
+            private partial {{ InvokeResultString }} MapResult({{ MapResultParametersString }});
+            {{~ else ~}}
+            private {{ InvokeResultString }} MapResult({{ MapResultParametersString }})
             {
+                {{~ if HasExplicitResultSets ~}}
                 return new {{ InvokeResultString }}
                 {
                     {{~ for result_set in ResultSets ~}}
-                    {{ result_set.PropertyName }} = Map{{ result_set.Cardinality }}(GetResultSet<{{ result_set.ElementType }}>(rawResultSets, {{ result_set.Index }})),
+                    {{ result_set.PropertyName }} = {{ result_set.MapResultParameterName }},
                     {{~ end ~}}
                 };
-            }
-            {{~ else if RequiresCustomMapResult ~}}
-            private partial {{ InvokeResultString }} MapResult(IReadOnlyCollection<{{ SingleResultSet.ElementType }}> rawResults);
-            {{~ else ~}}
-            private {{ InvokeResultString }} MapResult(IReadOnlyCollection<{{ SingleResultSet.ElementType }}> rawResults)
-            {
-                return Map{{ SingleResultSet.Cardinality }}(rawResults);
+                {{~ else ~}}
+                return {{ SingleResultSet.MapResultParameterName }};
+                {{~ end ~}}
             }
             {{~ end ~}}
 
@@ -442,7 +444,7 @@ public partial class QueryObjectsGenerator
 
         }
 
-        {{~ if HasExplicitResultSets ~}}
+        {{~ if HasExplicitResultSets && !HasMappedResult ~}}
         {{ QueryClassAccessor }} partial record {{ CompositeQueryResultClassName }}
         {
             {{~ for result_set in ResultSets ~}}
