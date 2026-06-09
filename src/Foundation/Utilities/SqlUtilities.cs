@@ -11,11 +11,14 @@ namespace IOKode.OpinionatedFramework.Utilities;
 /// </summary>
 public static partial class SqlUtilities
 {
+    private static readonly Regex directivePrefixRegex = new(@"--[ \t]*@", RegexOptions.Compiled);
+    
     private static readonly IReadOnlyDictionary<string, QueryCardinality> cardinalityDirectives =
         new Dictionary<string, QueryCardinality>(StringComparer.OrdinalIgnoreCase)
         {
-            ["single"] = QueryCardinality.One,
-            ["single_or_default"] = QueryCardinality.ZeroOrOne,
+            ["zero_or_more"] = QueryCardinality.ZeroOrMore,
+            ["one"] = QueryCardinality.One,
+            ["zero_or_one"] = QueryCardinality.ZeroOrOne,
         };
 
     /// <summary>
@@ -27,7 +30,6 @@ public static partial class SqlUtilities
     {
         var directives = new List<string>();
         var lines = rawSql.Split('\n');
-        var directivePrefixRegex = GetDirectivePrefixRegex();
 
         foreach (var line in lines)
         {
@@ -46,33 +48,110 @@ public static partial class SqlUtilities
     }
 
     /// <summary>
+    /// Splits raw SQL text into global directives and result set blocks.
+    /// </summary>
+    /// <remarks>
+    /// When explicit result sets are declared, global directives are the directives that appear before the first
+    /// <c>@result_set</c> directive. Result set directives are the directives that appear within each result set block.
+    /// When no explicit result set is declared, all directives are global and also belong to the implicit result set.
+    /// </remarks>
+    /// <param name="rawSql">The raw SQL text.</param>
+    /// <returns>The global SQL block and result set SQL blocks.</returns>
+    public static SqlQueryBlocks GetQueryBlocks(string rawSql)
+    {
+        var lines = rawSql.Replace("\r\n", "\n").Split('\n');
+        var resultSetLineIndexes = lines
+            .Select((line, index) => new { line, index })
+            .Where(item => IsResultSetDirectiveLine(item.line))
+            .Select(item => item.index)
+            .ToArray();
+
+        if (resultSetLineIndexes.Length == 0)
+        {
+            return new SqlQueryBlocks
+            {
+                GlobalRawSql = rawSql,
+                GlobalDirectives = GetDirectives(rawSql),
+                HasExplicitResultSets = false,
+                ResultSets = new[]
+                {
+                    new SqlQueryResultSetBlock
+                    {
+                        RawSql = rawSql,
+                        Directives = GetDirectives(rawSql)
+                    }
+                }
+            };
+        }
+
+        var globalRawSql = string.Join("\n", lines.Take(resultSetLineIndexes[0]));
+        var resultSets = resultSetLineIndexes
+            .Select((lineIndex, index) =>
+            {
+                var nextLineIndex = index + 1 < resultSetLineIndexes.Length ? resultSetLineIndexes[index + 1] : lines.Length;
+                var block = string.Join("\n", lines.Skip(lineIndex).Take(nextLineIndex - lineIndex));
+                return new SqlQueryResultSetBlock
+                {
+                    RawSql = block,
+                    Directives = GetDirectives(block)
+                };
+            })
+            .ToArray();
+
+        return new SqlQueryBlocks
+        {
+            GlobalRawSql = globalRawSql,
+            GlobalDirectives = GetDirectives(globalRawSql),
+            HasExplicitResultSets = true,
+            ResultSets = resultSets
+        };
+    }
+
+    /// <summary>
     /// Gets the query cardinality represented by the provided directives.
     /// </summary>
     /// <param name="directives">The directives associated with a query.</param>
     /// <returns>The cardinality represented by the directives, or <see cref="QueryCardinality.ZeroOrMore"/> when no cardinality directive is present.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the provided directives contain incompatible cardinalities.</exception>
+    /// <exception cref="QueryDefinitionException">Thrown when the provided directives contain incompatible cardinalities.</exception>
     public static QueryCardinality GetCardinality(IReadOnlyList<string> directives)
     {
         var cardinalities = directives
-            .Select(GetDirectiveName)
-            .Where(directiveName => directiveName != null && cardinalityDirectives.ContainsKey(directiveName))
-            .Select(directiveName => cardinalityDirectives[directiveName!])
+            .Select(GetCardinalityDirectiveValue)
+            .Where(cardinalityValue => cardinalityValue != null && cardinalityDirectives.ContainsKey(cardinalityValue))
+            .Select(cardinalityValue => cardinalityDirectives[cardinalityValue!])
             .Distinct()
             .ToArray();
 
         if (cardinalities.Length > 1)
         {
-            throw new InvalidOperationException($"Incompatible query cardinality directives: {string.Join(", ", cardinalities)}.");
+            throw new QueryDefinitionException($"Incompatible query cardinality directives: {string.Join(", ", cardinalities)}.");
         }
 
-        return cardinalities.FirstOrDefault(QueryCardinality.ZeroOrMore);
+        return cardinalities.Length == 0 ? QueryCardinality.ZeroOrMore : cardinalities[0];
     }
 
-    private static string? GetDirectiveName(string directive)
+    private static string? GetCardinalityDirectiveValue(string directive)
     {
-        return directive.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        var directiveParts = directive.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+        if (directiveParts.Length != 2 || !directiveParts[0].Equals("cardinality", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return directiveParts[1];
     }
 
-    [GeneratedRegex(@"--[ \t]*@")]
-    private static partial Regex GetDirectivePrefixRegex();
+    private static bool IsResultSetDirectiveLine(string line)
+    {
+        var trimmedLine = line.Trim();
+        var match = directivePrefixRegex.Match(trimmedLine);
+        if (!match.Success)
+        {
+            return false;
+        }
+
+        var directive = trimmedLine[match.Length..].Trim();
+        var directiveName = directive.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        return directiveName == "result_set";
+    }
 }

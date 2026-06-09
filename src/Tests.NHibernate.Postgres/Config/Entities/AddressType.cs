@@ -11,7 +11,7 @@ namespace IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Entities;
 
 public sealed class AddressType : IUserType
 {
-    private static readonly SqlType[] sqlTypes = [new(DbType.Object)];
+    private static readonly SqlType[] sqlTypes = new[] { new SqlType(DbType.Object) };
 
     public bool IsMutable => false;
 

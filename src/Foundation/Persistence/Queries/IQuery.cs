@@ -4,25 +4,27 @@ using System.Collections.Generic;
 namespace IOKode.OpinionatedFramework.Persistence.Queries;
 
 /// <summary>
-/// Represents a query object that describes a SQL query and its public result type.
+/// Represents a query object that describes the original SQL text, its global directives, its result sets,
+/// and its public result type.
 /// </summary>
 /// <typeparam name="TResult">The public result type returned when the query is invoked.</typeparam>
 public interface IQuery<TResult>
 {
     /// <summary>
-    /// Gets the raw SQL query to execute.
+    /// Gets the original raw SQL text for the query, including every result set block.
     /// </summary>
     string RawSql { get; }
 
     /// <summary>
-    /// Gets the directives associated with the query.
+    /// Gets the global directives associated with the query.
     /// </summary>
     IReadOnlyList<string> Directives { get; }
 
     /// <summary>
-    /// Gets the expected result cardinality for the query.
+    /// Gets the SQL result sets that compose this query. Each result set contains its own SQL text,
+    /// directives, cardinality and result shape.
     /// </summary>
-    QueryCardinality Cardinality { get; }
+    IReadOnlyList<QueryResultSet> ResultSets { get; }
 
     /// <summary>
     /// Gets the public result type returned when the query is invoked.

@@ -1,7 +1,7 @@
 -- @generate
 -- @parameter string name
+-- @cardinality zero_or_one
 -- @result int id
 -- @result string name
--- @single_or_default
 
 select id, name from users where name = :name;

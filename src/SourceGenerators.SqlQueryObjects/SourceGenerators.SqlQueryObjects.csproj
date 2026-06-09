@@ -5,4 +5,11 @@
     <ItemGroup>
       <PackageReference Update="Scriban" PrivateAssets="all" IncludeAssets="build" />
     </ItemGroup>
+    <ItemGroup>
+      <Compile Include="..\Foundation\Persistence\Queries\QueryDefinitionException.cs" Link="Persistence\Queries\QueryDefinitionException.cs" />
+      <Compile Include="..\Foundation\Persistence\Queries\QueryCardinality.cs" Link="Persistence\Queries\QueryCardinality.cs" />
+      <Compile Include="..\Foundation\Persistence\Queries\SqlQueryResultSetBlock.cs" Link="Persistence\Queries\SqlQueryResultSetBlock.cs" />
+      <Compile Include="..\Foundation\Persistence\Queries\SqlQueryBlocks.cs" Link="Persistence\Queries\SqlQueryBlocks.cs" />
+      <Compile Include="..\Foundation\Utilities\SqlUtilities.cs" Link="Utilities\SqlUtilities.cs" />
+    </ItemGroup>
 </Project>

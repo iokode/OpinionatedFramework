@@ -21,7 +21,12 @@ public interface IQueryExecutionContext
     public bool IsExecuted { get; }
 
     /// <summary>
-    /// A collection of directives associated with the query.
+    /// Indicates whether the query has more than one result set.
+    /// </summary>
+    public bool HasMultipleResultSets { get; }
+
+    /// <summary>
+    /// Gets the global directives associated with the query.
     /// </summary>
     /// <remarks>A directive is a comment in the SQL file that starts with "-- @".</remarks>
     public ICollection<string> Directives { get; }
@@ -38,15 +43,21 @@ public interface IQueryExecutionContext
     public CancellationToken CancellationToken { get; }
 
     /// <summary>
-    /// The raw SQL query as a text string sourced from the associated .sql file.
+    /// The original raw SQL text for the query execution, including every result set block when the query has multiple result sets.
     /// </summary>
-    /// <remarks>It can be modified from a query middleware.</remarks>
-    public string RawQuery { get; set; }
+    /// <remarks>Middlewares must modify the <see cref="IQueryResultSetExecutionContext.RawQuery"/> of the corresponding result set instead.</remarks>
+    public string RawQuery { get; }
 
     /// <summary>
-    /// Retrieves the collection of results obtained after executing the query.
+    /// Gets the result sets that compose the query execution.
     /// </summary>
-    /// <exception cref="System.InvalidOperationException">Thrown when the query is not executed yed.</exception>
+    /// <remarks>Queries with a single result set expose one implicit result set with a null name.</remarks>
+    public IReadOnlyList<IQueryResultSetExecutionContext> ResultSets { get; }
+
+    /// <summary>
+    /// Retrieves the collection of result set results obtained after executing the query.
+    /// </summary>
+    /// <exception cref="System.InvalidOperationException">Thrown when the query is not executed yet.</exception>
     public IReadOnlyList<object> Results { get; }
 
     /// <summary>
