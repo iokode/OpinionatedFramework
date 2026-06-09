@@ -243,4 +243,30 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
         Assert.Equal(6, page4.Total);
         Assert.Empty(page4.Users);
     }
+
+    [Fact]
+    public async Task Map_WithParametersAndMultipleResultSets()
+    {
+        // Arrange
+        await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('1', 'Ivan');");
+        await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('2', 'Ivan');");
+        await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('3', 'Marta');");
+
+        // Act
+        var result = await new ListMappedPaginatedUsersWithTotalQuery
+        {
+            Filter = new MappedUsersPageFilter
+            {
+                Name = "Ivan",
+                Skip = 1,
+                Take = 1
+            }
+        }.InvokeAsync(CancellationToken.None);
+
+        // Assert
+        Assert.Equal(2, result.Total);
+        var user = Assert.Single(result.Users);
+        Assert.Equal(2, user.Id);
+        Assert.Equal("Ivan", user.Name);
+    }
 }

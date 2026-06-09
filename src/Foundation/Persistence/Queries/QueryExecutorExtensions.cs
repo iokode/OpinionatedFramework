@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,38 +38,55 @@ public static class QueryExecutorExtensions
             ?? throw new QueryDefinitionException($"Query type '{queryType.FullName}' does not declare MapResult.");
         var parameters = mapParametersMethod.Invoke(query, Array.Empty<object?>());
         var rawResultSets = await queryExecutor.QueryResultSetsAsync(query.ResultSets, query.Directives, parameters, null, cancellationToken);
-        var mapResultArgument = GetMapResultArgument(mapResultMethod, queryType, rawResultSets);
+        var mapResultArguments = GetMapResultArguments(mapResultMethod, queryType, query.ResultSets, rawResultSets);
 
-        return (TResult) mapResultMethod.Invoke(query, new[] { mapResultArgument })!;
+        return (TResult) mapResultMethod.Invoke(query, mapResultArguments)!;
     }
 
     /// <summary>
-    /// Gets the raw row type from the generated <c>MapResult</c> method signature.
+    /// Gets the shaped raw result values for the generated <c>MapResult</c> method signature.
     /// </summary>
-    private static object GetMapResultArgument(MethodInfo mapResultMethod, Type queryType, IReadOnlyList<object> rawResultSets)
+    private static object?[] GetMapResultArguments(MethodInfo mapResultMethod, Type queryType,
+        IReadOnlyList<QueryResultSet> resultSets, IReadOnlyList<object> rawResultSets)
     {
         var parameters = mapResultMethod.GetParameters();
-        if (parameters.Length != 1)
+        if (parameters.Length != resultSets.Count)
         {
-            throw new QueryDefinitionException($"Query type '{queryType.FullName}' must declare MapResult with a single parameter.");
+            throw new QueryDefinitionException($"Query type '{queryType.FullName}' must declare MapResult with one parameter per result set.");
         }
 
-        var rawResultsType = parameters[0].ParameterType;
-        if (rawResultsType == typeof(IReadOnlyList<object>))
+        if (rawResultSets.Count != resultSets.Count)
         {
-            return rawResultSets;
+            throw new QueryDefinitionException($"Query type '{queryType.FullName}' returned an unexpected number of result sets.");
         }
 
-        if (rawResultsType.IsGenericType && rawResultsType.GetGenericTypeDefinition() == typeof(IReadOnlyCollection<>))
+        var arguments = new object?[resultSets.Count];
+        for (int i = 0; i < resultSets.Count; i++)
         {
-            if (rawResultSets.Count != 1)
-            {
-                throw new QueryDefinitionException($"Query type '{queryType.FullName}' must declare MapResult with IReadOnlyList<object> for multiple result sets.");
-            }
-
-            return rawResultSets[0];
+            arguments[i] = GetMapResultArgument(resultSets[i], rawResultSets[i]);
         }
 
-        throw new QueryDefinitionException($"Query type '{queryType.FullName}' must declare MapResult with an IReadOnlyCollection<T> or IReadOnlyList<object> parameter.");
+        return arguments;
+    }
+
+    private static object? GetMapResultArgument(QueryResultSet resultSet, object rawResultSet)
+    {
+        return resultSet.Cardinality switch
+        {
+            QueryCardinality.One => AsEnumerable(rawResultSet).Cast<object>().First(),
+            QueryCardinality.ZeroOrOne => AsEnumerable(rawResultSet).Cast<object>().FirstOrDefault(),
+            QueryCardinality.ZeroOrMore => rawResultSet,
+            _ => throw new QueryDefinitionException($"Unsupported query cardinality: {resultSet.Cardinality}.")
+        };
+    }
+
+    private static IEnumerable AsEnumerable(object rawResultSet)
+    {
+        if (rawResultSet is IEnumerable enumerable)
+        {
+            return enumerable;
+        }
+
+        throw new QueryDefinitionException("Raw result set must be enumerable.");
     }
 }
