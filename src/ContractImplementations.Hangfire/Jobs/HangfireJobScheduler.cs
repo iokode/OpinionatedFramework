@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Cronos;
 using Hangfire;
 using Hangfire.Storage;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.Jobs;
 using Job = IOKode.OpinionatedFramework.Jobs.Job;
 

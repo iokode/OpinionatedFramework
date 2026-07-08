@@ -1,12 +1,9 @@
 using System;
-using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Hangfire;
-using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Jobs;
-using Container = IOKode.OpinionatedFramework.Bootstrapping.Container;
-using Job = IOKode.OpinionatedFramework.Jobs.Job;
+using IOKode.OpinionatedFramework.ServiceContainer;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
 

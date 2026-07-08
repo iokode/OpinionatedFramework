@@ -1,5 +1,6 @@
 using System.Linq;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
+using IOKode.OpinionatedFramework.ServiceLocation;
 using IOKode.OpinionatedFramework.ContractImplementations.MicrosoftLogging;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Logging;

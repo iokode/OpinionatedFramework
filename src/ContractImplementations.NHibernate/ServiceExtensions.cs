@@ -1,5 +1,5 @@
 using System;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.Queries;

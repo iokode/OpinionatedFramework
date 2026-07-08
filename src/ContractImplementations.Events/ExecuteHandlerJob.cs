@@ -1,10 +1,10 @@
 using System;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
+using IOKode.OpinionatedFramework.ServiceLocation;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Events;
 

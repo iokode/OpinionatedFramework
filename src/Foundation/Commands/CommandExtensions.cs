@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.ServiceLocation;
 
 namespace IOKode.OpinionatedFramework.Commands.Extensions;
 

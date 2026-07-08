@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
 using IOKode.OpinionatedFramework.AspNetCoreIntegrations.Middlewares;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 using IOKode.OpinionatedFramework.Logging;

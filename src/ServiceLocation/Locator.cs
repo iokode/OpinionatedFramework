@@ -2,9 +2,8 @@
 
 using System;
 using System.Threading;
-using IOKode.OpinionatedFramework.Ensuring;
 
-namespace IOKode.OpinionatedFramework;
+namespace IOKode.OpinionatedFramework.ServiceLocation;
 
 /// <summary>
 /// Provides a static service locator for resolving services registered in the Container class.
@@ -32,6 +31,16 @@ public static class Locator
     /// </remarks>
     public static IServiceProvider? ServiceProvider => _scopedServiceProvider.Value ?? _serviceProvider;
 
+    internal static void SetRootServiceProvider(IServiceProvider? serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
+    internal static void SetScopedServiceProvider(IServiceProvider? serviceProvider)
+    {
+        _scopedServiceProvider.Value = serviceProvider;
+    }
+
     /// <summary>
     /// Resolve a service based on type.
     /// </summary>
@@ -40,13 +49,17 @@ public static class Locator
     /// <exception cref="InvalidOperationException">Thrown when trying to resolver a non-registered service or the container is not initialized.</exception>
     public static object Resolve(Type serviceType)
     {
-        Ensure.Object.NotNull(ServiceProvider)
-            .ElseThrowsInvalidOperation("The container is not initialized. Call Container.Initialize().");
+        if (ServiceProvider is null)
+        {
+            throw new InvalidOperationException("The container is not initialized. Call Container.Initialize().");
+        }
 
         object? service = ServiceProvider!.GetService(serviceType);
 
-        Ensure.Object.NotNull(service)
-            .ElseThrowsInvalidOperation($"No service of type '{serviceType.FullName}' has been registered.");
+        if (service is null)
+        {
+            throw new InvalidOperationException($"No service of type '{serviceType.FullName}' has been registered.");
+        }
 
         return service!;
     }

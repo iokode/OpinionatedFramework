@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Docker.DotNet;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 using IOKode.OpinionatedFramework.Logging;

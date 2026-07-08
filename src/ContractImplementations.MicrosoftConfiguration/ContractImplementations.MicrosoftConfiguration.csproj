@@ -3,7 +3,7 @@
     <Import Project="../MSBuild/Packable.props"/>
 
     <ItemGroup Label="Project dependencies">
-        <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
+        <ProjectReference Include="..\ServiceContainer\ServiceContainer.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>
 

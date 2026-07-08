@@ -1,4 +1,4 @@
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using IConfigurationProvider = IOKode.OpinionatedFramework.Configuration.IConfigurationProvider;

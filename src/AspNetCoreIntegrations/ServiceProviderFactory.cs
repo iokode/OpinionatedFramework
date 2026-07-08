@@ -1,5 +1,6 @@
 using System;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
+using IOKode.OpinionatedFramework.ServiceLocation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations;
