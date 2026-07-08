@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Docker.DotNet;
 using Hangfire;
 using Hangfire.PostgreSql;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
 using IOKode.OpinionatedFramework.ContractImplementations.LoggerEmail;
 using IOKode.OpinionatedFramework.Emailing;

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using IOKode.OpinionatedFramework.Persistence.Queries;
+using IOKode.OpinionatedFramework.ServiceLocation;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using Xunit;
 using Xunit.Abstractions;

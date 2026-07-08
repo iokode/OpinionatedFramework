@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Jobs;
+using IOKode.OpinionatedFramework.ServiceLocation;
 
 namespace IOKode.OpinionatedFramework.Emailing.Extensions;
 

@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
+using IOKode.OpinionatedFramework.ServiceLocation;
 
 namespace IOKode.OpinionatedFramework.Jobs.Extensions;
 

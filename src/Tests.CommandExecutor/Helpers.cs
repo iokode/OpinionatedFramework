@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Generic;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.Commands;
 using IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 using IOKode.OpinionatedFramework.ContractImplementations.MicrosoftLogging;

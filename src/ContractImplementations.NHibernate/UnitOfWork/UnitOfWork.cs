@@ -9,6 +9,7 @@ using IOKode.OpinionatedFramework.Persistence.Queries;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
+using IOKode.OpinionatedFramework.ServiceLocation;
 using NHibernate;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;

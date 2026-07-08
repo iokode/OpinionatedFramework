@@ -1,5 +1,5 @@
 using System;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.Commands;
 using Microsoft.Extensions.DependencyInjection;
 

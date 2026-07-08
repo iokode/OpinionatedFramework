@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.FileSystem;

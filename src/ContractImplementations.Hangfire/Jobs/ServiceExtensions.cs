@@ -1,6 +1,4 @@
-using System;
-using Hangfire;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.Jobs;
 using Microsoft.Extensions.DependencyInjection;
 

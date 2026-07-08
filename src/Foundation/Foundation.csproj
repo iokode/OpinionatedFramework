@@ -15,6 +15,7 @@
     
     <ItemGroup Label="ProjectReferences">
         <ProjectReference Include="..\Ensuring\Ensuring.csproj" />
+        <ProjectReference Include="..\ServiceLocation\ServiceLocation.csproj" />
     </ItemGroup>
 
     <ItemGroup Label="Analyzers and source generators">

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Packable.props"/>
+    
+    <ItemGroup Label="Package references">
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
+    </ItemGroup>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\ServiceLocation\ServiceLocation.csproj" />
+    </ItemGroup>
+</Project>

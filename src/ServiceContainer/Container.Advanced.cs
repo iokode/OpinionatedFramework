@@ -1,8 +1,7 @@
 using System;
-using IOKode.OpinionatedFramework.Ensuring;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IOKode.OpinionatedFramework.Bootstrapping;
+namespace IOKode.OpinionatedFramework.ServiceContainer;
 
 public static partial class Container
 {
@@ -23,8 +22,10 @@ public static partial class Container
         /// </remarks>
         public static IServiceScope CreateScope()
         {
-            Ensure.Boolean.IsTrue(IsInitialized)
-                .ElseThrowsInvalidOperation("Cannot create a scope if the container is not initialized.");
+            if (!IsInitialized)
+            {
+                throw new InvalidOperationException("Cannot create a scope if the container is not initialized.");
+            }
 
             var scope = _serviceProvider!.CreateScope();
             SetScopeIntoLocator(scope);
@@ -39,8 +40,10 @@ public static partial class Container
         /// <exception cref="InvalidOperationException">Thrown when the container isn't initialized.</exception>
         public static void DisposeScope()
         {
-            Ensure.Boolean.IsTrue(IsInitialized)
-                .ElseThrowsInvalidOperation("Cannot dispose the scope because the container is not initialized.");
+            if (!IsInitialized)
+            {
+                throw new InvalidOperationException("Cannot dispose the scope because the container is not initialized.");
+            }
 
             _serviceProviderScope?.Dispose();
             _serviceProviderScope = null;

@@ -3,6 +3,7 @@ using Dapper;
 using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Ensuring.Ensurers;
 using IOKode.OpinionatedFramework.Persistence.Queries;
+using IOKode.OpinionatedFramework.ServiceLocation;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using Xunit;
 using Xunit.Abstractions;

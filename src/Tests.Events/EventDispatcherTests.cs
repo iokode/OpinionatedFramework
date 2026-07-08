@@ -6,6 +6,7 @@ using IOKode.OpinionatedFramework.ContractImplementations.Events;
 using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
+using IOKode.OpinionatedFramework.ServiceLocation;
 using IOKode.OpinionatedFramework.Tests.Events.Config;
 using IOKode.OpinionatedFramework.TestHelpers;
 using IOKode.OpinionatedFramework.Utilities;

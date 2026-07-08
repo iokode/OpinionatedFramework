@@ -1,6 +1,6 @@
 using System;
 using FluentNHibernate.Cfg;
-using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.Mappings;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.UserTypes.NodaTime;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;

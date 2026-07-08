@@ -1,4 +1,3 @@
-using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter;
 using IOKode.OpinionatedFramework.ContractImplementations.Bcrypt;
 using IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
@@ -10,10 +9,11 @@ using IOKode.OpinionatedFramework.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using IOKode.OpinionatedFramework.ServiceContainer;
 
-namespace IOKode.OpinionatedFramework.DefaultBootstrapping;
+namespace IOKode.OpinionatedFramework.Bootstrapping;
 
-public static class DefaultBootstrapping
+public static class Bootstrapping
 {
     public static void Bootstrap(IConfiguration configuration, string frameworkConfigSection = "OpinionatedFramework")
     {

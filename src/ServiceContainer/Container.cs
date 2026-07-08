@@ -1,10 +1,8 @@
 using System;
-using System.Reflection;
-using System.Threading;
-using IOKode.OpinionatedFramework.Ensuring;
+using IOKode.OpinionatedFramework.ServiceLocation;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IOKode.OpinionatedFramework.Bootstrapping;
+namespace IOKode.OpinionatedFramework.ServiceContainer;
 
 /// <summary>
 /// Provides a static container for registering services and building a service provider.
@@ -40,8 +38,10 @@ public static partial class Container
     /// <exception cref="InvalidOperationException">The container is already initialized.</exception>
     public static void Initialize()
     {
-        Ensure.Boolean.IsFalse(IsInitialized)
-            .ElseThrowsInvalidOperation("The container has already been initialized. It can only be initialized once.");
+        if (IsInitialized)
+        {
+            throw new InvalidOperationException("The container has already been initialized. It can only be initialized once.");
+        }
 
         _serviceCollection.MakeReadOnly();
         _serviceProvider = _serviceCollection.BuildServiceProvider();
@@ -50,14 +50,11 @@ public static partial class Container
 
     private static void SetProviderIntoLocator()
     {
-        var field = typeof(Locator).GetField("_serviceProvider", BindingFlags.Static | BindingFlags.NonPublic)!;
-        field.SetValue(null, _serviceProvider);
+        Locator.SetRootServiceProvider(_serviceProvider);
     }
 
     private static void SetScopeIntoLocator(IServiceScope? scope)
     {
-        var field = typeof(Locator).GetField("_scopedServiceProvider", BindingFlags.NonPublic | BindingFlags.Static)!;
-        var providerHolder = (AsyncLocal<IServiceProvider?>)field.GetValue(null)!;
-        providerHolder.Value = scope?.ServiceProvider;
+        Locator.SetScopedServiceProvider(scope?.ServiceProvider);
     }
 }

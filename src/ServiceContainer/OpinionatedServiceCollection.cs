@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace IOKode.OpinionatedFramework.Bootstrapping;
+namespace IOKode.OpinionatedFramework.ServiceContainer;
 
 /// <summary>
 /// This interface extends IServiceCollection with the intention of use the typing system to enforce that
