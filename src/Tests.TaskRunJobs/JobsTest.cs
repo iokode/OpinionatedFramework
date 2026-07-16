@@ -21,14 +21,19 @@ public class JobsTest : IDisposable
         this.testOutputHelper = testOutputHelper;
         Container.Initialize();
     }
-    
+
+    public void Dispose()
+    {
+        Container.Advanced.ResetAsync().AsTask().GetAwaiter().GetResult();
+    }
+
     [Fact]
     public async Task EnqueueJob_Success()
     {
         // Arrange
         var configurationValues = new Dictionary<string, object>
         {
-            ["TaskRun:JobEnqueuer:MaxAttempts"] = 10
+            ["OpinionatedFramework:JobEnqueuer:MaxAttempts"] = 10
         };
         var configuration = new ConfigurationProvider(configurationValues);
         var jobEnqueuer = new TaskRunJobEnqueuer(configuration);
@@ -46,7 +51,7 @@ public class JobsTest : IDisposable
         // Arrange
         var configurationValues = new Dictionary<string, object>
         {
-            ["TaskRun:JobScheduler:MaxAttempts"] = 10
+            ["OpinionatedFramework:JobScheduler:MaxAttempts"] = 10
         };
         var configuration = new ConfigurationProvider(configurationValues);
         var logging = new XUnitLogging(testOutputHelper);
@@ -66,7 +71,7 @@ public class JobsTest : IDisposable
         // Arrange
         var configurationValues = new Dictionary<string, object>
         {
-            ["TaskRun:JobScheduler:MaxAttempts"] = 10
+            ["OpinionatedFramework:JobScheduler:MaxAttempts"] = 10
         };
         var configuration = new ConfigurationProvider(configurationValues);
         var logging = new XUnitLogging(testOutputHelper);
@@ -88,7 +93,7 @@ public class JobsTest : IDisposable
         // Arrange
         var configurationValues = new Dictionary<string, object>
         {
-            ["TaskRun:JobScheduler:MaxAttempts"] = 10
+            ["OpinionatedFramework:JobScheduler:MaxAttempts"] = 10
         };
         var configuration = new ConfigurationProvider(configurationValues);
         var logging = new XUnitLogging(testOutputHelper);
@@ -110,7 +115,7 @@ public class JobsTest : IDisposable
         // Arrange
         var configurationValues = new Dictionary<string, object>
         {
-            ["TaskRun:JobEnqueuer:MaxAttempts"] = 10
+            ["OpinionatedFramework:JobEnqueuer:MaxAttempts"] = 10
         };
         var configuration = new ConfigurationProvider(configurationValues);
         var jobEnqueuer = new TaskRunJobEnqueuer(configuration);
@@ -129,7 +134,7 @@ public class JobsTest : IDisposable
         // Arrange
         var configurationValues = new Dictionary<string, object>
         {
-            ["TaskRun:JobScheduler:MaxAttempts"] = 10
+            ["OpinionatedFramework:JobScheduler:MaxAttempts"] = 10
         };
         var configuration = new ConfigurationProvider(configurationValues);
         var logging = new XUnitLogging(testOutputHelper);
@@ -150,7 +155,7 @@ public class JobsTest : IDisposable
         // Arrange
         var configurationValues = new Dictionary<string, object>
         {
-            ["TaskRun:JobEnqueuer:MaxAttempts"] = 10
+            ["OpinionatedFramework:JobEnqueuer:MaxAttempts"] = 10
         };
         var configuration = new ConfigurationProvider(configurationValues);
         var jobEnqueuer = new TaskRunJobEnqueuer(configuration);
@@ -169,7 +174,7 @@ public class JobsTest : IDisposable
         // Arrange
         var configurationValues = new Dictionary<string, object>
         {
-            ["TaskRun:JobScheduler:MaxAttempts"] = 10
+            ["OpinionatedFramework:JobScheduler:MaxAttempts"] = 10
         };
         var configuration = new ConfigurationProvider(configurationValues);
         var logging = new XUnitLogging(testOutputHelper);
@@ -182,11 +187,6 @@ public class JobsTest : IDisposable
         // Assert
         // The job first was retried 5 times and after that executed with success 5 times (every 2 seconds in 10 seconds), so 5+5 = 10.
         Assert.Equal(10, ScheduleFailAndRetryUntilSixthAttemptJob.Counter);
-    }
-
-    public void Dispose()
-    {
-        Container.Advanced.Clear();
     }
 }
 

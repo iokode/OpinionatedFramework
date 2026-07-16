@@ -58,25 +58,18 @@ public class HangfireJobScheduler : IJobScheduler
     [JobDisplayName("{0}")]
     public static async Task InvokeJobAsync<TJob>(JobCreator<TJob> creator, CancellationToken cancellationToken) where TJob : Job
     {
-        try
-        {
-            Container.Advanced.CreateScope();
+        await using var scope = Container.Advanced.CreateScope();
 
-            var context = new HangfireJobExecutionContext
-            {
-                Name = creator.GetJobName(),
-                CancellationToken = cancellationToken,
-                JobType = typeof(TJob),
-                TraceID = Guid.NewGuid(),
-            };
-
-            var job = creator.CreateJob();
-            await job.ExecuteAsync(context);
-        }
-        finally
+        var context = new HangfireJobExecutionContext
         {
-            Container.Advanced.DisposeScope();
-        }
+            Name = creator.GetJobName(),
+            CancellationToken = cancellationToken,
+            JobType = typeof(TJob),
+            TraceID = Guid.NewGuid(),
+        };
+
+        var job = creator.CreateJob();
+        await job.ExecuteAsync(context);
     }
 
     private static Expression<Action> ReconstructExpressionFromJobData(MethodInfo method, IReadOnlyCollection<object> arguments)

@@ -3,6 +3,8 @@
     <Import Project="../MSBuild/Packable.props"/>
 
     <ItemGroup Label="Project references">
+        <ProjectReference Include="..\Bootstrapping.Abstractions\Bootstrapping.Abstractions.csproj" />
+        <ProjectReference Include="..\ContractImplementations.FileSystem\ContractImplementations.FileSystem.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>
 </Project>

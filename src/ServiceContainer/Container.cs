@@ -4,57 +4,55 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace IOKode.OpinionatedFramework.ServiceContainer;
 
-/// <summary>
-/// Provides a static container for registering services and building a service provider.
-/// </summary>
+/// <summary>Provides a static container for registering services and building a service provider.</summary>
 public static partial class Container
 {
     private static OpinionatedServiceCollection _serviceCollection = new();
-    private static ServiceProvider? _serviceProvider;
-    private static IServiceScope? _serviceProviderScope;
+    private static bool _isDisposed;
 
-    /// <summary>
-    /// Gets the service collection used for registering services.
-    /// </summary>
-    /// <value>
-    /// The service collection.
-    /// </value>
+    /// <summary>Gets the service collection used for registering services.</summary>
     public static IOpinionatedServiceCollection Services => _serviceCollection;
 
-    /// <summary>
-    /// Gets a value indicating whether the container has been initialized.
-    /// </summary>
-    /// <value>
-    /// true if the container is initialized; otherwise, false.
-    /// </value>
-    public static bool IsInitialized => _serviceProvider != null;
+    /// <summary>Gets whether the root service provider has been initialized.</summary>
+    public static bool IsInitialized => Locator.RootServiceProvider is not null;
 
-    /// <summary>
-    /// Initializes the container by making the service collection read-only and building the service provider.
-    /// </summary>
-    /// <remarks>
-    /// Call this method after registering all services in the service collection.
-    /// </remarks>
-    /// <exception cref="InvalidOperationException">The container is already initialized.</exception>
+    /// <summary>Gets whether the container has been disposed.</summary>
+    public static bool IsDisposed => _isDisposed;
+
+    /// <summary>Builds and registers the root service provider.</summary>
+    /// <exception cref="InvalidOperationException">The container is disposed or already initialized.</exception>
     public static void Initialize()
     {
+        EnsureNotDisposed();
+
         if (IsInitialized)
         {
             throw new InvalidOperationException("The container has already been initialized. It can only be initialized once.");
         }
 
         _serviceCollection.MakeReadOnly();
-        _serviceProvider = _serviceCollection.BuildServiceProvider();
-        SetProviderIntoLocator();
+        Locator.SetRootServiceProvider(_serviceCollection.BuildServiceProvider());
     }
 
-    private static void SetProviderIntoLocator()
+    private static void EnsureInitialized()
     {
-        Locator.SetRootServiceProvider(_serviceProvider);
+        if (!IsInitialized)
+        {
+            throw new InvalidOperationException("The container has not been initialized. Call 'Container.Initialize()' method.");
+        }
     }
 
-    private static void SetScopeIntoLocator(IServiceScope? scope)
+    private static void EnsureNotDisposed()
     {
-        Locator.SetScopedServiceProvider(scope?.ServiceProvider);
+        if (IsDisposed)
+        {
+            throw new InvalidOperationException("The container is disposed.");
+        }
+    }
+    
+    private static void EnsureInitializedAndNotDisposed()
+    {
+        EnsureInitialized();
+        EnsureNotDisposed();
     }
 }

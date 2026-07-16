@@ -58,7 +58,7 @@ public class LocalDisk : IFileDisk
     }
 
     /// <inheritdoc />
-    public async Task<FileSystem.File> PutFileAsync(string filePath, Stream fileContent,
+    public async Task<global::IOKode.OpinionatedFramework.FileSystem.File> PutFileAsync(string filePath, Stream fileContent,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -84,7 +84,7 @@ public class LocalDisk : IFileDisk
     }
 
     /// <inheritdoc />
-    public async Task<FileSystem.File> ReplaceFileAsync(string filePath, Stream fileContent,
+    public async Task<global::IOKode.OpinionatedFramework.FileSystem.File> ReplaceFileAsync(string filePath, Stream fileContent,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -99,7 +99,7 @@ public class LocalDisk : IFileDisk
     }
 
     /// <inheritdoc />
-    public Task<FileSystem.File> GetFileAsync(string filePath, CancellationToken cancellationToken = default)
+    public Task<global::IOKode.OpinionatedFramework.FileSystem.File> GetFileAsync(string filePath, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string resolvedPath = this.ResolvePath(filePath, nameof(filePath));
@@ -138,7 +138,7 @@ public class LocalDisk : IFileDisk
     }
 
     /// <inheritdoc />
-    public Task<FileSystem.Directory> CreateDirectoryAsync(string directoryPath,
+    public Task<global::IOKode.OpinionatedFramework.FileSystem.Directory> CreateDirectoryAsync(string directoryPath,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -169,7 +169,7 @@ public class LocalDisk : IFileDisk
     }
 
     /// <inheritdoc />
-    public Task<IEnumerable<FileSystem.File>> ListFilesAsync(string? directoryPath = null,
+    public Task<IEnumerable<global::IOKode.OpinionatedFramework.FileSystem.File>> ListFilesAsync(string? directoryPath = null,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -194,7 +194,7 @@ public class LocalDisk : IFileDisk
     }
 
     /// <inheritdoc />
-    public Task<IEnumerable<FileSystem.Directory>> ListDirectoriesAsync(string? directoryPath = null,
+    public Task<IEnumerable<global::IOKode.OpinionatedFramework.FileSystem.Directory>> ListDirectoriesAsync(string? directoryPath = null,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -219,7 +219,7 @@ public class LocalDisk : IFileDisk
     /// </summary>
     /// <param name="pathOnDisk">Absolute path of the file in the local filesystem.</param>
     /// <returns>A <see cref="LocalFile"/> instance describing the file.</returns>
-    private FileSystem.File CreateFileRepresentation(string pathOnDisk)
+    private global::IOKode.OpinionatedFramework.FileSystem.File CreateFileRepresentation(string pathOnDisk)
     {
         var fileInfo = new FileInfo(pathOnDisk);
         fileInfo.Refresh();
@@ -244,7 +244,7 @@ public class LocalDisk : IFileDisk
     /// </summary>
     /// <param name="pathOnDisk">Absolute path of the directory in the local filesystem.</param>
     /// <returns>A <see cref="LocalDirectory"/> instance describing the directory.</returns>
-    private FileSystem.Directory CreateDirectoryRepresentation(string pathOnDisk)
+    private global::IOKode.OpinionatedFramework.FileSystem.Directory CreateDirectoryRepresentation(string pathOnDisk)
     {
         var directoryInfo = new DirectoryInfo(pathOnDisk);
         if (!directoryInfo.Exists)

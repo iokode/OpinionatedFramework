@@ -11,7 +11,7 @@ internal static class Helpers
 {
     public static ICommandExecutor CreateExecutor(Action<CommandExecutorOptions> optionsAction)
     {
-        Container.Advanced.Clear();
+        Container.Advanced.ResetAsync().AsTask().GetAwaiter().GetResult();
         Container.Services.AddMicrosoftLogging(_ => { });
         Container.Initialize();
 
@@ -26,7 +26,7 @@ internal static class Helpers
 
     public static ICommandExecutor CreateExecutor(Action configureContainer, Action<CommandExecutorOptions> optionsAction)
     {
-        Container.Advanced.Clear();
+        Container.Advanced.ResetAsync().AsTask().GetAwaiter().GetResult();
         Container.Services.AddMicrosoftLogging(_ => { });
         configureContainer();
         Container.Initialize();

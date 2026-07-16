@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
+using IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
 using IOKode.OpinionatedFramework.Configuration;
 using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Jobs;
@@ -12,26 +14,101 @@ using Job = IOKode.OpinionatedFramework.Jobs.Job;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
-public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging logging) : IJobScheduler
+public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging logging)
+    : IJobScheduler, IStartupTask, IAsyncDisposable
 {
+    private readonly Lock sync = new();
     private readonly Dictionary<Guid, TaskRunScheduledJob> registeredJobs = new();
+    private readonly CancellationTokenSource lifetimeCancellationTokenSource = new();
+    private bool acceptsJobs = true;
 
-    public Task<Guid> ScheduleAsync<TJob>(CronExpression interval, JobCreator<TJob> creator, CancellationToken cancellationToken = default) where TJob : Job
+    public Task StartAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        lock (this.sync)
+        {
+            if (this.lifetimeCancellationTokenSource.IsCancellationRequested)
+            {
+                throw new InvalidOperationException("The job scheduler cannot be restarted after it has been stopped.");
+            }
+
+            this.acceptsJobs = true;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        TaskRunScheduledJob[] scheduledJobs;
+        lock (this.sync)
+        {
+            this.acceptsJobs = false;
+            scheduledJobs = this.registeredJobs.Values.ToArray();
+        }
+
+        foreach (var scheduledJob in scheduledJobs)
+        {
+            scheduledJob.CancelLoop();
+            await scheduledJob.CancelDelayTokenAsync();
+        }
+
+        await this.lifetimeCancellationTokenSource.CancelAsync();
+        var runningTasks = scheduledJobs
+            .Select(scheduledJob => scheduledJob.RunningTask)
+            .Where(task => task is not null)
+            .Cast<Task>()
+            .ToArray();
+        if (runningTasks.Length > 0)
+        {
+            try
+            {
+                await Task.WhenAll(runningTasks);
+            }
+            catch (OperationCanceledException) when (this.lifetimeCancellationTokenSource.IsCancellationRequested)
+            {
+            }
+        }
+
+        lock (this.sync)
+        {
+            this.registeredJobs.Clear();
+        }
+    }
+
+    public Task<Guid> ScheduleAsync<TJob>(CronExpression interval, JobCreator<TJob> creator,
+        CancellationToken cancellationToken = default) where TJob : Job
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var scheduledJobId = Guid.NewGuid();
         var scheduledJob = new TaskRunScheduledJob
         {
             Interval = interval
         };
-        this.registeredJobs.Add(scheduledJobId, scheduledJob);
-        RunJobAsync(creator, scheduledJob, cancellationToken);
+        lock (this.sync)
+        {
+            if (!this.acceptsJobs)
+            {
+                throw new InvalidOperationException("The job scheduler has been stopped.");
+            }
 
+            this.registeredJobs.Add(scheduledJobId, scheduledJob);
+        }
+
+        scheduledJob.RunningTask = this.RunJobAsync(creator, scheduledJob);
         return Task.FromResult(scheduledJobId);
     }
 
-    public async Task RescheduleAsync(Guid scheduledJobId, CronExpression interval, CancellationToken cancellationToken = default)
+    public async Task RescheduleAsync(Guid scheduledJobId, CronExpression interval,
+        CancellationToken cancellationToken = default)
     {
-        this.registeredJobs.TryGetValue(scheduledJobId, out var scheduledJob);
+        cancellationToken.ThrowIfCancellationRequested();
+        TaskRunScheduledJob? scheduledJob;
+        lock (this.sync)
+        {
+            this.registeredJobs.TryGetValue(scheduledJobId, out scheduledJob);
+        }
+
         Ensure.Object.NotNull(scheduledJob)
             .ElseThrowsIllegalArgument($"The id '{scheduledJobId}' was not found on the schedule jobs.", nameof(scheduledJobId));
 
@@ -41,16 +118,30 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
 
     public async Task UnscheduleAsync(Guid scheduledJobId, CancellationToken cancellationToken = default)
     {
-        this.registeredJobs.TryGetValue(scheduledJobId, out var scheduledJob);
+        cancellationToken.ThrowIfCancellationRequested();
+        TaskRunScheduledJob? scheduledJob;
+        lock (this.sync)
+        {
+            this.registeredJobs.TryGetValue(scheduledJobId, out scheduledJob);
+        }
+
         Ensure.Object.NotNull(scheduledJob)
             .ElseThrowsIllegalArgument($"The id '{scheduledJobId}' was not found on the schedule jobs.", nameof(scheduledJobId));
 
         scheduledJob!.CancelLoop();
         await scheduledJob.CancelDelayTokenAsync();
-        this.registeredJobs.Remove(scheduledJobId);
+        if (scheduledJob.RunningTask is not null)
+        {
+            await scheduledJob.RunningTask.WaitAsync(cancellationToken);
+        }
+
+        lock (this.sync)
+        {
+            this.registeredJobs.Remove(scheduledJobId);
+        }
     }
 
-    private Task RunJobAsync<TJob>(JobCreator<TJob> creator, TaskRunScheduledJob scheduledJob, CancellationToken cancellationToken) where TJob : Job
+    private Task RunJobAsync<TJob>(JobCreator<TJob> creator, TaskRunScheduledJob scheduledJob) where TJob : Job
     {
         return Task.Run(async () =>
         {
@@ -58,8 +149,7 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
             {
                 var now = DateTime.UtcNow;
                 var nextOccurrence = scheduledJob.NextOccurrence;
-
-                if (nextOccurrence == null)
+                if (nextOccurrence is null)
                 {
                     throw new FormatException("The cron expression next occurrence is not found.");
                 }
@@ -68,24 +158,29 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
                 {
                     try
                     {
-                        await RetryHelper.RetryOnExceptionAsync(creator, configuration.GetValue<int>("TaskRun:JobScheduler:MaxAttempts"));
+                        await RetryHelper.RetryOnExceptionAsync(
+                            creator,
+                            configuration.GetValue<int>("OpinionatedFramework:JobScheduler:MaxAttempts"),
+                            this.lifetimeCancellationTokenSource.Token);
                     }
-                    catch (AggregateException ex)
+                    catch (AggregateException exception)
                     {
-                        logging.Error(ex, "An scheduled job reached max attempts.");
+                        logging.Error(exception, "A scheduled job reached max attempts.");
                     }
 
                     scheduledJob.LastInvocation = Instant.FromDateTimeUtc(now);
                 }
 
                 var delay = scheduledJob.NextOccurrence! - now;
-
                 try
                 {
                     await Task.Delay(delay.Value, scheduledJob.DelayCancellationTokenSource.Token);
-                } catch (TaskCanceledException) { }
+                }
+                catch (TaskCanceledException)
+                {
+                }
             }
-        }, cancellationToken);
+        }, this.lifetimeCancellationTokenSource.Token);
     }
 }
 
@@ -95,18 +190,19 @@ internal class TaskRunScheduledJob
     public Instant LastInvocation { get; set; } = Instant.FromDateTimeUtc(DateTime.UtcNow);
     public CancellationTokenSource DelayCancellationTokenSource { get; } = new();
     public bool IsFinalized { get; private set; }
+    public Task? RunningTask { get; set; }
 
     public DateTime? NextOccurrence => Interval.GetNextOccurrence(LastInvocation.ToDateTimeUtc());
 
     public void CancelLoop()
     {
-        IsFinalized = true;
+        this.IsFinalized = true;
     }
 
     public async Task CancelDelayTokenAsync()
     {
-        LastInvocation = Instant.FromDateTimeUtc(DateTime.UtcNow);
-        await DelayCancellationTokenSource.CancelAsync();
-        DelayCancellationTokenSource.TryReset();
+        this.LastInvocation = Instant.FromDateTimeUtc(DateTime.UtcNow);
+        await this.DelayCancellationTokenSource.CancelAsync();
+        this.DelayCancellationTokenSource.TryReset();
     }
 }

@@ -22,7 +22,6 @@ public class LocalDirectoryTests : IDisposable
 
     public LocalDirectoryTests()
     {
-        Container.Advanced.Clear();
         Directory.CreateDirectory(this.basePath);
         Container.Services.AddSingleton<IFileSystem>(_ =>
         {
@@ -33,6 +32,16 @@ public class LocalDirectoryTests : IDisposable
         });
 
         Container.Initialize();
+    }
+    
+    public void Dispose()
+    {
+        if (Directory.Exists(this.basePath))
+        {
+            Directory.Delete(this.basePath, true);
+        }
+
+        Container.Advanced.ResetAsync().GetAwaiter().GetResult();
     }
 
     [Fact]
@@ -123,15 +132,5 @@ public class LocalDirectoryTests : IDisposable
     {
         await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
             await FS.GetDisk(DiskName).ListDirectoriesAsync("missing"));
-    }
-
-    public void Dispose()
-    {
-        if (Directory.Exists(this.basePath))
-        {
-            Directory.Delete(this.basePath, true);
-        }
-
-        Container.Advanced.Clear();
     }
 }

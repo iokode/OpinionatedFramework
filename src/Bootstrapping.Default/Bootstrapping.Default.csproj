@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Packable.props"/>
+
+    <ItemGroup>
+        <ProjectReference Include="../Bootstrapping/Bootstrapping.csproj" />
+        <ProjectReference Include="../ContractImplementations.Bcrypt/ContractImplementations.Bcrypt.csproj" />
+        <ProjectReference Include="../ContractImplementations.CommandExecutor/ContractImplementations.CommandExecutor.csproj" />
+        <ProjectReference Include="../ContractImplementations.LoggerEmail/ContractImplementations.LoggerEmail.csproj" />
+        <ProjectReference Include="../ContractImplementations.MicrosoftConfiguration/ContractImplementations.MicrosoftConfiguration.csproj" />
+        <ProjectReference Include="../ContractImplementations.MicrosoftLogging/ContractImplementations.MicrosoftLogging.csproj" />
+        <ProjectReference Include="../ContractImplementations.TaskRunJobs/ContractImplementations.TaskRunJobs.csproj" />
+        <ProjectReference Include="../SourceGenerators.BootstrapDrivers/SourceGenerators.BootstrapDrivers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Humanizer.Core" GeneratePathProperty="true" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup Label="Transitive bootstrap driver generator">
+        <None Include="..\SourceGenerators.BootstrapDrivers\bin\$(Configuration)\netstandard2.0\IOKode.OpinionatedFramework.SourceGenerators.BootstrapDrivers.dll"
+              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(PKGHumanizer_Core)\lib\netstandard2.0\*.dll"
+              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    </ItemGroup>
+</Project>

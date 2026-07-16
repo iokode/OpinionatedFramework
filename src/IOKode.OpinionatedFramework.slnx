@@ -17,6 +17,7 @@
     <Project Path="ContractImplementations.TaskRunJobs/ContractImplementations.TaskRunJobs.csproj" />
   </Folder>
   <Folder Name="/SourceGenerators/">
+    <Project Path="SourceGenerators.BootstrapDrivers/SourceGenerators.BootstrapDrivers.csproj" />
     <Project Path="SourceGenerators.Ensuring/SourceGenerators.Ensuring.csproj" />
     <Project Path="SourceGenerators.Facades/SourceGenerators.Facades.csproj" />
     <Project Path="SourceGenerators.Migrations/SourceGenerators.Migrations.csproj" />
@@ -24,6 +25,9 @@
     <Project Path="SourceGenerators.SqlQueryObjects/SourceGenerators.SqlQueryObjects.csproj" />
   </Folder>
   <Folder Name="/Tests/">
+    <Project Path="ContainerLocationTests/ContainerLocationTests.csproj" />
+    <Project Path="Tests.BootstrapDriversGenerator/Tests.BootstrapDriversGenerator.csproj" />
+    <Project Path="Tests.Bootstrapping/Tests.Bootstrapping.csproj" />
     <Project Path="Tests.Aes256GcmModeEncrypter/Tests.Aes256GcmModeEncrypter.csproj" />
     <Project Path="Tests.CommandExecutor/Tests.CommandExecutor.csproj" />
     <Project Path="Tests.Ensuring/Tests.Ensuring.csproj" />
@@ -43,7 +47,9 @@
     <Project Path="Tests.TaskRunJobs/Tests.TaskRunJobs.csproj" />
   </Folder>
   <Project Path="AspNetCoreIntegrations/AspNetCoreIntegrations.csproj" />
+  <Project Path="Bootstrapping.Abstractions/Bootstrapping.Abstractions.csproj" />
   <Project Path="Bootstrapping/Bootstrapping.csproj" />
+  <Project Path="Bootstrapping.Default/Bootstrapping.Default.csproj" />
   <Project Path="Ensuring/Ensuring.csproj" />
   <Project Path="Foundation/Foundation.csproj" />
   <Project Path="Internals/Internals.csproj" />

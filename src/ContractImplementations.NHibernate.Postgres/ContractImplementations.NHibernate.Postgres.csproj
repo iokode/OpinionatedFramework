@@ -7,11 +7,14 @@
     </ItemGroup>
 
     <ItemGroup Label="Package references">
+        <PackageReference Include="FluentMigrator.Runner.Postgres" />
+        <PackageReference Include="FluentNHibernate" />
         <PackageReference Include="Npgsql"/>
         <PackageReference Include="FluentMigrator"/>
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">
+        <ProjectReference Include="..\Bootstrapping.Abstractions\Bootstrapping.Abstractions.csproj"/>
         <ProjectReference Include="..\ContractImplementations.NHibernate\ContractImplementations.NHibernate.csproj"/>
     </ItemGroup>
 

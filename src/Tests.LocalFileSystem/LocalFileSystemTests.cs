@@ -22,7 +22,6 @@ public class LocalFileSystemTests : IDisposable
 
     public LocalFileSystemTests()
     {
-        Container.Advanced.Clear();
         Directory.CreateDirectory(this.basePath);
         Container.Services.AddSingleton<IFileSystem>(_ =>
         {
@@ -32,6 +31,16 @@ public class LocalFileSystemTests : IDisposable
             return fileSystem;
         });
         Container.Initialize();
+    }
+
+    public void Dispose()
+    {
+        if (Directory.Exists(this.basePath))
+        {
+            Directory.Delete(this.basePath, true);
+        }
+
+        Container.Advanced.ResetAsync().AsTask().GetAwaiter().GetResult();
     }
 
     [Fact]
@@ -127,15 +136,5 @@ public class LocalFileSystemTests : IDisposable
 
         string parentPath = Path.GetFullPath(Path.Combine(this.basePath, escapedName));
         Assert.False(File.Exists(parentPath));
-    }
-
-    public void Dispose()
-    {
-        if (Directory.Exists(this.basePath))
-        {
-            Directory.Delete(this.basePath, true);
-        }
-
-        Container.Advanced.Clear();
     }
 }

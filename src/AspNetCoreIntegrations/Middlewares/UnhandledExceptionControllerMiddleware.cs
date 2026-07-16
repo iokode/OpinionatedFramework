@@ -2,10 +2,13 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.Middlewares;
 
-public class UnhandledExceptionControllerMiddleware(IProblemDetailsService problemDetailsService) : IMiddleware
+public class UnhandledExceptionControllerMiddleware(
+    IProblemDetailsService problemDetailsService,
+    ILogger<UnhandledExceptionControllerMiddleware> logger) : IMiddleware
 {
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
@@ -15,6 +18,11 @@ public class UnhandledExceptionControllerMiddleware(IProblemDetailsService probl
         }
         catch (Exception ex)
         {
+            logger.LogError(
+                ex,
+                "An unhandled exception occurred while processing request {TraceId}.",
+                context.TraceIdentifier);
+
             if (context.Response.HasStarted)
             {
                 throw;

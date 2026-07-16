@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.ServiceContainer;
@@ -87,9 +86,7 @@ public class CommandScopeTests
 
         // Arrange
         Assert.NotSame(Container.Services, provider);
-        var asyncLocalSp = (AsyncLocal<IServiceProvider?>)typeof(Locator).GetField("_scopedServiceProvider",
-            BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
-        Assert.Null(asyncLocalSp.Value);
+        Assert.NotSame(provider, Locator.ServiceProvider);
     }
 
     [Fact]

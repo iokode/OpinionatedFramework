@@ -65,13 +65,12 @@ public class QueryExecutor(
             IsExecuted = false,
             TraceID = Guid.NewGuid()
         };
-        Container.Advanced.CreateScope();
+        await using var scope = Container.Advanced.CreateScope();
         Log.Trace("Invoking query pipeline...");
 
         await InvokeResultSetsMiddlewarePipelineAsync(resultSets, context, 0);
 
         Log.Trace("Invoked query pipeline.");
-        Container.Advanced.DisposeScope();
 
         return context.IsExecuted ? context.Results : Array.Empty<object>();
     }
@@ -109,13 +108,12 @@ public class QueryExecutor(
             IsExecuted = false,
             TraceID = Guid.NewGuid()
         };
-        Container.Advanced.CreateScope();
+        await using var scope = Container.Advanced.CreateScope();
         Log.Trace("Invoking query pipeline...");
 
         await InvokeMiddlewarePipelineAsync<TResult>(resultCardinality, context, 0);
 
         Log.Trace("Invoked query pipeline.");
-        Container.Advanced.DisposeScope();
 
         var results = context.IsExecuted ? context.Results.Cast<TResult>().ToList() : new List<TResult>();
         return results;

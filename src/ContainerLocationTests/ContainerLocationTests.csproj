@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="../ServiceContainer/ServiceContainer.csproj" />
+        <ProjectReference Include="../ServiceLocation/ServiceLocation.csproj" />
+    </ItemGroup>
+</Project>

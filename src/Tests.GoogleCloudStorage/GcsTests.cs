@@ -314,7 +314,7 @@ public class GcsTests : IDisposable
 
     public void Dispose()
     {
-        Container.Advanced.Clear();
+        Container.Advanced.ResetAsync().GetAwaiter().GetResult();
         _client.Dispose();
     }
 }

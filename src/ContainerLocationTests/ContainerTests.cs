@@ -1,9 +1,11 @@
 using System;
+using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ServiceLocation;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
-namespace IOKode.OpinionatedFramework.Tests.Foundation.Foundation;
+namespace IOKode.OpinionatedFramework.ContainerLocationTests;
 
 public interface ITestService
 {
@@ -15,8 +17,24 @@ public class TestService : ITestService
     public string GetMessage() => "Hello, World!";
 }
 
+public sealed class AsyncDisposableScopedService : IAsyncDisposable
+{
+    public bool IsDisposed { get; private set; }
+
+    public ValueTask DisposeAsync()
+    {
+        IsDisposed = true;
+        return ValueTask.CompletedTask;
+    }
+}
+
 public class ContainerTests : IDisposable
 {
+    public void Dispose()
+    {
+        Container.Advanced.ResetAsync().AsTask().GetAwaiter().GetResult();
+    }
+    
     [Fact]
     public void CanRegisterAndResolveService()
     {
@@ -75,11 +93,11 @@ public class ContainerTests : IDisposable
         {
             Locator.Resolve<ITestService>();
         });
-        Assert.Equal("No service of type 'IOKode.OpinionatedFramework.Tests.Foundation.Foundation.ITestService' has been registered.", exception.Message);
+        Assert.Equal("No service of type 'IOKode.OpinionatedFramework.ContainerLocationTests.ITestService' has been registered.", exception.Message);
     }
 
     [Fact]
-    public void ThrowsExceptionWhenContainerIsNotInitialized()
+    public void ThrowsExceptionWhenResolvingOnNotInitializedContainer()
     {
         // Arrange
         Container.Services.AddTransient<ITestService, TestService>();
@@ -120,8 +138,77 @@ public class ContainerTests : IDisposable
         Assert.Equal("The container has already been initialized. It can only be initialized once.", exception.Message);
     }
 
-    public void Dispose()
+    [Fact]
+    public async Task ScopeHandleDisposesAndUnregistersScope()
     {
-        Container.Advanced.Clear();
+        Container.Services.AddScoped<AsyncDisposableScopedService>();
+        Container.Initialize();
+
+        var scope = Container.Advanced.CreateScope();
+        var service = Locator.Resolve<AsyncDisposableScopedService>();
+        Assert.Same(service, scope.ServiceProvider.GetRequiredService<AsyncDisposableScopedService>());
+
+        await scope.DisposeAsync();
+
+        Assert.True(service.IsDisposed);
+        Assert.Throws<ObjectDisposedException>(() => scope.ServiceProvider);
+    }
+
+    [Fact]
+    public void NestedScopesAreRejected()
+    {
+        Container.Initialize();
+        _ = Container.Advanced.CreateScope();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => Container.Advanced.CreateScope());
+
+        Assert.Equal("Nested service scopes are not supported.", exception.Message);
+    }
+
+    [Fact]
+    public async Task ScopeCanBeDisposedByIdentifier()
+    {
+        Container.Services.AddScoped<AsyncDisposableScopedService>();
+        Container.Initialize();
+        var scope = Container.Advanced.CreateScope();
+        var service = Locator.Resolve<AsyncDisposableScopedService>();
+
+        await Container.Advanced.DisposeScopeAsync(scope);
+
+        Assert.True(service.IsDisposed);
+        await scope.DisposeAsync();
+    }
+
+    [Fact]
+    public async Task NewScopeReplacesStaleScopeIdDisposedFromAnotherExecutionContext()
+    {
+        Container.Initialize();
+        var disposedScope = Container.Advanced.CreateScope();
+
+        await Task.Run(async () => await Container.Advanced.DisposeScopeAsync(disposedScope));
+        await using var replacementScope = Container.Advanced.CreateScope();
+
+        Assert.NotEqual(disposedScope.Id, replacementScope.Id);
+    }
+
+    [Fact]
+    public async Task ContainerDisposalDisposesScopesFromAllExecutionContexts()
+    {
+        Container.Services.AddScoped<AsyncDisposableScopedService>();
+        Container.Initialize();
+        var firstScope = await Task.Run(() =>
+        {
+            var scope = Container.Advanced.CreateScope();
+            return (Scope: scope, Service: Locator.Resolve<AsyncDisposableScopedService>());
+        });
+        var secondScope = Container.Advanced.CreateScope();
+        var secondService = Locator.Resolve<AsyncDisposableScopedService>();
+
+        await Container.Advanced.DisposeAsync();
+
+        Assert.True(firstScope.Service.IsDisposed);
+        Assert.True(secondService.IsDisposed);
+        await firstScope.Scope.DisposeAsync();
+        await secondScope.DisposeAsync();
     }
 }
