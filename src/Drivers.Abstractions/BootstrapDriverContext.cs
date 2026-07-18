@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using Microsoft.Extensions.Configuration;
 
-namespace IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+namespace IOKode.OpinionatedFramework.Drivers.Abstractions;
 
 /// <summary>
 /// Provides configuration, service registration, instance identity, and bootstrap-call state to a selected driver.

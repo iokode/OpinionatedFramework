@@ -1,4 +1,4 @@
-using IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.Commands;
 
 [assembly: BootstrapDriver<ICommandExecutor,

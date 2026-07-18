@@ -7,7 +7,7 @@
     </ItemGroup>
 
     <ItemGroup Label="Project references">
-        <ProjectReference Include="..\Bootstrapping.Abstractions\Bootstrapping.Abstractions.csproj" />
+        <ProjectReference Include="..\Drivers.Abstractions\Drivers.Abstractions.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>
 </Project>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Packable.props"/>
+
+    <ItemGroup Label="Package references">
+        <PackageReference Include="Humanizer.Core" GeneratePathProperty="true" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    </ItemGroup>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="../Drivers.Abstractions/Drivers.Abstractions.csproj" />
+        <ProjectReference Include="../ServiceContainer/ServiceContainer.csproj" />
+        <ProjectReference Include="../SourceGenerators.BootstrapDrivers/SourceGenerators.BootstrapDrivers.csproj"
+                          OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup Label="Transitive bootstrap driver generator">
+        <None Include="../SourceGenerators.BootstrapDrivers/bin/$(Configuration)/netstandard2.0/IOKode.OpinionatedFramework.SourceGenerators.BootstrapDrivers.dll"
+              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(PKGHumanizer_Core)/lib/netstandard2.0/*.dll"
+              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    </ItemGroup>
+</Project>

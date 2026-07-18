@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Google.Cloud.Storage.V1;
-using IOKode.OpinionatedFramework.Bootstrapping;
-using IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.FileSystem;
 using Microsoft.Extensions.DependencyInjection;
 

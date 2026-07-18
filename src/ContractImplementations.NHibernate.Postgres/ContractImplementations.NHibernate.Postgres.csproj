@@ -11,10 +11,11 @@
         <PackageReference Include="FluentNHibernate" />
         <PackageReference Include="Npgsql"/>
         <PackageReference Include="FluentMigrator"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">
-        <ProjectReference Include="..\Bootstrapping.Abstractions\Bootstrapping.Abstractions.csproj"/>
+        <ProjectReference Include="..\Drivers.Abstractions\Drivers.Abstractions.csproj"/>
         <ProjectReference Include="..\ContractImplementations.NHibernate\ContractImplementations.NHibernate.csproj"/>
     </ItemGroup>
 

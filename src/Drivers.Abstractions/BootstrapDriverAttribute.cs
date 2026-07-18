@@ -1,6 +1,6 @@
 using System;
 
-namespace IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+namespace IOKode.OpinionatedFramework.Drivers.Abstractions;
 
 /// <summary>
 /// Declares that an assembly provides a named bootstrap driver for <typeparamref name="TContract"/>.

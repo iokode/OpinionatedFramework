@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 using FluentMigrator.Runner;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
-using IOKode.OpinionatedFramework.Bootstrapping;
-using IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.Persistence.Queries;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 [assembly: BootstrapDriver<IUnitOfWorkFactory,
     IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.NHibernatePostgresBootstrapDriver>(
@@ -115,18 +115,23 @@ public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistra
         if (bool.TryParse(context.DriverConfiguration["Migrations:ApplyOnStartup"], out var applyMigrations) &&
             applyMigrations)
         {
-            context.Services.AddSingleton<IStartupTask, MigrationStartupTask>();
+            context.Services.AddSingleton<IHostedService, MigrationStartupTask>();
         }
     }
 
     private sealed class RegistrationState;
 }
 
-public sealed class MigrationStartupTask(IMigrationRunner migrationRunner) : IStartupTask
+public sealed class MigrationStartupTask(IMigrationRunner migrationRunner) : IHostedService
 {
     public Task StartAsync(CancellationToken cancellationToken = default)
     {
         migrationRunner.MigrateUp();
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
         return Task.CompletedTask;
     }
 }

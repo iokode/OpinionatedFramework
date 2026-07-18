@@ -1,4 +1,4 @@
-namespace IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+namespace IOKode.OpinionatedFramework.Drivers.Abstractions;
 
 /// <summary>
 /// Validates and registers one implementation of a framework contract.

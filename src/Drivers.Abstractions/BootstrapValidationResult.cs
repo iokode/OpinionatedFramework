@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+namespace IOKode.OpinionatedFramework.Drivers.Abstractions;
 
 /// <summary>
 /// Contains all configuration errors found while validating one bootstrap driver.

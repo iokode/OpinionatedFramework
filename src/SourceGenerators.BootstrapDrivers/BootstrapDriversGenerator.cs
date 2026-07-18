@@ -15,8 +15,8 @@ namespace IOKode.OpinionatedFramework.SourceGenerators.BootstrapDrivers;
 [Generator]
 public sealed class BootstrapDriversGenerator : IIncrementalGenerator
 {
-    private const string AttributeName = "IOKode.OpinionatedFramework.Bootstrapping.Abstractions.BootstrapDriverAttribute<TContract, TRegistrar>";
-    private const string RegistrarName = "IOKode.OpinionatedFramework.Bootstrapping.Abstractions.IBootstrapDriverRegistrar";
+    private const string AttributeName = "IOKode.OpinionatedFramework.Drivers.Abstractions.BootstrapDriverAttribute<TContract, TRegistrar>";
+    private const string RegistrarName = "IOKode.OpinionatedFramework.Drivers.Abstractions.IBootstrapDriverRegistrar";
 
     private static readonly DiagnosticDescriptor DuplicateDriver = new(
         "OF0002",
@@ -127,7 +127,7 @@ public sealed class BootstrapDriversGenerator : IIncrementalGenerator
         foreach (var driver in validDrivers.Where(driver =>
                      !duplicateKeys.Contains($"{driver.ContractType}|{driver.DriverKey}")))
         {
-            source.AppendLine($"        global::IOKode.OpinionatedFramework.Bootstrapping.Abstractions.BootstrapDriverCatalog.Register<{driver.RegistrarType}>(");
+            source.AppendLine($"        global::IOKode.OpinionatedFramework.ServiceContainer.Drivers.BootstrapDriverCatalog.Register<{driver.RegistrarType}>(");
             source.AppendLine($"            typeof({driver.ContractType}),");
             source.AppendLine($"            {Literal(driver.ConfigurationKey)},");
             source.AppendLine($"            {Literal(driver.DriverKey)},");

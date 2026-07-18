@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using IOKode.OpinionatedFramework.Drivers.Abstractions;
 
-namespace IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+namespace IOKode.OpinionatedFramework.ServiceContainer.Drivers;
 
 /// <summary>
 /// Describes one generated bootstrap driver registration available to the application.

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using IOKode.OpinionatedFramework.Drivers.Abstractions;
 
-namespace IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+namespace IOKode.OpinionatedFramework.ServiceContainer.Drivers;
 
 /// <summary>
 /// Represents invalid configuration discovered while selecting or validating bootstrap drivers.
