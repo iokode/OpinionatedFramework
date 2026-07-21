@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -57,11 +57,15 @@ public class BootstrapDriversGeneratorTests
     private static MetadataReference CompileDriverAssembly(string assemblyName, string driverKey)
     {
         var source = $$"""
-            using IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+            using IOKode.OpinionatedFramework.Drivers.Abstractions;
 
-            [assembly: BootstrapDriver<IStartupTask, ThirdParty.DriverRegistrar>("Startup", "{{driverKey}}")] 
+            [assembly: BootstrapDriver<
+                ThirdParty.IStartupContract,
+                ThirdParty.DriverRegistrar>("Startup", "{{driverKey}}")]
 
             namespace ThirdParty;
+
+            public interface IStartupContract;
 
             public sealed class DriverRegistrar : IBootstrapDriverRegistrar
             {

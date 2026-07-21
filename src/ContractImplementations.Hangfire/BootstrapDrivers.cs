@@ -1,14 +1,11 @@
+using IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.Jobs;
 
-[assembly: BootstrapDriver<IJobEnqueuer,
-    IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs.HangfireJobEnqueuerBootstrapDriver>(
-    "JobEnqueuer", "hangfire")]
-[assembly: BootstrapDriver<IJobScheduler,
-    IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs.HangfireJobSchedulerBootstrapDriver>(
-    "JobScheduler", "hangfire")]
+[assembly: BootstrapDriver<IJobEnqueuer, HangfireJobEnqueuerBootstrapDriver>("JobEnqueuer", "hangfire")]
+[assembly: BootstrapDriver<IJobScheduler, HangfireJobSchedulerBootstrapDriver>("JobScheduler", "hangfire")]
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
+namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 
 public sealed class HangfireJobEnqueuerBootstrapDriver : IBootstrapDriverRegistrar
 {

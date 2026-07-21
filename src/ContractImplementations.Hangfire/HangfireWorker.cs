@@ -2,11 +2,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Hangfire;
-using IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
+using Microsoft.Extensions.Hosting;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
+namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 
-public sealed class HangfireWorker : IStartupTask, IDisposable
+public sealed class HangfireWorker : IHostedService, IDisposable
 {
     private readonly Lock sync = new();
     private BackgroundJobServer? server;
@@ -24,6 +24,12 @@ public sealed class HangfireWorker : IStartupTask, IDisposable
             this.server = new BackgroundJobServer();
         }
 
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        this.Dispose();
         return Task.CompletedTask;
     }
 

@@ -29,7 +29,7 @@ public sealed record BootstrapDriverDescriptor(
 public static class BootstrapDriverCatalog
 {
     private static readonly Lock Sync = new();
-    private static readonly List<BootstrapDriverDescriptor> Descriptors = [];
+    private static readonly List<BootstrapDriverDescriptor> Descriptors = new();
 
     /// <summary>Gets a snapshot of all drivers available from referenced implementation assemblies.</summary>
     public static IReadOnlyCollection<BootstrapDriverDescriptor> RegisteredDrivers
@@ -38,7 +38,7 @@ public static class BootstrapDriverCatalog
         {
             lock (Sync)
             {
-                return new ReadOnlyCollection<BootstrapDriverDescriptor>([.. Descriptors]);
+                return new ReadOnlyCollection<BootstrapDriverDescriptor>(Descriptors.ToArray());
             }
         }
     }

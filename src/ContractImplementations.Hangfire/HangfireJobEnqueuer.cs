@@ -5,7 +5,7 @@ using Hangfire;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.ServiceContainer;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
+namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 
 public class HangfireJobEnqueuer : IJobEnqueuer
 {

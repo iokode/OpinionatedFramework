@@ -3,7 +3,7 @@
     <Import Project="../MSBuild/Test.props"/>
 
     <ItemGroup>
-        <ProjectReference Include="../Bootstrapping.Abstractions/Bootstrapping.Abstractions.csproj" />
+        <ProjectReference Include="../Drivers.Abstractions/Drivers.Abstractions.csproj" />
         <ProjectReference Include="../SourceGenerators.BootstrapDrivers/SourceGenerators.BootstrapDrivers.csproj" />
     </ItemGroup>
 

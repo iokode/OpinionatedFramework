@@ -36,6 +36,7 @@
         <Project Path="Tests.GoogleCloudStorage/Tests.GoogleCloudStorage.csproj"/>
         <Project Path="Tests.Hangfire/Tests.Hangfire.csproj"/>
         <Project Path="Tests.Helpers/Tests.Helpers.csproj"/>
+        <Project Path="Tests.HostingIntegrations/Tests.HostingIntegrations.csproj"/>
         <Project Path="Tests.LocalFileSystem/Tests.LocalFileSystem.csproj"/>
         <Project Path="Tests.MailKit/Tests.MailKit.csproj"/>
         <Project Path="Tests.MicrosoftConfiguration/Tests.MicrosoftConfiguration.csproj"/>
@@ -44,6 +45,7 @@
         <Project Path="Tests.NHibernate.Postgres/Tests.NHibernate.Postgres.csproj"/>
         <Project Path="Tests.ResourceControllers\Tests.ResourceControllers.csproj"/>
         <Project Path="Tests.Resources\Tests.Resources.csproj"/>
+        <Project Path="Tests.ServiceContainer.Drivers/Tests.ServiceContainer.Drivers.csproj"/>
         <Project Path="Tests.TaskRunJobs/Tests.TaskRunJobs.csproj"/>
     </Folder>
     <Project Path="AspNetCoreIntegrations/AspNetCoreIntegrations.csproj"/>

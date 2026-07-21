@@ -1,9 +1,9 @@
 using IOKode.OpinionatedFramework.ServiceContainer;
-using IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
 using IOKode.OpinionatedFramework.Configuration;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
@@ -19,7 +19,7 @@ public static class ServiceExtensions
         });
         services.AddSingleton<IJobScheduler>(serviceProvider =>
             serviceProvider.GetRequiredService<TaskRunJobScheduler>());
-        services.AddSingleton<IStartupTask>(serviceProvider =>
+        services.AddSingleton<IHostedService>(serviceProvider =>
             serviceProvider.GetRequiredService<TaskRunJobScheduler>());
     }
 
@@ -32,7 +32,7 @@ public static class ServiceExtensions
         });
         services.AddSingleton<IJobEnqueuer>(serviceProvider =>
             serviceProvider.GetRequiredService<TaskRunJobEnqueuer>());
-        services.AddSingleton<IStartupTask>(serviceProvider =>
+        services.AddSingleton<IHostedService>(serviceProvider =>
             serviceProvider.GetRequiredService<TaskRunJobEnqueuer>());
     }
 }

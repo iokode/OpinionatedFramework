@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using Cronos;
 using Hangfire;
 using Hangfire.Storage;
-using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.Jobs;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using Job = IOKode.OpinionatedFramework.Jobs.Job;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
+namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 
 public class HangfireJobScheduler : IJobScheduler
 {

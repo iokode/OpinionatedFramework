@@ -1,9 +1,9 @@
-using IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
-using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.Jobs;
+using IOKode.OpinionatedFramework.ServiceContainer;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
+namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 
 public static class ServiceExtensions
 {
@@ -22,7 +22,7 @@ public static class ServiceExtensions
     public static void AddHangfireWorker(this IOpinionatedServiceCollection services)
     {
         services.AddSingleton<HangfireWorker>();
-        services.AddSingleton<IStartupTask>(serviceProvider =>
+        services.AddSingleton<IHostedService>(serviceProvider =>
             serviceProvider.GetRequiredService<HangfireWorker>());
     }
 }

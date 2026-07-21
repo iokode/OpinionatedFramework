@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
-using IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
+using IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Tests.Hangfire.Config;
 using IOKode.OpinionatedFramework.Utilities;

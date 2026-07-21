@@ -31,13 +31,34 @@ public static class OpinionatedFrameworkBootstrapping
     public static async Task<HostHandle> StartAsync(IConfiguration configuration,
         CancellationToken cancellationToken = default)
     {
+        return await StartHostAsync(configuration, true, cancellationToken);
+    }
+
+    /// <summary>Creates and starts an <see cref="IHost"/> without registering framework drivers.</summary>
+    /// <param name="configuration">The configuration added to the host.</param>
+    /// <param name="cancellationToken">Cancels host startup.</param>
+    /// <returns>A handle that owns the host and initialized container.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <see langword="null"/>.</exception>
+    public static async Task<HostHandle> StartWithoutDriversAsync(IConfiguration configuration,
+        CancellationToken cancellationToken = default)
+    {
+        return await StartHostAsync(configuration, false, cancellationToken);
+    }
+
+    private static async Task<HostHandle> StartHostAsync(IConfiguration configuration, bool registerDrivers,
+        CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(configuration);
 
-        var host = Host.CreateDefaultBuilder()
-            .ConfigureAppConfiguration(configurationBuilder => configurationBuilder.AddConfiguration(configuration))
-            .ConfigureServices((hostContext, _) => DriverRegistration.RegisterDrivers(hostContext.Configuration))
-            .UseServiceProviderFactory(new OpinionatedFrameworkServiceProviderFactory())
-            .Build();
+        var hostBuilder = Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration(configurationBuilder => configurationBuilder.AddConfiguration(configuration));
+        if (registerDrivers)
+        {
+            hostBuilder.ConfigureServices((hostContext, _) =>
+                DriverRegistration.RegisterDrivers(hostContext.Configuration));
+        }
+
+        var host = hostBuilder.UseServiceProviderFactory(new OpinionatedFrameworkServiceProviderFactory()).Build();
 
         try
         {
