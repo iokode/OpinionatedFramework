@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
 using IOKode.OpinionatedFramework.Configuration;
 using IOKode.OpinionatedFramework.Jobs;
+using Microsoft.Extensions.Hosting;
 using Job = IOKode.OpinionatedFramework.Jobs.Job;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
-public class TaskRunJobEnqueuer(IConfigurationProvider configuration) : IJobEnqueuer, IStartupTask, IAsyncDisposable
+public class TaskRunJobEnqueuer(IConfigurationProvider configuration) : IJobEnqueuer, IHostedService, IAsyncDisposable
 {
     private readonly Lock sync = new();
     private readonly HashSet<Task> runningTasks = [];
@@ -31,6 +31,11 @@ public class TaskRunJobEnqueuer(IConfigurationProvider configuration) : IJobEnqu
         }
 
         return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return this.DisposeAsync().AsTask();
     }
 
     public async ValueTask DisposeAsync()

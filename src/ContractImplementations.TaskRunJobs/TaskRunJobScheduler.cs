@@ -4,18 +4,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cronos;
-using IOKode.OpinionatedFramework.Bootstrapping.Abstractions;
 using IOKode.OpinionatedFramework.Configuration;
 using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.Logging;
+using Microsoft.Extensions.Hosting;
 using NodaTime;
 using Job = IOKode.OpinionatedFramework.Jobs.Job;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
-public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging logging)
-    : IJobScheduler, IStartupTask, IAsyncDisposable
+public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging logging) : IJobScheduler, IHostedService, IAsyncDisposable
 {
     private readonly Lock sync = new();
     private readonly Dictionary<Guid, TaskRunScheduledJob> registeredJobs = new();
@@ -36,6 +35,11 @@ public class TaskRunJobScheduler(IConfigurationProvider configuration, ILogging 
         }
 
         return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return this.DisposeAsync().AsTask();
     }
 
     public async ValueTask DisposeAsync()
