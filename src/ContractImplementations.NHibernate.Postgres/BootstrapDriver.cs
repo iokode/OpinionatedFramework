@@ -25,10 +25,6 @@ public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistra
 
     public static BootstrapValidationResult Validate(BootstrapDriverContext context)
     {
-        // Mappings are intentionally not validated here. They are supplied through the opaque ConfigureMappings
-        // delegate, which only runs when Fluent NHibernate builds the configuration, so a pre-registration check
-        // cannot soundly tell whether any mapping was registered. A genuinely empty mapping surfaces from
-        // NHibernate when the session factory is built.
         var errors = new List<BootstrapValidationError>();
         var connectionStringName = context.DriverConfiguration["ConnectionStringName"];
         if (string.IsNullOrWhiteSpace(connectionStringName))
