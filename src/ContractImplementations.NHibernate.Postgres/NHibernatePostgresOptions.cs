@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
@@ -17,35 +16,11 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgre
 /// </remarks>
 public sealed class NHibernatePostgresOptions
 {
-    private readonly List<Assembly> mappingAssemblies = new();
     private readonly List<Action<PostgreSQLConfiguration>> databaseConfigurators = new();
     private readonly List<Action<MappingConfiguration>> mappingConfigurators = new();
     private readonly List<Action<global::NHibernate.Cfg.Configuration>> exposeConfigurationConfigurators = new();
     private readonly List<Action<global::NHibernate.Cfg.Configuration>> nHibernateConfigurators = new();
     private readonly List<Action<QueryExecutorOptions>> queryExecutorConfigurators = new();
-
-    /// <summary>
-    /// Adds an assembly whose Fluent mappings describe the application's entities.
-    /// </summary>
-    /// <remarks>
-    /// An assembly is compile-time identity, so it is supplied here rather than through configuration, where a
-    /// misspelled name would only fail once the application starts.
-    /// </remarks>
-    /// <example>
-    /// <code>
-    /// nhibernate.AddMappingAssembly(typeof(TaskItemMap).Assembly);
-    /// </code>
-    /// </example>
-    /// <param name="assembly">The assembly containing Fluent mappings.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="assembly"/> is <see langword="null"/>.</exception>
-    public void AddMappingAssembly(Assembly assembly)
-    {
-        ArgumentNullException.ThrowIfNull(assembly);
-
-        this.mappingAssemblies.Add(assembly);
-    }
-
-    internal IReadOnlyList<Assembly> MappingAssemblies => this.mappingAssemblies;
 
     /// <summary>
     /// Adds a delegate that configures the PostgreSQL persistence configurer.
@@ -73,14 +48,17 @@ public sealed class NHibernatePostgresOptions
     /// Adds a delegate that configures the Fluent mapping container.
     /// </summary>
     /// <remarks>
-    /// The delegate runs after the driver adds the mapping assemblies, within the same Fluent mappings stage, so
-    /// it can register conventions, or add individual mapping types that no assembly scan can supply, such as a
-    /// mapping constructed at runtime from an open generic.
+    /// This is where the application's entity mappings are supplied, by scanning an assembly, adding individual
+    /// mapping types that no scan can supply such as one constructed at runtime from an open generic, or
+    /// registering conventions. The delegate runs in the Fluent mappings stage. An assembly is compile-time
+    /// identity, so it is supplied here rather than through configuration, where a misspelled name would only
+    /// fail once the application starts.
     /// </remarks>
     /// <example>
     /// <code>
     /// nhibernate.ConfigureMappings(mappings =>
     /// {
+    ///     mappings.FluentMappings.AddFromAssembly(typeof(TaskItemMap).Assembly);
     ///     mappings.FluentMappings.Conventions.AddFromAssemblyOf&lt;LowercaseConvention&gt;();
     ///     mappings.FluentMappings.Add(typeof(EventSubclassMap&lt;&gt;).MakeGenericType(subclass));
     /// });
