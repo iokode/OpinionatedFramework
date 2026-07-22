@@ -92,6 +92,8 @@ public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistra
         var assemblies = context.DriverConfiguration.GetSection("Assemblies").GetChildren()
             .Select(section => Assembly.Load(section.Value!))
             .ToArray();
+        var driverOptions = new NHibernatePostgresOptions();
+        context.GetOptionsConfigurator<NHibernatePostgresOptions>()?.Invoke(driverOptions);
 
         context.Services.AddNHibernateWithPostgres(configuration =>
         {
@@ -103,7 +105,8 @@ public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistra
             }
 
             fluentConfiguration.BuildConfiguration();
-        });
+            driverOptions.ApplyNHibernateConfigurators(configuration);
+        }, driverOptions.ApplyQueryExecutorConfigurators);
 
         context.Services
             .AddFluentMigratorCore()

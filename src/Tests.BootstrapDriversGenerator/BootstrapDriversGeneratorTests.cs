@@ -39,6 +39,19 @@ public class BootstrapDriversGeneratorTests
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
     }
 
+    [Fact]
+    public void ReservedDriverKeyProducesDiagnostic()
+    {
+        var packageReference = CompileDriverAssembly("Reserved.Driver", "none");
+        var runResult = RunGenerator([packageReference]);
+
+        var diagnostic = Assert.Single(runResult.Diagnostics, diagnostic => diagnostic.Id == "OF0004");
+        Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
+
+        var generatedSource = Assert.Single(runResult.Results).GeneratedSources.Single().SourceText.ToString();
+        Assert.DoesNotContain("\"none\"", generatedSource);
+    }
+
     private static GeneratorDriverRunResult RunGenerator(IEnumerable<MetadataReference> packageReferences)
     {
         var compilation = CSharpCompilation.Create(

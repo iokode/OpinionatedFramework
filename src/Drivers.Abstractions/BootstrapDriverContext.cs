@@ -11,11 +11,12 @@ namespace IOKode.OpinionatedFramework.Drivers.Abstractions;
 public sealed class BootstrapDriverContext
 {
     private readonly IDictionary<string, object> sharedState;
+    private readonly BootstrapOptions options;
 
     /// <summary>Creates the context supplied to a driver registrar.</summary>
     public BootstrapDriverContext(IOpinionatedServiceCollection services, IConfiguration configuration,
         IConfigurationSection frameworkConfiguration, IConfigurationSection driverConfiguration,
-        string? instanceName, IDictionary<string, object> sharedState)
+        string? instanceName, IDictionary<string, object> sharedState, BootstrapOptions? options = null)
     {
         Services = services;
         Configuration = configuration;
@@ -23,6 +24,7 @@ public sealed class BootstrapDriverContext
         DriverConfiguration = driverConfiguration;
         InstanceName = instanceName;
         this.sharedState = sharedState;
+        this.options = options ?? new BootstrapOptions();
     }
 
     /// <summary>Gets the service collection to which the selected driver registers its implementation.</summary>
@@ -35,6 +37,23 @@ public sealed class BootstrapDriverContext
     public IConfigurationSection DriverConfiguration { get; }
     /// <summary>Gets the configured instance name for named drivers, or <see langword="null"/> for singleton drivers.</summary>
     public string? InstanceName { get; }
+
+    /// <summary>
+    /// Gets the application-supplied configuration for the calling driver's options type.
+    /// </summary>
+    /// <remarks>
+    /// A driver calls this once per bootstrap even when it expects no configuration, so that application
+    /// configuration no selected driver consumes is reported instead of silently discarded. The returned
+    /// delegate is applied on top of the values read from configuration.
+    /// </remarks>
+    /// <typeparam name="TOptions">The options type owned by the calling driver.</typeparam>
+    /// <returns>
+    /// A delegate applying every configurator the application added, or <see langword="null"/> when it added none.
+    /// </returns>
+    public Action<TOptions>? GetOptionsConfigurator<TOptions>()
+    {
+        return this.options.Consume<TOptions>();
+    }
 
     /// <summary>
     /// Gets state shared by all registrar executions within the current bootstrap call, creating it when absent.

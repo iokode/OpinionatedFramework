@@ -17,10 +17,10 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
 {
     public static readonly List<string> ExecutedMiddlewares = new();
 
-    private IQueryExecutor CreateExecutor(params QueryMiddleware[] middlewares)
+    private IQueryExecutor CreateExecutor(params Type[] middlewareTypes)
     {
         var factory = Locator.Resolve<IQueryExecutorFactory>();
-        return factory.Create(middlewares);
+        return factory.Create(middlewareTypes);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
 
         CounterMiddleware.Counter = 0;
-        var queryExecutor = CreateExecutor(new CounterMiddleware());
+        var queryExecutor = CreateExecutor(typeof(CounterMiddleware));
 
         // Act
         var result = await queryExecutor.QueryAsync<UserDto>("SELECT id, name, email, is_active FROM Users", null);
@@ -51,7 +51,7 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         CounterMiddleware.Counter = 0;
         CounterMiddleware2.Counter = 0;
 
-        var queryExecutor = CreateExecutor(new CounterMiddleware(), new CounterMiddleware2());
+        var queryExecutor = CreateExecutor(typeof(CounterMiddleware), typeof(CounterMiddleware2));
 
         // Act
         var result = await queryExecutor.QueryAsync<UserDto>("SELECT id, name, email, is_active FROM Users", null);
@@ -71,7 +71,7 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Another User', 'another@example.com', true);");
 
-        var queryExecutor = CreateExecutor(new QueryModifierMiddleware());
+        var queryExecutor = CreateExecutor(typeof(QueryModifierMiddleware));
 
         // Act
         var result = await queryExecutor.QueryAsync<UserDto>("SELECT id, name, email, is_active FROM Users", null);
@@ -88,7 +88,7 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Another User', 'another@example.com', true);");
 
-        var queryExecutor = CreateExecutor(new ImplicitResultSetQueryModifierMiddleware());
+        var queryExecutor = CreateExecutor(typeof(ImplicitResultSetQueryModifierMiddleware));
 
         // Act
         var result = await queryExecutor.QueryAsync<UserDto>("SELECT id, name, email, is_active FROM Users", null);
@@ -108,7 +108,7 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Active User', 'active@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Inactive User', 'inactive@example.com', false);");
 
-        var queryExecutor = CreateExecutor(new NamedResultSetQueryModifierMiddleware());
+        var queryExecutor = CreateExecutor(typeof(NamedResultSetQueryModifierMiddleware));
         var resultSets = new[]
         {
             new QueryResultSet
@@ -153,7 +153,7 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         // Arrange
 
         ExceptionHandlingMiddleware.ExceptionHandled = false;
-        var queryExecutor = CreateExecutor(new ExceptionHandlingMiddleware());
+        var queryExecutor = CreateExecutor(typeof(ExceptionHandlingMiddleware));
 
         // Act
         await queryExecutor.QueryAsync<UserDto>("SELECT invalid_column FROM Users", null);
@@ -166,7 +166,7 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
     public async Task MiddlewareCannotReadResultsBeforeExecution()
     {
         // Arrange
-        var queryExecutor = CreateExecutor(new ReadResultsBeforeExecutionMiddleware());
+        var queryExecutor = CreateExecutor(typeof(ReadResultsBeforeExecutionMiddleware));
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -180,7 +180,7 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Another User', 'another@example.com', false);");
 
-        var queryExecutor = CreateExecutor(new OnlyActiveDirectiveProcessingMiddleware());
+        var queryExecutor = CreateExecutor(typeof(OnlyActiveDirectiveProcessingMiddleware));
 
         // Act
         // SQL query with a directive comment
@@ -207,10 +207,10 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         CounterMiddleware.Counter = 0;
 
         var queryExecutor = CreateExecutor(
-            new CounterMiddleware(),
-            new OnlyActiveDirectiveProcessingMiddleware(),
-            new LoggingMiddleware(),
-            new ExceptionHandlingMiddleware()
+            typeof(CounterMiddleware),
+            typeof(OnlyActiveDirectiveProcessingMiddleware),
+            typeof(LoggingMiddleware),
+            typeof(ExceptionHandlingMiddleware)
         );
 
         // Act
@@ -235,7 +235,7 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
     {
         // Arrange
 
-        var queryExecutor = CreateExecutor(new TransactionAwareMiddleware());
+        var queryExecutor = CreateExecutor(typeof(TransactionAwareMiddleware));
         await using var transaction = await npgsqlClient.BeginTransactionAsync();
 
         await npgsqlClient.ExecuteAsync(
@@ -267,7 +267,7 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('2', 'Another User', 'another@example.com', true);");
 
-        var queryExecutor = CreateExecutor(new ParameterLoggingMiddleware());
+        var queryExecutor = CreateExecutor(typeof(ParameterLoggingMiddleware));
         var parameters = new UserQueryParameters { Id = "1" };
 
         // Act
@@ -287,7 +287,7 @@ public class QueryExecutorMiddlewareTests(NHibernateTestsFixture fixture, ITestO
         // Arrange
         await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Test User', 'test@example.com', true);");
 
-        var queryExecutor = CreateExecutor(new ScopeServiceMiddleware1(), new ScopeServiceMiddleware2());
+        var queryExecutor = CreateExecutor(typeof(ScopeServiceMiddleware1), typeof(ScopeServiceMiddleware2));
 
         // Act
         var result = await queryExecutor.QueryAsync<UserDto>("SELECT id, name, email, is_active FROM Users WHERE id = '1'");

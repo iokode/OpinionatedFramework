@@ -57,7 +57,10 @@ public static class BootstrapDriverCatalog
     /// <param name="supportsNamedInstances">Whether the configuration section contains multiple named instances.</param>
     /// <param name="sourceAssembly">The assembly that declares the driver.</param>
     /// <exception cref="ArgumentNullException"><paramref name="contractType"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="configurationKey"/> or <paramref name="driverKey"/> is empty.</exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="configurationKey"/> or <paramref name="driverKey"/> is empty, or <paramref name="driverKey"/>
+    /// is the reserved key <c>none</c>.
+    /// </exception>
     /// <exception cref="BootstrapConfigurationException">A conflicting driver is already registered.</exception>
     public static void Register<TRegistrar>(Type contractType, string configurationKey, string driverKey,
         bool isDefault, bool supportsNamedInstances, string sourceAssembly)
@@ -66,6 +69,13 @@ public static class BootstrapDriverCatalog
         ArgumentNullException.ThrowIfNull(contractType);
         ArgumentException.ThrowIfNullOrWhiteSpace(configurationKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(driverKey);
+
+        if (string.Equals(driverKey, DriverRegistration.NoDriverKey, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException(
+                $"Driver key '{DriverRegistration.NoDriverKey}' is reserved and cannot be declared by a package.",
+                nameof(driverKey));
+        }
 
         lock (Sync)
         {

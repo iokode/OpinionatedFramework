@@ -17,6 +17,7 @@ public sealed class BootstrapDriversGenerator : IIncrementalGenerator
 {
     private const string AttributeName = "IOKode.OpinionatedFramework.Drivers.Abstractions.BootstrapDriverAttribute<TContract, TRegistrar>";
     private const string RegistrarName = "IOKode.OpinionatedFramework.Drivers.Abstractions.IBootstrapDriverRegistrar";
+    private const string NoDriverKey = "none";
 
     private static readonly DiagnosticDescriptor DuplicateDriver = new(
         "OF0002",
@@ -30,6 +31,14 @@ public sealed class BootstrapDriversGenerator : IIncrementalGenerator
         "OF0003",
         "Invalid bootstrap driver registrar",
         "Registrar '{0}' declared by '{1}' does not implement IBootstrapDriverRegistrar",
+        "Bootstrapping",
+        DiagnosticSeverity.Error,
+        true);
+
+    private static readonly DiagnosticDescriptor ReservedDriverKey = new(
+        "OF0004",
+        "Reserved bootstrap driver key",
+        "Driver key '{0}' declared by '{1}' is reserved to leave a contract unregistered",
         "Bootstrapping",
         DiagnosticSeverity.Error,
         true);
@@ -99,7 +108,17 @@ public sealed class BootstrapDriversGenerator : IIncrementalGenerator
                 invalidDriver.RegistrarDisplayName, invalidDriver.SourceAssembly));
         }
 
-        var validDrivers = drivers.Where(driver => driver.RegistrarIsValid).ToArray();
+        foreach (var reservedKeyDriver in drivers.Where(driver =>
+                     string.Equals(driver.DriverKey, NoDriverKey, StringComparison.OrdinalIgnoreCase)))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(ReservedDriverKey, Location.None,
+                reservedKeyDriver.DriverKey, reservedKeyDriver.SourceAssembly));
+        }
+
+        var validDrivers = drivers
+            .Where(driver => driver.RegistrarIsValid &&
+                             !string.Equals(driver.DriverKey, NoDriverKey, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
         var duplicateGroups = validDrivers.GroupBy(driver =>
             $"{driver.ContractType}|{driver.DriverKey}", StringComparer.OrdinalIgnoreCase);
         var duplicateKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

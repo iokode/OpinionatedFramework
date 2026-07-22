@@ -17,6 +17,7 @@ public sealed class MicrosoftLoggingBootstrapDriver : IBootstrapDriverRegistrar
 
     public static void Register(BootstrapDriverContext context)
     {
+        var configureLogging = context.GetOptionsConfigurator<ILoggingBuilder>();
         context.Services.AddMicrosoftLogging(options =>
         {
             var minimumLevel = context.DriverConfiguration["MinimumLevel"] switch
@@ -32,6 +33,7 @@ public sealed class MicrosoftLoggingBootstrapDriver : IBootstrapDriverRegistrar
             };
             options.SetMinimumLevel(minimumLevel);
             options.AddConsole();
+            configureLogging?.Invoke(options);
         });
     }
 }

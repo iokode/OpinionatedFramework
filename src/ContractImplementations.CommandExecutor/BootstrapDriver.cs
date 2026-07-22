@@ -16,6 +16,6 @@ public sealed class CommandExecutorBootstrapDriver : IBootstrapDriverRegistrar
 
     public static void Register(BootstrapDriverContext context)
     {
-        context.Services.AddDefaultCommandExecutor();
+        context.Services.AddDefaultCommandExecutor(context.GetOptionsConfigurator<CommandExecutorOptions>());
     }
 }

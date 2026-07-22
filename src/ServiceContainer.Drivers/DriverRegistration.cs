@@ -10,17 +10,26 @@ namespace IOKode.OpinionatedFramework.ServiceContainer.Drivers;
 /// <summary>Selects, validates, and registers configured OpinionatedFramework drivers.</summary>
 public static class DriverRegistration
 {
+    /// <summary>
+    /// The reserved driver key that leaves a contract unregistered so the application can register it itself.
+    /// </summary>
+    public const string NoDriverKey = "none";
+
     /// <summary>Selects, validates, and registers drivers using the <c>OpinionatedFramework</c> configuration section.</summary>
     /// <param name="configuration">The host configuration used to select and configure drivers.</param>
+    /// <param name="options">The code-level driver configuration supplied by the application.</param>
     /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <see langword="null"/>.</exception>
-    /// <exception cref="BootstrapConfigurationException">Driver selection or validation fails.</exception>
-    public static void RegisterDrivers(IConfiguration configuration)
+    /// <exception cref="BootstrapConfigurationException">
+    /// Driver selection or validation fails, or no selected driver consumes application-supplied options.
+    /// </exception>
+    public static void RegisterDrivers(IConfiguration configuration, BootstrapOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
+        options ??= new BootstrapOptions();
         var frameworkConfiguration = configuration.GetSection("OpinionatedFramework");
         var sharedState = new Dictionary<string, object>(StringComparer.Ordinal);
-        var selectedDrivers = SelectDrivers(configuration, frameworkConfiguration, sharedState);
+        var selectedDrivers = SelectDrivers(configuration, frameworkConfiguration, sharedState, options);
 
         var validationErrors = selectedDrivers
             .SelectMany(selectedDriver => selectedDriver.Descriptor.Validate(selectedDriver.Context).Errors)
@@ -34,10 +43,21 @@ public static class DriverRegistration
         {
             selectedDriver.Descriptor.Register(selectedDriver.Context);
         }
+
+        var unconsumedOptionTypes = options.UnconsumedOptionTypes;
+        if (unconsumedOptionTypes.Count > 0)
+        {
+            throw new BootstrapConfigurationException(
+                "No selected driver consumed the following bootstrap options: " +
+                string.Join(", ", unconsumedOptionTypes.Select(optionsType => optionsType.FullName).Order()) +
+                $". The driver that owns each of them was not selected, because its contract is configured with " +
+                $"'{NoDriverKey}' or with another driver. Select that driver, or remove the configuration.");
+        }
     }
 
     private static IReadOnlyCollection<SelectedDriver> SelectDrivers(IConfiguration configuration,
-        IConfigurationSection frameworkConfiguration, IDictionary<string, object> sharedState)
+        IConfigurationSection frameworkConfiguration, IDictionary<string, object> sharedState,
+        BootstrapOptions options)
     {
         var selectedDrivers = new List<SelectedDriver>();
         foreach (var contractDrivers in BootstrapDriverCatalog.RegisteredDrivers.GroupBy(driver => driver.ContractType))
@@ -62,8 +82,12 @@ public static class DriverRegistration
             {
                 foreach (var instanceSection in configurationSection.GetChildren())
                 {
-                    selectedDrivers.Add(SelectConfiguredDriver(contractDrivers, configuration, frameworkConfiguration,
-                        instanceSection, instanceSection.Key, sharedState));
+                    var selectedInstance = SelectConfiguredDriver(contractDrivers, configuration,
+                        frameworkConfiguration, instanceSection, instanceSection.Key, sharedState, options);
+                    if (selectedInstance is not null)
+                    {
+                        selectedDrivers.Add(selectedInstance);
+                    }
                 }
 
                 continue;
@@ -85,26 +109,36 @@ public static class DriverRegistration
                 }
 
                 selectedDrivers.Add(CreateSelectedDriver(defaultDrivers[0], configuration, frameworkConfiguration,
-                    configurationSection, null, sharedState));
+                    configurationSection, null, sharedState, options));
                 continue;
             }
 
-            selectedDrivers.Add(SelectConfiguredDriver(contractDrivers, configuration, frameworkConfiguration,
-                configurationSection, null, sharedState));
+            var selectedDriver = SelectConfiguredDriver(contractDrivers, configuration, frameworkConfiguration,
+                configurationSection, null, sharedState, options);
+            if (selectedDriver is not null)
+            {
+                selectedDrivers.Add(selectedDriver);
+            }
         }
 
         return selectedDrivers;
     }
 
-    private static SelectedDriver SelectConfiguredDriver(IEnumerable<BootstrapDriverDescriptor> availableDrivers,
+    private static SelectedDriver? SelectConfiguredDriver(IEnumerable<BootstrapDriverDescriptor> availableDrivers,
         IConfiguration configuration, IConfigurationSection frameworkConfiguration,
-        IConfigurationSection driverConfiguration, string? instanceName, IDictionary<string, object> sharedState)
+        IConfigurationSection driverConfiguration, string? instanceName, IDictionary<string, object> sharedState,
+        BootstrapOptions options)
     {
         var configuredDriverKey = driverConfiguration["Driver"];
         if (string.IsNullOrWhiteSpace(configuredDriverKey))
         {
             throw new BootstrapConfigurationException(
                 $"Configuration '{driverConfiguration.Path}:Driver' is required.");
+        }
+
+        if (string.Equals(configuredDriverKey, NoDriverKey, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
         }
 
         var availableDriversArray = availableDrivers.ToArray();
@@ -115,16 +149,18 @@ public static class DriverRegistration
             var availableKeys = string.Join(", ", availableDriversArray.Select(driver => driver.DriverKey).Order());
             throw new BootstrapConfigurationException(
                 $"Unknown driver '{configuredDriverKey}' for contract '{availableDriversArray[0].ContractType.FullName}'. " +
-                $"Available drivers: {availableKeys}. Configuration path: {driverConfiguration.Path}:Driver.");
+                $"Available drivers: {availableKeys}. Use '{NoDriverKey}' to leave the contract unregistered. " +
+                $"Configuration path: {driverConfiguration.Path}:Driver.");
         }
 
         return CreateSelectedDriver(selectedDriver, configuration, frameworkConfiguration, driverConfiguration,
-            instanceName, sharedState);
+            instanceName, sharedState, options);
     }
 
     private static SelectedDriver CreateSelectedDriver(BootstrapDriverDescriptor descriptor,
         IConfiguration configuration, IConfigurationSection frameworkConfiguration,
-        IConfigurationSection driverConfiguration, string? instanceName, IDictionary<string, object> sharedState)
+        IConfigurationSection driverConfiguration, string? instanceName, IDictionary<string, object> sharedState,
+        BootstrapOptions options)
     {
         return new SelectedDriver(descriptor, new BootstrapDriverContext(
             Container.Services,
@@ -132,7 +168,8 @@ public static class DriverRegistration
             frameworkConfiguration,
             driverConfiguration,
             instanceName,
-            sharedState));
+            sharedState,
+            options));
     }
 
     private sealed record SelectedDriver(BootstrapDriverDescriptor Descriptor, BootstrapDriverContext Context);

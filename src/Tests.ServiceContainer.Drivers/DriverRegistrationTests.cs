@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Drivers.Abstractions;
@@ -23,6 +24,9 @@ public class DriverRegistrationTests : IAsyncLifetime
         BootstrapDriverCatalog.Register<NamedDriverRegistrar>(
             typeof(INamedDriver), "NamedDrivers", "shared", false, true,
             "Tests.ServiceContainer.Drivers");
+        BootstrapDriverCatalog.Register<ConfigurableDriverRegistrar>(
+            typeof(IConfigurableDriver), "ConfigurableDriver", "configurable", false, false,
+            "Tests.ServiceContainer.Drivers");
     }
 
     public Task InitializeAsync()
@@ -34,6 +38,7 @@ public class DriverRegistrationTests : IAsyncLifetime
     {
         await Container.Advanced.ResetAsync();
         NamedDriverRegistrar.Reset();
+        ConfigurableDriverRegistrar.Reset();
     }
 
     [Fact]
@@ -119,9 +124,126 @@ public class DriverRegistrationTests : IAsyncLifetime
         Assert.Equal(2, NamedDriverRegistrar.RegisteredInstances);
     }
 
+    [Fact]
+    public void ReservedDriverKeyLeavesContractUnregistered()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["OpinionatedFramework:Email:Driver"] = "none"
+            })
+            .Build();
+
+        DriverRegistration.RegisterDrivers(configuration);
+
+        Assert.DoesNotContain(Container.Services, service => service.ServiceType == typeof(IEmailSender));
+    }
+
+    [Fact]
+    public void ReservedDriverKeyLeavesOtherContractDefaultsSelected()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["OpinionatedFramework:Email:Driver"] = "none"
+            })
+            .Build();
+
+        DriverRegistration.RegisterDrivers(configuration);
+
+        Assert.Contains(Container.Services, service => service.ServiceType == typeof(IJobEnqueuer));
+    }
+
+    [Fact]
+    public void ReservedDriverKeySkipsOnlyTheConfiguredNamedInstance()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["OpinionatedFramework:NamedDrivers:first:Driver"] = "shared",
+                ["OpinionatedFramework:NamedDrivers:second:Driver"] = "none"
+            })
+            .Build();
+
+        DriverRegistration.RegisterDrivers(configuration);
+
+        Assert.Equal(1, NamedDriverRegistrar.RegisteredInstances);
+    }
+
+    [Fact]
+    public void ReservedDriverKeyCannotBeDeclaredByAPackage()
+    {
+        var exception = Assert.Throws<ArgumentException>(() =>
+            BootstrapDriverCatalog.Register<ConfigurableDriverRegistrar>(
+                typeof(IReservedKeyDriver), "ReservedKeyDriver", "none", false, false,
+                "Tests.ServiceContainer.Drivers"));
+
+        Assert.Contains("reserved", exception.Message);
+    }
+
+    [Fact]
+    public void OptionsConfiguredByTheApplicationReachTheSelectedDriver()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["OpinionatedFramework:ConfigurableDriver:Driver"] = "configurable"
+            })
+            .Build();
+        var options = new BootstrapOptions();
+        options.Configure<ConfigurableDriverOptions>(driverOptions => driverOptions.Value = "first");
+        options.Configure<ConfigurableDriverOptions>(driverOptions => driverOptions.Value += " and second");
+
+        DriverRegistration.RegisterDrivers(configuration, options);
+
+        Assert.Equal("first and second", ConfigurableDriverRegistrar.ConfiguredValue);
+    }
+
+    [Fact]
+    public void OptionsNoSelectedDriverConsumesFailBootstrap()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var options = new BootstrapOptions();
+        options.Configure<ConfigurableDriverOptions>(driverOptions => driverOptions.Value = "unreachable");
+
+        var exception = Assert.Throws<BootstrapConfigurationException>(() =>
+            DriverRegistration.RegisterDrivers(configuration, options));
+
+        Assert.Contains(typeof(ConfigurableDriverOptions).FullName!, exception.Message);
+    }
+
     private interface IFirstInvalidDriver;
     private interface ISecondInvalidDriver;
     private interface INamedDriver;
+    private interface IConfigurableDriver;
+    private interface IReservedKeyDriver;
+
+    private sealed class ConfigurableDriverOptions
+    {
+        public string? Value { get; set; }
+    }
+
+    private sealed class ConfigurableDriverRegistrar : IBootstrapDriverRegistrar
+    {
+        public static string? ConfiguredValue { get; private set; }
+
+        public static BootstrapValidationResult Validate(BootstrapDriverContext context)
+        {
+            return BootstrapValidationResult.Success;
+        }
+
+        public static void Register(BootstrapDriverContext context)
+        {
+            var options = new ConfigurableDriverOptions();
+            context.GetOptionsConfigurator<ConfigurableDriverOptions>()?.Invoke(options);
+            ConfiguredValue = options.Value;
+        }
+
+        public static void Reset()
+        {
+            ConfiguredValue = null;
+        }
+    }
 
     private sealed class FirstInvalidDriverRegistrar : IBootstrapDriverRegistrar
     {

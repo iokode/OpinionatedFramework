@@ -4,9 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.Commands;
+using IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
+using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.Emailing;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.ServiceContainer;
+using IOKode.OpinionatedFramework.ServiceContainer.Drivers;
 using IOKode.OpinionatedFramework.ServiceLocation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +28,42 @@ public class BootstrappingTests : IAsyncLifetime
     public async Task DisposeAsync()
     {
         await Container.Advanced.ResetAsync();
+        RecordingCommandMiddleware.Reset();
+    }
+
+    private sealed class UnreachableOptions;
+
+    private sealed class NullEmailSender : IEmailSender
+    {
+        public Task SendAsync(Email email, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class EmptyCommand : Command
+    {
+        protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class RecordingCommandMiddleware : CommandMiddleware
+    {
+        public static int Executions { get; private set; }
+
+        public override async Task ExecuteAsync(ICommandExecutionContext executionContext,
+            InvokeNextMiddlewareDelegate nextAsync)
+        {
+            Executions++;
+            await nextAsync();
+        }
+
+        public static void Reset()
+        {
+            Executions = 0;
+        }
     }
 
     [Fact]
@@ -38,6 +77,81 @@ public class BootstrappingTests : IAsyncLifetime
         Assert.NotNull(Locator.Resolve<IEmailSender>());
         Assert.NotNull(Locator.Resolve<IJobEnqueuer>());
         Assert.NotNull(Locator.Resolve<IJobScheduler>());
+    }
+
+    [Fact]
+    public async Task ReservedDriverKeyLeavesTheContractToTheApplication()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["OpinionatedFramework:Email:Driver"] = "none"
+            })
+            .Build();
+        var applicationEmailSender = new NullEmailSender();
+        Container.Services.AddSingleton<IEmailSender>(applicationEmailSender);
+
+        await using var runtime = await OpinionatedFrameworkBootstrapping.StartAsync(configuration);
+
+        Assert.Same(applicationEmailSender, Locator.Resolve<IEmailSender>());
+    }
+
+    [Fact]
+    public async Task ApplicationOptionsReachTheSelectedDriver()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+
+        await using var runtime = await OpinionatedFrameworkBootstrapping.StartAsync(configuration,
+            options => options.CommandExecutor(commands =>
+                commands.AddMiddleware<RecordingCommandMiddleware>()));
+        await Locator.Resolve<ICommandExecutor>().InvokeAsync(new EmptyCommand(), CancellationToken.None);
+
+        Assert.Equal(1, RecordingCommandMiddleware.Executions);
+    }
+
+    [Fact]
+    public async Task ReservedDriverKeyWithoutOptionsDoesNotFailBootstrap()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["OpinionatedFramework:CommandExecutor:Driver"] = "none"
+            })
+            .Build();
+
+        await using var runtime = await OpinionatedFrameworkBootstrapping.StartAsync(configuration);
+
+        Assert.DoesNotContain(Container.Services, service => service.ServiceType == typeof(ICommandExecutor));
+    }
+
+    [Fact]
+    public async Task OptionsForAContractLeftToTheApplicationFailBootstrap()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["OpinionatedFramework:CommandExecutor:Driver"] = "none"
+            })
+            .Build();
+
+        var exception = await Assert.ThrowsAsync<BootstrapConfigurationException>(() =>
+            OpinionatedFrameworkBootstrapping.StartAsync(configuration,
+                options => options.CommandExecutor(commands =>
+                    commands.AddMiddleware<RecordingCommandMiddleware>())));
+
+        Assert.Contains(nameof(CommandExecutorOptions), exception.Message);
+    }
+
+    [Fact]
+    public async Task OptionsNoSelectedDriverConsumesFailBootstrap()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+
+        var exception = await Assert.ThrowsAsync<BootstrapConfigurationException>(() =>
+            OpinionatedFrameworkBootstrapping.StartAsync(configuration,
+                options => options.Configure<UnreachableOptions>(_ => { })));
+
+        Assert.Contains(nameof(UnreachableOptions), exception.Message);
     }
 
     [Fact]
