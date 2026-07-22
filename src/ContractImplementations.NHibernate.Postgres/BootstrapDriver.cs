@@ -83,12 +83,20 @@ public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistra
 
         context.Services.AddNHibernateWithPostgres(configuration =>
         {
-            var fluentConfiguration = Fluently.Configure(configuration)
-                .Database(PostgreSQLConfiguration.PostgreSQL83.ConnectionString(connectionString));
-            foreach (var assembly in assemblies)
+            var database = PostgreSQLConfiguration.PostgreSQL83.ConnectionString(connectionString);
+            driverOptions.ApplyDatabaseConfigurators(database);
+
+            var fluentConfiguration = Fluently.Configure(configuration).Database(database);
+            fluentConfiguration.Mappings(mappings =>
             {
-                fluentConfiguration.Mappings(mappings => mappings.FluentMappings.AddFromAssembly(assembly));
-            }
+                foreach (var assembly in assemblies)
+                {
+                    mappings.FluentMappings.AddFromAssembly(assembly);
+                }
+
+                driverOptions.ApplyMappingConfigurators(mappings);
+            });
+            driverOptions.ApplyExposeConfigurationConfigurators(fluentConfiguration);
 
             fluentConfiguration.BuildConfiguration();
             driverOptions.ApplyNHibernateConfigurators(configuration);
