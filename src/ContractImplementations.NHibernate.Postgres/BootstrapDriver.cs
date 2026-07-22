@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
@@ -23,7 +22,6 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgre
 public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistrar
 {
     private const string RegistrationStateKey = "OpinionatedFramework.NHibernate.Postgres";
-    private const string UnitOfWorkSlotKey = "UnitOfWork";
 
     public static BootstrapValidationResult Validate(BootstrapDriverContext context)
     {
@@ -40,16 +38,6 @@ public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistra
             errors.Add(new BootstrapValidationError(
                 $"ConnectionStrings:{connectionStringName}",
                 "The connection string is not configured."));
-        }
-
-        // Only the unit of work needs entity mappings. The query executor runs raw SQL and maps results through
-        // the user-type registry, so it is usable without them.
-        if (context.DriverConfiguration.Key == UnitOfWorkSlotKey && GetOptions(context).MappingAssemblies.Count == 0)
-        {
-            errors.Add(new BootstrapValidationError(
-                $"{context.DriverConfiguration.Path}:Driver",
-                "At least one mapping assembly is required. Add it with " +
-                "options.NHibernatePostgres(nhibernate => nhibernate.AddMappingAssembly(...))."));
         }
 
         return new BootstrapValidationResult(errors);
@@ -79,16 +67,15 @@ public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistra
     private static void RegisterServices(BootstrapDriverContext context, string connectionString)
     {
         var driverOptions = GetOptions(context);
-        var assemblies = driverOptions.MappingAssemblies.ToArray();
 
         context.Services.AddNHibernateWithPostgres(configuration =>
         {
-            var fluentConfiguration = Fluently.Configure(configuration)
-                .Database(PostgreSQLConfiguration.PostgreSQL83.ConnectionString(connectionString));
-            foreach (var assembly in assemblies)
-            {
-                fluentConfiguration.Mappings(mappings => mappings.FluentMappings.AddFromAssembly(assembly));
-            }
+            var database = PostgreSQLConfiguration.PostgreSQL83.ConnectionString(connectionString);
+            driverOptions.ApplyDatabaseConfigurators(database);
+
+            var fluentConfiguration = Fluently.Configure(configuration).Database(database);
+            fluentConfiguration.Mappings(driverOptions.ApplyMappingConfigurators);
+            driverOptions.ApplyExposeConfigurationConfigurators(fluentConfiguration);
 
             fluentConfiguration.BuildConfiguration();
             driverOptions.ApplyNHibernateConfigurators(configuration);
