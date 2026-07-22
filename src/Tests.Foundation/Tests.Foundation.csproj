@@ -3,7 +3,6 @@
     <Import Project="../MSBuild/Test.props"/>
 
     <ItemGroup Label="Project references">
-        <ProjectReference Include="..\ServiceContainer\ServiceContainer.csproj" />
         <ProjectReference Include="..\Ensuring\Ensuring.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>

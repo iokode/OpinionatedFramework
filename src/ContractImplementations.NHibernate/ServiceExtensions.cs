@@ -26,7 +26,7 @@ public static class ServiceExtensions
             services.AddTransient<IQueryExecutorFactory>(_ => 
                 new QueryExecutorFactory(sessionFactory, executorOptions.QueryExecutorConfiguration ?? new QueryExecutorDefaultConfiguration()));
             services.AddTransient<IQueryExecutor>(sp =>
-                sp.GetRequiredService<IQueryExecutorFactory>().Create(executorOptions.Middlewares.ToArray()));
+                sp.GetRequiredService<IQueryExecutorFactory>().Create(executorOptions.middlewareTypes.ToArray()));
         }
     }
 }

@@ -9,7 +9,8 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 
 internal static class RetryHelper
 {
-    public static async Task RetryOnExceptionAsync<TJob>(JobCreator<TJob> creator, int maxAttempts) where TJob : Job
+    public static async Task RetryOnExceptionAsync<TJob>(JobCreator<TJob> creator, int maxAttempts,
+        CancellationToken cancellationToken = default) where TJob : Job
     {
         bool shouldRetry = false;
         int attempt = 0;
@@ -19,19 +20,24 @@ internal static class RetryHelper
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 attempt++;
 
                 var context = new JobContext
                 {
-                    CancellationToken = CancellationToken.None,
+                    CancellationToken = cancellationToken,
                     Name = creator.GetJobName(),
                     JobType = typeof(TJob),
                     TraceID = Guid.NewGuid()
                 };
 
-                Container.Advanced.CreateScope();
+                await using var scope = Container.Advanced.CreateScope();
                 await creator.CreateJob().ExecuteAsync(context);
                 shouldRetry = false;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -45,10 +51,6 @@ internal static class RetryHelper
                 {
                     throw new AggregateException(exceptions);
                 }
-            }
-            finally
-            {
-                Container.Advanced.DisposeScope();
             }
         } while (shouldRetry);
     }

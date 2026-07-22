@@ -13,7 +13,7 @@ public class EventDispatcher(IUnitOfWorkFactory uowFactory, IJobEnqueuer jobEnqu
 {
     public async Task DispatchAsync(Event @event, CancellationToken cancellationToken)
     {
-        var queue = Queue.Create(config.GetValue<string>("Events:QueueName") ?? "events");
+        var queue = Queue.Create(config.GetValue<string>("OpinionatedFramework:Events:QueueName") ?? "events");
 
         if (@event.IsDispatched)
         {

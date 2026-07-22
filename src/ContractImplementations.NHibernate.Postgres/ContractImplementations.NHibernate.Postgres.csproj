@@ -7,11 +7,13 @@
     </ItemGroup>
 
     <ItemGroup Label="Package references">
-        <PackageReference Include="Npgsql"/>
         <PackageReference Include="FluentMigrator"/>
+        <PackageReference Include="FluentNHibernate" />
+        <PackageReference Include="Npgsql"/>
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">
+        <ProjectReference Include="..\Drivers.Abstractions\Drivers.Abstractions.csproj"/>
         <ProjectReference Include="..\ContractImplementations.NHibernate\ContractImplementations.NHibernate.csproj"/>
     </ItemGroup>
 

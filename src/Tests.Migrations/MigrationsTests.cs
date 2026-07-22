@@ -75,6 +75,6 @@ public class MigrationsTests : IClassFixture<PostgresContainer>, IAsyncLifetime
     public async Task DisposeAsync()
     {
         await npgsqlClient.CloseAsync();
-        Container.Advanced.Clear();
+        Container.Advanced.ResetAsync().AsTask().GetAwaiter().GetResult();
     }
 }

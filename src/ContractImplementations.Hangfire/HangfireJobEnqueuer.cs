@@ -5,7 +5,7 @@ using Hangfire;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.ServiceContainer;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
+namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 
 public class HangfireJobEnqueuer : IJobEnqueuer
 {
@@ -41,24 +41,17 @@ public class HangfireJobEnqueuer : IJobEnqueuer
     [JobDisplayName("{0}")]
     public static async Task InvokeJobAsync<TJob>(string jobName, JobCreator<TJob> creator, CancellationToken cancellationToken) where TJob : Job
     {
-        try
-        {
-            Container.Advanced.CreateScope();
+        await using var scope = Container.Advanced.CreateScope();
 
-            var context = new HangfireJobExecutionContext
-            {
-                Name = creator.GetJobName(),
-                CancellationToken = cancellationToken,
-                JobType = typeof(TJob),
-                TraceID = Guid.NewGuid(),
-            };
-
-            var job = creator.CreateJob();
-            await job.ExecuteAsync(context);
-        }
-        finally
+        var context = new HangfireJobExecutionContext
         {
-            Container.Advanced.DisposeScope();
-        }
+            Name = creator.GetJobName(),
+            CancellationToken = cancellationToken,
+            JobType = typeof(TJob),
+            TraceID = Guid.NewGuid(),
+        };
+
+        var job = creator.CreateJob();
+        await job.ExecuteAsync(context);
     }
 }

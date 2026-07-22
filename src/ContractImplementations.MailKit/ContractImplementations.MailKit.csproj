@@ -9,6 +9,7 @@
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">
+        <ProjectReference Include="..\Drivers.Abstractions\Drivers.Abstractions.csproj" />
         <ProjectReference Include="..\ServiceContainer\ServiceContainer.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>

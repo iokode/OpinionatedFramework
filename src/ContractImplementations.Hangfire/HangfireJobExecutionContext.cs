@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using IOKode.OpinionatedFramework.Jobs;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Jobs;
+namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 
 internal class HangfireJobExecutionContext : IJobExecutionContext
 {

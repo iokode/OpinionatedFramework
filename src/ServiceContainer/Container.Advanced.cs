@@ -1,92 +1,90 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.ServiceLocation;
 
 namespace IOKode.OpinionatedFramework.ServiceContainer;
 
 public static partial class Container
 {
-    /// <summary>
-    /// Advanced actions over the container. Typically, you shouldn't call these methods directly, except in advanced
-    /// scenarios. The framework will do in some parts.
-    /// </summary>
+    /// <summary>Provides advanced container lifecycle and scope operations.</summary>
     public static class Advanced
     {
-        /// <summary>
-        /// Creates a new service scope that can be used to resolve scoped services and sets it in the Locator.
-        /// </summary>
-        /// <returns>A new IServiceScope that can be used to resolve scoped services.</returns>
-        /// <exception cref="InvalidOperationException">Thrown when trying to create a scope before the container is initialized.</exception>
-        /// <remarks>
-        /// Scoped services are disposed when the scope is disposed. When the scope was used, it should be disposed
-        /// calling <see cref="DisposeScope"/> method.
-        /// </remarks>
-        public static IServiceScope CreateScope()
+        /// <summary>Creates, registers, and selects a service scope for the current asynchronous execution context.</summary>
+        /// <returns>A caller-owned handle that asynchronously disposes the scope.</returns>
+        /// <exception cref="InvalidOperationException">
+        /// The container is disposed or uninitialized, or the current execution context already has an active scope.
+        /// </exception>
+        public static ScopeHandle CreateScope()
         {
-            if (!IsInitialized)
-            {
-                throw new InvalidOperationException("Cannot create a scope if the container is not initialized.");
-            }
+            EnsureInitializedAndNotDisposed();
 
-            var scope = _serviceProvider!.CreateScope();
-            SetScopeIntoLocator(scope);
-            _serviceProviderScope = scope;
-
-            return scope;
+            return Locator.CreateScope();
         }
 
-        /// <summary>
-        /// Disposes and removes the service scope.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when the container isn't initialized.</exception>
-        public static void DisposeScope()
+        /// <summary>Removes and asynchronously disposes the identified service scope.</summary>
+        /// <param name="handle">The handle returned by <see cref="CreateScope"/>.</param>
+        /// <exception cref="ArgumentException">The identifier does not represent an active scope.</exception>
+        /// <exception cref="InvalidOperationException">The container is disposed or uninitialized.</exception>
+        public static ValueTask DisposeScopeAsync(ScopeHandle handle)
         {
-            if (!IsInitialized)
-            {
-                throw new InvalidOperationException("Cannot dispose the scope because the container is not initialized.");
-            }
+            EnsureInitializedAndNotDisposed();
 
-            _serviceProviderScope?.Dispose();
-            _serviceProviderScope = null;
-            SetScopeIntoLocator(null);
+            return Locator.DisposeScopeAsync(handle.Id, true);
         }
 
-        /// <summary>
-        /// Clears the current service collection and resets the service provider, effectively allowing the container to be reconfigured.
-        /// </summary>
-        /// <remarks>
-        /// This method should be used with caution, as it will discard all previously registered services and set the service provider to null.
-        /// After calling this method, you should re-register your services and call Initialize() again.
-        /// This method is primarily intended for use in testing scenarios where the container's state needs to be reset between test runs.
-        /// </remarks>
-        public static void Clear()
+        /// <summary>Disposes every registered scope, the root provider, and instantiated disposable services.</summary>
+        public static async ValueTask DisposeAsync()
         {
-            if (IsInitialized)
+            EnsureNotDisposed();
+
+            _isDisposed = true;
+            var serviceProvider = Locator.RemoveRootServiceProvider();
+            var exceptions = new List<Exception>();
+            try
             {
-                DisposeScope();
+                await Locator.DisposeScopesAsync();
+            }
+            catch (Exception exception)
+            {
+                exceptions.Add(exception);
+            }
+
+            if (serviceProvider is not null)
+            {
+                try
+                {
+                    await ((IAsyncDisposable) serviceProvider).DisposeAsync();
+                }
+                catch (Exception exception)
+                {
+                    exceptions.Add(exception);
+                }
+            }
+
+            if (exceptions.Count > 0)
+            {
+                throw new AggregateException("The container could not be completely disposed.", exceptions);
+            }
+        }
+
+        /// <summary>Disposes the container and replaces its service collection.</summary>
+        public static async ValueTask ResetAsync()
+        {
+            if (!IsDisposed)
+            {
+                await DisposeAsync();
             }
 
             _serviceCollection = new OpinionatedServiceCollection();
-            _serviceProvider = null;
-
-            SetProviderIntoLocator();
-            SetScopeIntoLocator(null);
+            _isDisposed = false;
         }
 
-        /// <summary>
-        /// Clears the current service collection and then, register the sames services that was registered. It allows
-        /// to change descriptors at runtime.
-        /// </summary>
-        /// <remarks>
-        /// This method should be used with caution, as it will set the service provider to null.
-        /// After calling this method, you should re-register your services and call Initialize() again.
-        /// This method is intended for use in advanced scenarios where is required to modify descriptors at runtime.
-        /// Instead of using this method, the recommended way to replace descriptors is restart the application and
-        /// let the initial configuration to set the new descriptors.
-        /// </remarks>
-        public static void ClearWithRegisteredServices()
+        /// <summary>Resets the container while retaining a copy of its service descriptors.</summary>
+        public static async ValueTask ResetWithRegisteredServicesAsync()
         {
             var collection = OpinionatedServiceCollection.Copy(_serviceCollection);
-            Clear();
+            await ResetAsync();
             _serviceCollection = collection;
         }
     }

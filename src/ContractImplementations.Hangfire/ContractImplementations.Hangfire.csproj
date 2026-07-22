@@ -3,12 +3,14 @@
     <Import Project="../MSBuild/Packable.props"/>
 
     <ItemGroup>
+        <ProjectReference Include="..\Drivers.Abstractions\Drivers.Abstractions.csproj" />
         <ProjectReference Include="..\ServiceContainer\ServiceContainer.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Hangfire.Core" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     </ItemGroup>
 
 </Project>

@@ -1,52 +1,149 @@
-#pragma warning disable CS0649
-
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace IOKode.OpinionatedFramework.ServiceLocation;
 
 /// <summary>
-/// Provides a static service locator for resolving services registered in the Container class.
+/// Provides access to the root provider and the scope associated with the current asynchronous execution context.
 /// </summary>
-/// <remarks>
-/// The Locator class is designed to provide an easy way to access services registered
-/// in the Container class. It uses a static service provider to resolve services based on their types.
-/// Before using the Locator, make sure to initialize it by calling the Container.Initialize() method.
-/// </remarks>
 public static class Locator
 {
-    private static IServiceProvider? _serviceProvider;
-    private static readonly AsyncLocal<IServiceProvider?> _scopedServiceProvider = new();
+    private static readonly ConcurrentDictionary<Guid, AsyncServiceScope> scopes = new();
+    private static readonly AsyncLocal<Guid?> currentScopeId = new();
+    private static IServiceProvider? rootServiceProvider;
 
-    /// <summary>
-    /// Gets the current instance of the service provider used by the locator.
-    /// </summary>
-    /// <value>
-    /// The service provider instance or null if it has not been initialized.
-    /// </value>
-    /// <remarks>
-    /// The service provider is set by the Container class during the initialization process.
-    /// It is used to resolve services registered in the Container. Do not modify the service
-    /// provider directly; instead, use the Container class to manage services.
-    /// </remarks>
-    public static IServiceProvider? ServiceProvider => _scopedServiceProvider.Value ?? _serviceProvider;
+    /// <summary>Gets the provider associated with the current scope, or the root provider when no scope is active.</summary>
+    /// <exception cref="ObjectDisposedException">The current execution context references a disposed scope.</exception>
+    public static IServiceProvider? ServiceProvider
+    {
+        get
+        {
+            if (!currentScopeId.Value.HasValue)
+            {
+                return rootServiceProvider;
+            }
+
+            var scopeId = currentScopeId.Value.Value;
+            if (scopes.TryGetValue(scopeId, out var scope))
+            {
+                return scope.ServiceProvider;
+            }
+
+            throw new ObjectDisposedException($"Service scope '{scopeId}'");
+        }
+    }
+
+    internal static IServiceProvider? RootServiceProvider => rootServiceProvider;
 
     internal static void SetRootServiceProvider(IServiceProvider? serviceProvider)
     {
-        _serviceProvider = serviceProvider;
+        rootServiceProvider = serviceProvider;
     }
 
-    internal static void SetScopedServiceProvider(IServiceProvider? serviceProvider)
+    internal static IServiceProvider? RemoveRootServiceProvider()
     {
-        _scopedServiceProvider.Value = serviceProvider;
+        var serviceProvider = rootServiceProvider;
+        rootServiceProvider = null;
+        return serviceProvider;
     }
 
-    /// <summary>
-    /// Resolve a service based on type.
-    /// </summary>
-    /// <param name="serviceType">The type.</param>
-    /// <returns>The resolved service.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when trying to resolver a non-registered service or the container is not initialized.</exception>
+    internal static ScopeHandle CreateScope()
+    {
+        if (currentScopeId.Value.HasValue)
+        {
+            if (scopes.ContainsKey(currentScopeId.Value.Value))
+            {
+                throw new InvalidOperationException("Nested service scopes are not supported.");
+            }
+
+            currentScopeId.Value = null;
+        }
+
+        if (rootServiceProvider is null)
+        {
+            throw new InvalidOperationException("The root service provider is not initialized.");
+        }
+
+        var scopeId = Guid.NewGuid();
+        var scope = rootServiceProvider.CreateAsyncScope();
+        if (!scopes.TryAdd(scopeId, scope))
+        {
+            scope.Dispose();
+            throw new InvalidOperationException("The service scope could not be registered.");
+        }
+
+        currentScopeId.Value = scopeId;
+        return new ScopeHandle(scopeId);
+    }
+
+    internal static IServiceProvider GetScopeServiceProvider(Guid scopeId)
+    {
+        if (!scopes.TryGetValue(scopeId, out var scope))
+        {
+            throw new ObjectDisposedException($"Service scope '{scopeId}'");
+        }
+
+        return scope.ServiceProvider;
+    }
+
+    internal static ValueTask DisposeScopeAsync(Guid scopeId, bool throwIfNotFound)
+    {
+        if (!scopes.TryRemove(scopeId, out var scope))
+        {
+            if (currentScopeId.Value == scopeId)
+            {
+                currentScopeId.Value = null;
+            }
+
+            if (throwIfNotFound)
+            {
+                throw new ArgumentException($"Service scope '{scopeId}' does not exist.", nameof(scopeId));
+            }
+
+            return ValueTask.CompletedTask;
+        }
+
+        if (currentScopeId.Value == scopeId)
+        {
+            currentScopeId.Value = null;
+        }
+
+        return scope.DisposeAsync();
+    }
+
+    internal static async ValueTask DisposeScopesAsync()
+    {
+        var exceptions = new List<Exception>();
+        foreach (var scopeId in scopes.Keys.ToArray())
+        {
+            if (!scopes.TryRemove(scopeId, out var scope))
+            {
+                continue;
+            }
+
+            try
+            {
+                await scope.DisposeAsync();
+            }
+            catch (Exception exception)
+            {
+                exceptions.Add(exception);
+            }
+        }
+
+        currentScopeId.Value = null;
+        if (exceptions.Count > 0)
+        {
+            throw new AggregateException("One or more service scopes could not be disposed.", exceptions);
+        }
+    }
+
+    /// <summary>Resolves a service from the current scoped provider or root provider.</summary>
     public static object Resolve(Type serviceType)
     {
         if (ServiceProvider is null)
@@ -54,25 +151,18 @@ public static class Locator
             throw new InvalidOperationException("The container is not initialized. Call Container.Initialize().");
         }
 
-        object? service = ServiceProvider!.GetService(serviceType);
-
+        var service = ServiceProvider.GetService(serviceType);
         if (service is null)
         {
             throw new InvalidOperationException($"No service of type '{serviceType.FullName}' has been registered.");
         }
 
-        return service!;
+        return service;
     }
 
-    /// <summary>
-    /// Resolve a service based on type.
-    /// </summary>
-    /// <typeparam name="TService">The type.</typeparam>
-    /// <returns>The resolved service.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when trying to resolver a non-registered service or the container is not initialized.</exception>
+    /// <summary>Resolves a service from the current scoped provider or root provider.</summary>
     public static TService Resolve<TService>()
     {
-        var service = (TService) Resolve(typeof(TService));
-        return service;
+        return (TService) Resolve(typeof(TService));
     }
 }

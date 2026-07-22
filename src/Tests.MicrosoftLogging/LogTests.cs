@@ -15,7 +15,7 @@ public class LogTests
 
     public LogTests()
     {
-        Container.Advanced.Clear();
+        Container.Advanced.ResetAsync().AsTask().GetAwaiter().GetResult();
         provider = new TestLoggerProvider();
 
         Container.Services.AddMicrosoftLogging(builder =>

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup>
+        <ProjectReference Include="../Drivers.Abstractions/Drivers.Abstractions.csproj" />
+        <ProjectReference Include="../SourceGenerators.BootstrapDrivers/SourceGenerators.BootstrapDrivers.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    </ItemGroup>
+</Project>

@@ -7,6 +7,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\ServiceContainer.Drivers\ServiceContainer.Drivers.csproj" />
+      <ProjectReference Include="..\HostingIntegrations\HostingIntegrations.csproj" />
       <ProjectReference Include="..\ServiceContainer\ServiceContainer.csproj" />
       <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>

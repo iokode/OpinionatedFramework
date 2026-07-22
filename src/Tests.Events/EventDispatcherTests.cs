@@ -28,7 +28,7 @@ public class EventDispatcherTests(ITestOutputHelper output, EventsTestsFixture f
         var uowFactory = Locator.Resolve<IUnitOfWorkFactory>();
         var dispatcher = new EventDispatcher(uowFactory, enqueuer, new ConfigurationProvider(new Dictionary<string, object>
         {
-            {"Events:QueueName", "eventing"}
+            {"OpinionatedFramework:Events:QueueName", "eventing"}
         }));
         var @event = new Event1
         {

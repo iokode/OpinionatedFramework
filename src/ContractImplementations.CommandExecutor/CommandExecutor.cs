@@ -30,10 +30,9 @@ public class CommandExecutor : ICommandExecutor
     {
         Log.Trace("Invoking pipeline for command '{command}'...", command.GetType());
 
-        Container.Advanced.CreateScope();
+        await using var scope = Container.Advanced.CreateScope();
         var context = SettableCommandExecutionContext.Create(command.GetType(), this.sharedData, cancellationToken);
         await InvokeMiddlewarePipelineAsync(command, context, 0);
-        Container.Advanced.DisposeScope();
 
         Log.Trace("Command '{command}' invoked.", command.GetType());
     }
@@ -44,10 +43,9 @@ public class CommandExecutor : ICommandExecutor
     {
         Log.Info("Invoking pipeline for command '{command}'...", command.GetType());
 
-        Container.Advanced.CreateScope();
+        await using var scope = Container.Advanced.CreateScope();
         var context = SettableCommandExecutionContext.Create(command.GetType(), sharedData, cancellationToken);
         var result = await InvokeMiddlewarePipelineAsync<TCommand, TResult>(command, context, 0);
-        Container.Advanced.DisposeScope();
 
         Log.Trace("Command '{command}' invoked.", command.GetType());
         return result;
