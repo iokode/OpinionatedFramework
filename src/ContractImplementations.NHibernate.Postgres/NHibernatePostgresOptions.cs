@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
@@ -14,8 +15,32 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgre
 /// </remarks>
 public sealed class NHibernatePostgresOptions
 {
+    private readonly List<Assembly> mappingAssemblies = new();
     private readonly List<Action<global::NHibernate.Cfg.Configuration>> nHibernateConfigurators = new();
     private readonly List<Action<QueryExecutorOptions>> queryExecutorConfigurators = new();
+
+    /// <summary>
+    /// Adds an assembly whose Fluent mappings describe the application's entities.
+    /// </summary>
+    /// <remarks>
+    /// An assembly is compile-time identity, so it is supplied here rather than through configuration, where a
+    /// misspelled name would only fail once the application starts.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// nhibernate.AddMappingAssembly(typeof(TaskItemMap).Assembly);
+    /// </code>
+    /// </example>
+    /// <param name="assembly">The assembly containing Fluent mappings.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="assembly"/> is <see langword="null"/>.</exception>
+    public void AddMappingAssembly(Assembly assembly)
+    {
+        ArgumentNullException.ThrowIfNull(assembly);
+
+        this.mappingAssemblies.Add(assembly);
+    }
+
+    internal IReadOnlyList<Assembly> MappingAssemblies => this.mappingAssemblies;
 
     /// <summary>
     /// Adds a delegate that configures NHibernate itself.

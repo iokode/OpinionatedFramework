@@ -1,41 +1,38 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentMigrator.Runner;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
+using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.Persistence.Queries;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
-[assembly: BootstrapDriver<IUnitOfWorkFactory,
-    IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.NHibernatePostgresBootstrapDriver>(
-    "Persistence", "nhibernate-postgres")]
-[assembly: BootstrapDriver<IQueryExecutor,
-    IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.NHibernatePostgresBootstrapDriver>(
-    "Persistence", "nhibernate-postgres")]
+[assembly: BootstrapDriver<IUnitOfWorkFactory, NHibernatePostgresBootstrapDriver>("UnitOfWork", "nhibernate-postgres")]
+[assembly: BootstrapDriver<IQueryExecutor, NHibernatePostgresBootstrapDriver>("QueryExecutor", "nhibernate-postgres")]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 
+/// <summary>
+/// Registers the NHibernate PostgreSQL implementation of the unit-of-work and query-execution contracts.
+/// </summary>
+/// <remarks>
+/// The two contracts are independent capabilities, so an application can select this driver for either or both.
+/// Each capability carries its own settings, and slots sharing a connection string share one session factory.
+/// </remarks>
 public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistrar
 {
     private const string RegistrationStateKey = "OpinionatedFramework.NHibernate.Postgres";
+    private const string UnitOfWorkSlotKey = "UnitOfWork";
 
     public static BootstrapValidationResult Validate(BootstrapDriverContext context)
     {
         var errors = new List<BootstrapValidationError>();
-        var connectionStringName = context.DriverConfiguration["ConnectionString"];
+        var connectionStringName = context.DriverConfiguration["ConnectionStringName"];
         if (string.IsNullOrWhiteSpace(connectionStringName))
         {
             errors.Add(new BootstrapValidationError(
-                $"{context.DriverConfiguration.Path}:ConnectionString",
+                $"{context.DriverConfiguration.Path}:ConnectionStringName",
                 "A value is required."));
         }
         else if (string.IsNullOrWhiteSpace(context.Configuration.GetConnectionString(connectionStringName)))
@@ -45,32 +42,14 @@ public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistra
                 "The connection string is not configured."));
         }
 
-        var assemblySections = context.DriverConfiguration.GetSection("Assemblies").GetChildren().ToArray();
-        if (assemblySections.Length == 0)
+        // Only the unit of work needs entity mappings. The query executor runs raw SQL and maps results through
+        // the user-type registry, so it is usable without them.
+        if (context.DriverConfiguration.Key == UnitOfWorkSlotKey && GetOptions(context).MappingAssemblies.Count == 0)
         {
             errors.Add(new BootstrapValidationError(
-                $"{context.DriverConfiguration.Path}:Assemblies",
-                "At least one assembly is required."));
-        }
-
-        foreach (var assemblySection in assemblySections)
-        {
-            if (string.IsNullOrWhiteSpace(assemblySection.Value))
-            {
-                errors.Add(new BootstrapValidationError(assemblySection.Path, "An assembly name is required."));
-                continue;
-            }
-
-            try
-            {
-                Assembly.Load(assemblySection.Value);
-            }
-            catch (Exception exception) when (exception is FileNotFoundException or FileLoadException or BadImageFormatException)
-            {
-                errors.Add(new BootstrapValidationError(
-                    assemblySection.Path,
-                    $"Assembly '{assemblySection.Value}' could not be loaded."));
-            }
+                $"{context.DriverConfiguration.Path}:Driver",
+                "At least one mapping assembly is required. Add it with " +
+                "options.NHibernatePostgres(nhibernate => nhibernate.AddMappingAssembly(...))."));
         }
 
         return new BootstrapValidationResult(errors);
@@ -78,22 +57,29 @@ public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistra
 
     public static void Register(BootstrapDriverContext context)
     {
-        context.GetOrAddSharedState(RegistrationStateKey, () =>
+        var connectionString = context.Configuration
+            .GetConnectionString(context.DriverConfiguration["ConnectionStringName"]!)!;
+
+        // Each slot carries its own connection, so slots pointing at the same database share one session factory
+        // while slots pointing at different databases, such as a read replica, get one each.
+        context.GetOrAddSharedState($"{RegistrationStateKey}:{connectionString}", () =>
         {
-            RegisterServices(context);
+            RegisterServices(context, connectionString);
             return new RegistrationState();
         });
     }
 
-    private static void RegisterServices(BootstrapDriverContext context)
+    private static NHibernatePostgresOptions GetOptions(BootstrapDriverContext context)
     {
-        var connectionStringName = context.DriverConfiguration["ConnectionString"]!;
-        var connectionString = context.Configuration.GetConnectionString(connectionStringName)!;
-        var assemblies = context.DriverConfiguration.GetSection("Assemblies").GetChildren()
-            .Select(section => Assembly.Load(section.Value!))
-            .ToArray();
-        var driverOptions = new NHibernatePostgresOptions();
-        context.GetOptionsConfigurator<NHibernatePostgresOptions>()?.Invoke(driverOptions);
+        var options = new NHibernatePostgresOptions();
+        context.GetOptionsConfigurator<NHibernatePostgresOptions>()?.Invoke(options);
+        return options;
+    }
+
+    private static void RegisterServices(BootstrapDriverContext context, string connectionString)
+    {
+        var driverOptions = GetOptions(context);
+        var assemblies = driverOptions.MappingAssemblies.ToArray();
 
         context.Services.AddNHibernateWithPostgres(configuration =>
         {
@@ -107,34 +93,7 @@ public sealed class NHibernatePostgresBootstrapDriver : IBootstrapDriverRegistra
             fluentConfiguration.BuildConfiguration();
             driverOptions.ApplyNHibernateConfigurators(configuration);
         }, driverOptions.ApplyQueryExecutorConfigurators);
-
-        context.Services
-            .AddFluentMigratorCore()
-            .ConfigureRunner(builder => builder
-                .AddPostgres()
-                .WithGlobalConnectionString(connectionString)
-                .ScanIn(assemblies).For.Migrations());
-
-        if (bool.TryParse(context.DriverConfiguration["Migrations:ApplyOnStartup"], out var applyMigrations) &&
-            applyMigrations)
-        {
-            context.Services.AddSingleton<IHostedService, MigrationStartupTask>();
-        }
     }
 
     private sealed class RegistrationState;
-}
-
-public sealed class MigrationStartupTask(IMigrationRunner migrationRunner) : IHostedService
-{
-    public Task StartAsync(CancellationToken cancellationToken = default)
-    {
-        migrationRunner.MigrateUp();
-        return Task.CompletedTask;
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
 }

@@ -4,6 +4,7 @@
         <Project Path="ContractImplementations.Bcrypt/ContractImplementations.Bcrypt.csproj"/>
         <Project Path="ContractImplementations.CommandExecutor/ContractImplementations.CommandExecutor.csproj"/>
         <Project Path="ContractImplementations.Events/ContractImplementations.Events.csproj"/>
+        <Project Path="ContractImplementations.FluentMigrator/ContractImplementations.FluentMigrator.csproj"/>
         <Project Path="ContractImplementations.FileSystem/ContractImplementations.FileSystem.csproj"/>
         <Project Path="ContractImplementations.GoogleCloudStorage/ContractImplementations.GoogleCloudStorage.csproj"/>
         <Project Path="ContractImplementations.Hangfire/ContractImplementations.Hangfire.csproj"/>

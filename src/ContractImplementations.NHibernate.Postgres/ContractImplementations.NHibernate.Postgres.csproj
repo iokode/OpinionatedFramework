@@ -7,11 +7,9 @@
     </ItemGroup>
 
     <ItemGroup Label="Package references">
-        <PackageReference Include="FluentMigrator.Runner.Postgres" />
+        <PackageReference Include="FluentMigrator"/>
         <PackageReference Include="FluentNHibernate" />
         <PackageReference Include="Npgsql"/>
-        <PackageReference Include="FluentMigrator"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     </ItemGroup>
 
     <ItemGroup Label="Project dependencies">
