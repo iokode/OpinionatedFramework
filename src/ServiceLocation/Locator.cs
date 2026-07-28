@@ -54,16 +54,43 @@ public static class Locator
 
     internal static ScopeHandle CreateScope()
     {
-        if (currentScopeId.Value.HasValue)
+        var activeScopeId = GetActiveScopeId();
+        if (activeScopeId.HasValue)
         {
-            if (scopes.ContainsKey(currentScopeId.Value.Value))
-            {
-                throw new InvalidOperationException("Nested service scopes are not supported.");
-            }
-
-            currentScopeId.Value = null;
+            return ScopeHandle.Participating(activeScopeId.Value);
         }
 
+        return CreateOwnedScope(null);
+    }
+
+    internal static ScopeHandle CreateIndependentScope()
+    {
+        return CreateOwnedScope(GetActiveScopeId());
+    }
+
+    /// <summary>
+    /// Gets the identifier of the scope active in the current asynchronous execution context, or <c>null</c> when
+    /// there is none. An identifier left behind by a scope that was disposed from another execution context is
+    /// discarded and treated as if no scope were active.
+    /// </summary>
+    private static Guid? GetActiveScopeId()
+    {
+        if (!currentScopeId.Value.HasValue)
+        {
+            return null;
+        }
+
+        if (scopes.ContainsKey(currentScopeId.Value.Value))
+        {
+            return currentScopeId.Value;
+        }
+
+        currentScopeId.Value = null;
+        return null;
+    }
+
+    private static ScopeHandle CreateOwnedScope(Guid? previousScopeId)
+    {
         if (rootServiceProvider is null)
         {
             throw new InvalidOperationException("The root service provider is not initialized.");
@@ -78,7 +105,7 @@ public static class Locator
         }
 
         currentScopeId.Value = scopeId;
-        return new ScopeHandle(scopeId);
+        return ScopeHandle.Owned(scopeId, previousScopeId);
     }
 
     internal static IServiceProvider GetScopeServiceProvider(Guid scopeId)
@@ -91,13 +118,13 @@ public static class Locator
         return scope.ServiceProvider;
     }
 
-    internal static ValueTask DisposeScopeAsync(Guid scopeId, bool throwIfNotFound)
+    internal static ValueTask DisposeScopeAsync(Guid scopeId, Guid? restoredScopeId, bool throwIfNotFound)
     {
         if (!scopes.TryRemove(scopeId, out var scope))
         {
             if (currentScopeId.Value == scopeId)
             {
-                currentScopeId.Value = null;
+                currentScopeId.Value = restoredScopeId;
             }
 
             if (throwIfNotFound)
@@ -110,7 +137,7 @@ public static class Locator
 
         if (currentScopeId.Value == scopeId)
         {
-            currentScopeId.Value = null;
+            currentScopeId.Value = restoredScopeId;
         }
 
         return scope.DisposeAsync();

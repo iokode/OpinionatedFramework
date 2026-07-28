@@ -31,7 +31,7 @@ internal static class RetryHelper
                     TraceID = Guid.NewGuid()
                 };
 
-                await using var scope = Container.Advanced.CreateScope();
+                await using var scope = Container.Advanced.CreateIndependentScope();
                 await creator.CreateJob().ExecuteAsync(context);
                 shouldRetry = false;
             }

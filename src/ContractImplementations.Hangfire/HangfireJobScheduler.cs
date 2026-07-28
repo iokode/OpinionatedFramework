@@ -58,7 +58,7 @@ public class HangfireJobScheduler : IJobScheduler
     [JobDisplayName("{0}")]
     public static async Task InvokeJobAsync<TJob>(JobCreator<TJob> creator, CancellationToken cancellationToken) where TJob : Job
     {
-        await using var scope = Container.Advanced.CreateScope();
+        await using var scope = Container.Advanced.CreateIndependentScope();
 
         var context = new HangfireJobExecutionContext
         {

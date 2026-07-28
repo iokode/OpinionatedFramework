@@ -10,11 +10,22 @@ public static partial class Container
     /// <summary>Provides advanced container lifecycle and scope operations.</summary>
     public static class Advanced
     {
-        /// <summary>Creates, registers, and selects a service scope for the current asynchronous execution context.</summary>
-        /// <returns>A caller-owned handle that asynchronously disposes the scope.</returns>
-        /// <exception cref="InvalidOperationException">
-        /// The container is disposed or uninitialized, or the current execution context already has an active scope.
-        /// </exception>
+        /// <summary>
+        /// Participates in the service scope active in the current asynchronous execution context, or creates and
+        /// selects one when there is none.
+        /// </summary>
+        /// <remarks>
+        /// This is what any code that takes part in an ongoing operation should use, so that a command invoked from
+        /// another command, or a query invoked from a command, resolves the very same scoped services as its caller.
+        /// Scopes are never nested: when a scope is already active, the returned handle points to it and disposing
+        /// that handle does nothing, leaving the scope to be disposed by whoever created it. Code that begins an
+        /// operation of its own, such as a job execution, must use <see cref="CreateIndependentScope"/> instead.
+        /// </remarks>
+        /// <returns>
+        /// A handle that asynchronously disposes the scope when it created one, and does nothing when it participates
+        /// in an already active scope.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">The container is disposed or uninitialized.</exception>
         public static ScopeHandle CreateScope()
         {
             EnsureInitializedAndNotDisposed();
@@ -22,15 +33,37 @@ public static partial class Container
             return Locator.CreateScope();
         }
 
-        /// <summary>Removes and asynchronously disposes the identified service scope.</summary>
-        /// <param name="handle">The handle returned by <see cref="CreateScope"/>.</param>
-        /// <exception cref="ArgumentException">The identifier does not represent an active scope.</exception>
+        /// <summary>
+        /// Creates and selects a service scope for the current asynchronous execution context, regardless of whether
+        /// a scope is already active there.
+        /// </summary>
+        /// <remarks>
+        /// Intended for code that begins an operation with a lifetime of its own, such as executing a job or a retry
+        /// attempt of one. Such code must not participate in the scope of whoever triggered it: the asynchronous
+        /// execution context flows into background tasks, so the scope in effect at that moment may well be disposed
+        /// while the operation is still running. The new scope resolves its scoped services independently, and the
+        /// previously active scope, if any, is selected again once the returned handle is disposed.
+        /// </remarks>
+        /// <returns>A caller-owned handle that asynchronously disposes the scope.</returns>
         /// <exception cref="InvalidOperationException">The container is disposed or uninitialized.</exception>
+        public static ScopeHandle CreateIndependentScope()
+        {
+            EnsureInitializedAndNotDisposed();
+
+            return Locator.CreateIndependentScope();
+        }
+
+        /// <summary>Removes and asynchronously disposes the identified service scope.</summary>
+        /// <param name="handle">A handle owning its scope, as returned by <see cref="CreateScope"/> or <see cref="CreateIndependentScope"/>.</param>
+        /// <exception cref="ArgumentException">The identifier does not represent an active scope.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// The container is disposed or uninitialized, or the handle participates in a scope owned by an outer handle.
+        /// </exception>
         public static ValueTask DisposeScopeAsync(ScopeHandle handle)
         {
             EnsureInitializedAndNotDisposed();
 
-            return Locator.DisposeScopeAsync(handle.Id, true);
+            return handle.DisposeAsync(true);
         }
 
         /// <summary>Disposes every registered scope, the root provider, and instantiated disposable services.</summary>

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ServiceLocation;
 using IOKode.OpinionatedFramework.Commands;
+using IOKode.OpinionatedFramework.Commands.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -103,6 +104,97 @@ public class CommandScopeTests
         await executor.InvokeAsync(cmd, CancellationToken.None);
     }
     
+    [Fact]
+    public async Task InvokeCommandInsideCommand_ScopeIsReused()
+    {
+        // Arrange
+        var executor = Helpers.CreateRegisteredExecutorWithSampleScopedService(_ => { });
+
+        // Act
+        var cmd = new OuterCommand();
+        var (outerService, innerService) = await executor.InvokeAsync<OuterCommand, (SampleService, SampleService)>(cmd, CancellationToken.None);
+
+        // Assert
+        Assert.Same(outerService, innerService);
+    }
+
+    [Fact]
+    public async Task InvokeCommandInsideCommand_OuterScopeSurvivesTheInnerCommand()
+    {
+        // Arrange
+        var executor = Helpers.CreateRegisteredExecutorWithSampleScopedService(_ => { });
+
+        // Act
+        var cmd = new ResolveAfterInnerCommand();
+        var (beforeInner, afterInner) = await executor.InvokeAsync<ResolveAfterInnerCommand, (SampleService, SampleService)>(cmd, CancellationToken.None);
+
+        // Assert
+        Assert.Same(beforeInner, afterInner);
+    }
+
+    [Fact]
+    public async Task IndependentScopeInsideCommand_DoesNotShareNorStealTheCommandScope()
+    {
+        // Arrange
+        var executor = Helpers.CreateExecutorWithSampleScopedService(_ => { });
+
+        // Act
+        var cmd = new IndependentScopeCommand();
+        var (commandService, independentService, afterIndependentService) =
+            await executor.InvokeAsync<IndependentScopeCommand, (SampleService, SampleService, SampleService)>(cmd, CancellationToken.None);
+
+        // Assert
+        Assert.NotSame(commandService, independentService);
+        Assert.Same(commandService, afterIndependentService);
+    }
+
+    private class OuterCommand : Command<(SampleService, SampleService)>
+    {
+        protected override async Task<(SampleService, SampleService)> ExecuteAsync(ICommandExecutionContext executionContext)
+        {
+            var outerService = Locator.Resolve<SampleService>();
+            var innerService = await new InnerCommand().InvokeAsync(executionContext.CancellationToken);
+
+            return (outerService, innerService);
+        }
+    }
+
+    private class ResolveAfterInnerCommand : Command<(SampleService, SampleService)>
+    {
+        protected override async Task<(SampleService, SampleService)> ExecuteAsync(ICommandExecutionContext executionContext)
+        {
+            var beforeInner = Locator.Resolve<SampleService>();
+            await new InnerCommand().InvokeAsync(executionContext.CancellationToken);
+
+            return (beforeInner, Locator.Resolve<SampleService>());
+        }
+    }
+
+    private class InnerCommand : Command<SampleService>
+    {
+        protected override Task<SampleService> ExecuteAsync(ICommandExecutionContext executionContext)
+        {
+            return Task.FromResult(Locator.Resolve<SampleService>());
+        }
+    }
+
+    private class IndependentScopeCommand : Command<(SampleService, SampleService, SampleService)>
+    {
+        protected override async Task<(SampleService, SampleService, SampleService)> ExecuteAsync(ICommandExecutionContext executionContext)
+        {
+            var commandService = Locator.Resolve<SampleService>();
+
+            SampleService independentService;
+            await using (var scope = Container.Advanced.CreateIndependentScope())
+            {
+                independentService = Locator.Resolve<SampleService>();
+                Assert.Same(independentService, scope.ServiceProvider.GetRequiredService<SampleService>());
+            }
+
+            return (commandService, independentService, Locator.Resolve<SampleService>());
+        }
+    }
+
     private class SetSampleServiceInSharedDataMiddleware : CommandMiddleware
     {
         public override Task ExecuteAsync(ICommandExecutionContext executionContext, InvokeNextMiddlewareDelegate nextAsync)
