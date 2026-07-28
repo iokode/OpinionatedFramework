@@ -3,7 +3,7 @@ using IOKode.OpinionatedFramework.ServiceContainer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.MicrosoftExtensionsAbstractionsLogging;
+namespace IOKode.OpinionatedFramework.ContractImplementations.MicrosoftEALogging;
 
 public static class ServiceExtensions
 {

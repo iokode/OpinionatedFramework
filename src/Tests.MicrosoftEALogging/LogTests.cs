@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using IOKode.OpinionatedFramework.ContractImplementations.MicrosoftExtensionsAbstractionsLogging;
+using IOKode.OpinionatedFramework.ContractImplementations.MicrosoftEALogging;
 using IOKode.OpinionatedFramework.Facades;
 using IOKode.OpinionatedFramework.Logging;
 using IOKode.OpinionatedFramework.ServiceContainer;
@@ -69,11 +69,11 @@ public class LogTests
     // Microsoft.Extensions.Logging convention: '.' as the nested-type delimiter and no generic parameters.
     [Theory]
     [InlineData(typeof(LogTests),
-        "IOKode.OpinionatedFramework.Tests.MicrosoftExtensionsAbstractionsLogging.LogTests")]
+        "IOKode.OpinionatedFramework.Tests.MicrosoftEALogging.LogTests")]
     [InlineData(typeof(NestedCategory),
-        "IOKode.OpinionatedFramework.Tests.MicrosoftExtensionsAbstractionsLogging.LogTests.NestedCategory")]
+        "IOKode.OpinionatedFramework.Tests.MicrosoftEALogging.LogTests.NestedCategory")]
     [InlineData(typeof(GenericCategory<int>),
-        "IOKode.OpinionatedFramework.Tests.MicrosoftExtensionsAbstractionsLogging.GenericCategory")]
+        "IOKode.OpinionatedFramework.Tests.MicrosoftEALogging.GenericCategory")]
     public void FromCategory_ByType_ProducesTypeDisplayName(Type categoryType, string expectedCategoryName)
     {
         // Arrange

@@ -2,7 +2,7 @@ using System;
 using IOKode.OpinionatedFramework.Logging;
 using Microsoft.Extensions.Logging;
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.MicrosoftExtensionsAbstractionsLogging;
+namespace IOKode.OpinionatedFramework.ContractImplementations.MicrosoftEALogging;
 
 public class Logging(ILoggerFactory loggerFactory) : ILogging
 {

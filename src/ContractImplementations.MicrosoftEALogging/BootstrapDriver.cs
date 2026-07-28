@@ -1,10 +1,10 @@
-using IOKode.OpinionatedFramework.ContractImplementations.MicrosoftExtensionsAbstractionsLogging;
+using IOKode.OpinionatedFramework.ContractImplementations.MicrosoftEALogging;
 using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.Logging;
 
 [assembly: BootstrapDriver<ILogging, MicrosoftExtensionsAbstractionsLoggingBootstrapDriver>("Logging", "microsoft-extensions-abstractions", true)]
 
-namespace IOKode.OpinionatedFramework.ContractImplementations.MicrosoftExtensionsAbstractionsLogging;
+namespace IOKode.OpinionatedFramework.ContractImplementations.MicrosoftEALogging;
 
 public sealed class MicrosoftExtensionsAbstractionsLoggingBootstrapDriver : IBootstrapDriverRegistrar
 {

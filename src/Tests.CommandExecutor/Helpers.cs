@@ -2,7 +2,7 @@ using System;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.Commands;
 using IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
-using IOKode.OpinionatedFramework.ContractImplementations.MicrosoftExtensionsAbstractionsLogging;
+using IOKode.OpinionatedFramework.ContractImplementations.MicrosoftEALogging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IOKode.OpinionatedFramework.Tests.CommandExecutor;

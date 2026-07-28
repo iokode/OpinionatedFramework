@@ -4,10 +4,10 @@
     <Import Project="../MSBuild/Test.props"/>
 
     <ItemGroup Label="Project references">
-      <ProjectReference Include="..\ContractImplementations.MicrosoftExtensionsAbstractionsLogging\ContractImplementations.MicrosoftExtensionsAbstractionsLogging.csproj" />
+      <ProjectReference Include="..\ContractImplementations.MicrosoftEALogging\ContractImplementations.MicrosoftEALogging.csproj" />
       <ProjectReference Include="..\ContractImplementations.TaskRunJobs\ContractImplementations.TaskRunJobs.csproj" />
       <ProjectReference Include="..\Foundation\Foundation.csproj" />
-      <ProjectReference Include="..\Tests.MicrosoftExtensionsAbstractionsLogging\Tests.MicrosoftExtensionsAbstractionsLogging.csproj" />
+      <ProjectReference Include="..\Tests.MicrosoftEALogging\Tests.MicrosoftEALogging.csproj" />
     </ItemGroup>
 
 </Project>

@@ -8,7 +8,7 @@
 
     <ItemGroup Label="Project references">
         <ProjectReference Include="..\ServiceContainer\ServiceContainer.csproj" />
-        <ProjectReference Include="..\ContractImplementations.MicrosoftExtensionsAbstractionsLogging\ContractImplementations.MicrosoftExtensionsAbstractionsLogging.csproj" />
+        <ProjectReference Include="..\ContractImplementations.MicrosoftEALogging\ContractImplementations.MicrosoftEALogging.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>
 </Project>

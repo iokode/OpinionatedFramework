@@ -12,7 +12,7 @@
         <Project Path="ContractImplementations.LoggerEmail/ContractImplementations.LoggerEmail.csproj" />
         <Project Path="ContractImplementations.MailKit/ContractImplementations.MailKit.csproj" />
         <Project Path="ContractImplementations.MicrosoftConfiguration/ContractImplementations.MicrosoftConfiguration.csproj" />
-        <Project Path="ContractImplementations.MicrosoftExtensionsAbstractionsLogging\ContractImplementations.MicrosoftExtensionsAbstractionsLogging.csproj" />
+        <Project Path="ContractImplementations.MicrosoftEALogging\ContractImplementations.MicrosoftEALogging.csproj" />
         <Project Path="ContractImplementations.NHibernate.Postgres/ContractImplementations.NHibernate.Postgres.csproj" />
         <Project Path="ContractImplementations.NHibernate/ContractImplementations.NHibernate.csproj" />
         <Project Path="ContractImplementations.TaskRunJobs/ContractImplementations.TaskRunJobs.csproj" />
@@ -41,7 +41,7 @@
         <Project Path="Tests.LocalFileSystem/Tests.LocalFileSystem.csproj" />
         <Project Path="Tests.MailKit/Tests.MailKit.csproj" />
         <Project Path="Tests.MicrosoftConfiguration/Tests.MicrosoftConfiguration.csproj" />
-        <Project Path="Tests.MicrosoftExtensionsAbstractionsLogging\Tests.MicrosoftExtensionsAbstractionsLogging.csproj" />
+        <Project Path="Tests.MicrosoftEALogging\Tests.MicrosoftEALogging.csproj" />
         <Project Path="Tests.Migrations/Tests.Migrations.csproj" />
         <Project Path="Tests.NHibernate.Postgres/Tests.NHibernate.Postgres.csproj" />
         <Project Path="Tests.ResourceControllers\Tests.ResourceControllers.csproj" />
