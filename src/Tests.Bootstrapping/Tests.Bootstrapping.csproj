@@ -4,6 +4,7 @@
 
     <ItemGroup>
         <ProjectReference Include="../Bootstrapping.Default/Bootstrapping.Default.csproj" />
+        <ProjectReference Include="../ContractImplementations.Hangfire/ContractImplementations.Hangfire.csproj" />
         <ProjectReference Include="../SourceGenerators.BootstrapDrivers/SourceGenerators.BootstrapDrivers.csproj"
                           OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>

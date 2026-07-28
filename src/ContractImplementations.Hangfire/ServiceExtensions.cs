@@ -1,3 +1,4 @@
+using Hangfire;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,8 +20,10 @@ public static class ServiceExtensions
     public static void AddHangfireJobScheduler(this IOpinionatedServiceCollection services) =>
         services.AddSingleton<IJobScheduler, HangfireJobScheduler>();
 
-    public static void AddHangfireWorker(this IOpinionatedServiceCollection services)
+    public static void AddHangfireWorker(this IOpinionatedServiceCollection services,
+        BackgroundJobServerOptions? serverOptions = null)
     {
+        services.AddSingleton(serverOptions ?? new BackgroundJobServerOptions());
         services.AddSingleton<HangfireWorker>();
         services.AddSingleton<IHostedService>(serviceProvider =>
             serviceProvider.GetRequiredService<HangfireWorker>());

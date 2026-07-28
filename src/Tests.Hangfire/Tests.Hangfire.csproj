@@ -4,13 +4,17 @@
     <Import Project="../MSBuild/Test.props"/>
 
     <ItemGroup>
+        <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
         <ProjectReference Include="..\ContractImplementations.Hangfire\ContractImplementations.Hangfire.csproj" />
         <ProjectReference Include="..\ContractImplementations.LoggerEmail\ContractImplementations.LoggerEmail.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj" />
+        <ProjectReference Include="..\SourceGenerators.BootstrapDrivers\SourceGenerators.BootstrapDrivers.csproj"
+                          OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Hangfire.PostgreSql" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" />
     </ItemGroup>
 
 </Project>

@@ -9,7 +9,23 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 public sealed class HangfireWorker : IHostedService, IDisposable
 {
     private readonly Lock sync = new();
+    private readonly BackgroundJobServerOptions serverOptions;
     private BackgroundJobServer? server;
+
+    /// <summary>
+    /// Creates a worker that starts a background job server with the supplied options.
+    /// </summary>
+    /// <param name="serverOptions">
+    /// The server options built during bootstrap from the root <c>Hangfire</c> configuration section and the
+    /// <c>Hangfire</c> bootstrap verb.
+    /// </param>
+    /// <exception cref="ArgumentNullException"><paramref name="serverOptions"/> is <see langword="null"/>.</exception>
+    public HangfireWorker(BackgroundJobServerOptions serverOptions)
+    {
+        ArgumentNullException.ThrowIfNull(serverOptions);
+
+        this.serverOptions = serverOptions;
+    }
 
     public Task StartAsync(CancellationToken cancellationToken = default)
     {
@@ -21,7 +37,7 @@ public sealed class HangfireWorker : IHostedService, IDisposable
                 throw new InvalidOperationException("The Hangfire worker has already been started.");
             }
 
-            this.server = new BackgroundJobServer();
+            this.server = new BackgroundJobServer(this.serverOptions);
         }
 
         return Task.CompletedTask;
