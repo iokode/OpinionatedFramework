@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace IOKode.OpinionatedFramework.Tests.MicrosoftExtensionsAbstractionsLogging;
+namespace IOKode.OpinionatedFramework.Tests.MicrosoftEALogging;
 
 public class LogTests
 {
