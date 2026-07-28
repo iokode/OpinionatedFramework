@@ -155,14 +155,98 @@ public class ContainerTests : IDisposable
     }
 
     [Fact]
-    public void NestedScopesAreRejected()
+    public async Task CreateScopeParticipatesInTheActiveScope()
     {
+        Container.Services.AddScoped<AsyncDisposableScopedService>();
         Container.Initialize();
-        _ = Container.Advanced.CreateScope();
 
-        var exception = Assert.Throws<InvalidOperationException>(() => Container.Advanced.CreateScope());
+        await using var outerScope = Container.Advanced.CreateScope();
+        var outerService = Locator.Resolve<AsyncDisposableScopedService>();
 
-        Assert.Equal("Nested service scopes are not supported.", exception.Message);
+        var participatingScope = Container.Advanced.CreateScope();
+
+        Assert.False(participatingScope.OwnsScope);
+        Assert.Equal(outerScope.Id, participatingScope.Id);
+        Assert.Same(outerService, Locator.Resolve<AsyncDisposableScopedService>());
+    }
+
+    [Fact]
+    public async Task DisposingAParticipatingHandleKeepsTheScopeAlive()
+    {
+        Container.Services.AddScoped<AsyncDisposableScopedService>();
+        Container.Initialize();
+
+        await using var outerScope = Container.Advanced.CreateScope();
+        var outerService = Locator.Resolve<AsyncDisposableScopedService>();
+
+        var participatingScope = Container.Advanced.CreateScope();
+        await participatingScope.DisposeAsync();
+
+        Assert.False(outerService.IsDisposed);
+        Assert.Same(outerService, Locator.Resolve<AsyncDisposableScopedService>());
+        Assert.Equal(outerScope.Id, Container.Advanced.CreateScope().Id);
+    }
+
+    [Fact]
+    public async Task ParticipatingHandleCannotBeDisposedByIdentifier()
+    {
+        Container.Services.AddScoped<AsyncDisposableScopedService>();
+        Container.Initialize();
+
+        await using var outerScope = Container.Advanced.CreateScope();
+        var outerService = Locator.Resolve<AsyncDisposableScopedService>();
+        var participatingScope = Container.Advanced.CreateScope();
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await Container.Advanced.DisposeScopeAsync(participatingScope));
+
+        Assert.Equal("The scope is owned by an outer handle and cannot be disposed through this one.", exception.Message);
+        Assert.False(outerService.IsDisposed);
+    }
+
+    [Fact]
+    public async Task IndependentScopeIgnoresTheActiveScopeAndRestoresItOnDisposal()
+    {
+        Container.Services.AddScoped<AsyncDisposableScopedService>();
+        Container.Initialize();
+
+        await using var outerScope = Container.Advanced.CreateScope();
+        var outerService = Locator.Resolve<AsyncDisposableScopedService>();
+
+        var independentScope = Container.Advanced.CreateIndependentScope();
+        var independentService = Locator.Resolve<AsyncDisposableScopedService>();
+
+        Assert.True(independentScope.OwnsScope);
+        Assert.NotEqual(outerScope.Id, independentScope.Id);
+        Assert.NotSame(outerService, independentService);
+
+        await independentScope.DisposeAsync();
+
+        Assert.True(independentService.IsDisposed);
+        Assert.False(outerService.IsDisposed);
+        Assert.Same(outerService, Locator.Resolve<AsyncDisposableScopedService>());
+    }
+
+    [Fact]
+    public async Task IndependentScopeIsCreatedWhenNoScopeIsActive()
+    {
+        Container.Services.AddScoped<AsyncDisposableScopedService>();
+        Container.Initialize();
+
+        var independentScope = Container.Advanced.CreateIndependentScope();
+        var service = Locator.Resolve<AsyncDisposableScopedService>();
+
+        Assert.True(independentScope.OwnsScope);
+        Assert.Same(service, independentScope.ServiceProvider.GetRequiredService<AsyncDisposableScopedService>());
+
+        await independentScope.DisposeAsync();
+
+        Assert.True(service.IsDisposed);
+
+        // No scope is left selected, so the next handle creates and owns a new one.
+        await using var replacementScope = Container.Advanced.CreateScope();
+        Assert.True(replacementScope.OwnsScope);
+        Assert.NotEqual(independentScope.Id, replacementScope.Id);
     }
 
     [Fact]
