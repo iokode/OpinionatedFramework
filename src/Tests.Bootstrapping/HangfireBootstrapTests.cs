@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Hangfire;
+using Hangfire.Dashboard;
 using IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ServiceContainer.Drivers;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace IOKode.OpinionatedFramework.Tests.Bootstrapping;
@@ -16,9 +19,10 @@ namespace IOKode.OpinionatedFramework.Tests.Bootstrapping;
 /// Covers the Hangfire driver configuration surface.
 /// </summary>
 /// <remarks>
-/// The drivers are registered without starting a host, because starting the background job server would need a
-/// real storage. The tests never configure one, so <c>JobStorage.Current</c> stays uninitialized for the test
-/// that asserts a missing storage is reported.
+/// The tests assert on service registrations without building a provider, because resolving any Hangfire type
+/// runs the configuration <c>AddHangfire</c> defers and would need a real storage. Keeping every storage
+/// configurator a no-op also leaves <c>JobStorage.Current</c> uninitialized, which the missing-storage test
+/// depends on. The settings actually reaching a running server are covered in Tests.Hangfire.
 /// </remarks>
 public class HangfireBootstrapTests : IAsyncLifetime
 {
@@ -33,73 +37,28 @@ public class HangfireBootstrapTests : IAsyncLifetime
     }
 
     [Fact]
-    public void ConfiguredServerSettingsReachTheWorker()
+    public void BootstrapRegistersTheHangfireSurface()
     {
-        var configuration = BuildConfiguration(new Dictionary<string, string?>
-        {
-            ["Hangfire:Queues:0"] = "events",
-            ["Hangfire:Queues:1"] = "reports",
-            ["Hangfire:WorkerCount"] = "7",
-            ["Hangfire:ShutdownTimeout"] = "00:00:42"
-        });
-
-        DriverRegistration.RegisterDrivers(configuration, BuildOptions());
-
-        var serverOptions = GetRegisteredServerOptions();
-        Assert.Equal(["events", "reports"], serverOptions.Queues);
-        Assert.Equal(7, serverOptions.WorkerCount);
-        Assert.Equal(TimeSpan.FromSeconds(42), serverOptions.ShutdownTimeout);
-    }
-
-    [Fact]
-    public void CodeConfigurationOverridesConfiguredServerSettings()
-    {
-        var configuration = BuildConfiguration(new Dictionary<string, string?>
-        {
-            ["Hangfire:Queues:0"] = "events",
-            ["Hangfire:WorkerCount"] = "4"
-        });
-
-        DriverRegistration.RegisterDrivers(configuration, BuildOptions(hangfire =>
-            hangfire.ConfigureServer(server => server.WorkerCount = 9)));
-
-        var serverOptions = GetRegisteredServerOptions();
-        Assert.Equal(9, serverOptions.WorkerCount);
-
-        // A setting the delegate does not touch keeps the configured value.
-        Assert.Equal(["events"], serverOptions.Queues);
-    }
-
-    [Fact]
-    public void AbsentSettingsKeepTheHangfireDefaults()
-    {
-        var defaults = new BackgroundJobServerOptions();
-
         DriverRegistration.RegisterDrivers(BuildConfiguration(), BuildOptions());
 
-        var serverOptions = GetRegisteredServerOptions();
-        Assert.Equal(defaults.Queues, serverOptions.Queues);
-        Assert.Equal(defaults.WorkerCount, serverOptions.WorkerCount);
-        Assert.Equal(defaults.ShutdownTimeout, serverOptions.ShutdownTimeout);
+        // AddHangfire contributes the types an application resolves, notably the ones UseHangfireDashboard needs.
+        Assert.Contains(Container.Services, service => service.ServiceType == typeof(IGlobalConfiguration));
+        Assert.Contains(Container.Services, service => service.ServiceType == typeof(JobStorage));
+        Assert.Contains(Container.Services, service => service.ServiceType == typeof(RouteCollection));
+        Assert.Contains(Container.Services, service => service.ServiceType == typeof(IBackgroundJobClient));
+        Assert.Contains(Container.Services, service => service.ServiceType == typeof(IRecurringJobManager));
     }
 
     [Fact]
-    public void ServerConfigurationReachesTheWorkerThroughEitherContract()
+    public void StartWorkerRegistersTheBackgroundJobServer()
     {
-        var configuration = BuildConfiguration(new Dictionary<string, string?>
-        {
-            // The scheduler alone selects the driver, so the enqueuer falls back to its default.
-            ["OpinionatedFramework:JobEnqueuer:Driver"] = "task-run"
-        });
+        DriverRegistration.RegisterDrivers(BuildConfiguration(), BuildOptions());
 
-        DriverRegistration.RegisterDrivers(configuration, BuildOptions(hangfire =>
-            hangfire.ConfigureServer(server => server.WorkerCount = 3)));
-
-        Assert.Equal(3, GetRegisteredServerOptions().WorkerCount);
+        Assert.Single(Container.Services, IsHangfireServer);
     }
 
     [Fact]
-    public void DisabledWorkerRegistersNoHostedService()
+    public void DisabledWorkerRegistersNoBackgroundJobServer()
     {
         var configuration = BuildConfiguration(new Dictionary<string, string?>
         {
@@ -108,15 +67,34 @@ public class HangfireBootstrapTests : IAsyncLifetime
 
         DriverRegistration.RegisterDrivers(configuration, BuildOptions());
 
-        Assert.DoesNotContain(Container.Services, service => service.ServiceType == typeof(HangfireWorker));
+        Assert.DoesNotContain(Container.Services, IsHangfireServer);
+
+        // Hangfire itself is still registered, because the enqueuer and the scheduler need it with or without
+        // a server in this process.
+        Assert.Contains(Container.Services, service => service.ServiceType == typeof(JobStorage));
     }
 
     [Fact]
-    public void WorkerIsRegisteredOnlyOnceForBothContracts()
+    public void TheServerIsRegisteredForAContractThatSelectsTheDriverAlone()
+    {
+        var configuration = BuildConfiguration(new Dictionary<string, string?>
+        {
+            // The scheduler alone selects the driver, so the enqueuer falls back to its default.
+            ["OpinionatedFramework:JobEnqueuer:Driver"] = "task-run"
+        });
+
+        DriverRegistration.RegisterDrivers(configuration, BuildOptions());
+
+        Assert.Single(Container.Services, IsHangfireServer);
+    }
+
+    [Fact]
+    public void HangfireIsRegisteredOnlyOnceForBothContracts()
     {
         DriverRegistration.RegisterDrivers(BuildConfiguration(), BuildOptions());
 
-        Assert.Single(Container.Services, service => service.ServiceType == typeof(HangfireWorker));
+        Assert.Single(Container.Services, service => service.ServiceType == typeof(JobStorage));
+        Assert.Single(Container.Services, IsHangfireServer);
     }
 
     [Fact]
@@ -223,11 +201,14 @@ public class HangfireBootstrapTests : IAsyncLifetime
         return options;
     }
 
-    private static BackgroundJobServerOptions GetRegisteredServerOptions()
+    /// <summary>
+    /// Matches the hosted service <c>AddHangfireServer</c> registers, told apart from the one the
+    /// <c>task-run</c> driver registers by the assembly its factory comes from.
+    /// </summary>
+    private static bool IsHangfireServer(ServiceDescriptor service)
     {
-        var descriptor = Assert.Single(Container.Services,
-            service => service.ServiceType == typeof(BackgroundJobServerOptions));
-        return Assert.IsType<BackgroundJobServerOptions>(descriptor.ImplementationInstance);
+        return service.ServiceType == typeof(IHostedService) &&
+               service.ImplementationFactory?.Method.DeclaringType?.Namespace?.StartsWith("Hangfire", StringComparison.Ordinal) == true;
     }
 
     private static IReadOnlyCollection<BootstrapValidationError> AssertValidationFails(IConfiguration configuration,

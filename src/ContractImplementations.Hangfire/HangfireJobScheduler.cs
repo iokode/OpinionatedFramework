@@ -16,6 +16,23 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 
 public class HangfireJobScheduler : IJobScheduler
 {
+    private readonly JobStorage storage;
+
+    /// <summary>
+    /// Creates a scheduler backed by the supplied storage.
+    /// </summary>
+    /// <param name="storage">
+    /// The storage registered by <c>AddHangfire</c>, used instead of <see cref="JobStorage.Current"/> so that
+    /// rescheduling does not depend on process-wide state.
+    /// </param>
+    /// <exception cref="ArgumentNullException"><paramref name="storage"/> is <see langword="null"/>.</exception>
+    public HangfireJobScheduler(JobStorage storage)
+    {
+        ArgumentNullException.ThrowIfNull(storage);
+
+        this.storage = storage;
+    }
+
     public Task<Guid> ScheduleAsync<TJob>(CronExpression interval, JobCreator<TJob> creator, CancellationToken cancellationToken = default) where TJob : Job
     {
         // var scheduledJob = new HangfireMutableScheduledJob<TJob>(interval, creator);
@@ -29,7 +46,7 @@ public class HangfireJobScheduler : IJobScheduler
 
     public Task RescheduleAsync(Guid scheduledJobId, CronExpression interval, CancellationToken cancellationToken = default)
     {
-        var detailsJob = JobStorage.Current.GetConnection().GetRecurringJobs([scheduledJobId.ToString()]).Single().Job;
+        var detailsJob = this.storage.GetConnection().GetRecurringJobs([scheduledJobId.ToString()]).Single().Job;
         var jobExpression = ReconstructExpressionFromJobData(detailsJob.Method, detailsJob.Args);
 
         // None cancellation token will be replaced internally.

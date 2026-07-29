@@ -23,11 +23,16 @@ namespace IOKode.OpinionatedFramework.Tests.Hangfire.Config;
 /// <remarks>
 /// The storage and the server options come from the bootstrap alone, so the fixture registers nothing about
 /// Hangfire on the side. The worker serves the <c>events</c> queue as well as the default one, which is what the
-/// configured queues are for.
+/// configured queues are for, and its worker count comes from the verb rather than from configuration.
 /// </remarks>
 public class JobsTestsFixture : IAsyncLifetime
 {
     private DockerClient docker => DockerHelper.DockerClient;
+
+    /// <summary>
+    /// The worker count the <c>ConfigureServer</c> delegate sets, overriding the 4 read from configuration.
+    /// </summary>
+    public const int ConfiguredWorkerCount = 6;
 
     public readonly PostgresContainer PostgresContainer = new();
     private HostHandle? hostHandle;
@@ -54,9 +59,16 @@ public class JobsTestsFixture : IAsyncLifetime
             .Build();
 
         hostHandle = await OpinionatedFrameworkBootstrapping.StartAsync(configuration, options =>
-            options.Hangfire(hangfire => hangfire.ConfigureHangfire(hangfireConfiguration => hangfireConfiguration
-                .UseRecommendedSerializerSettings()
-                .UsePostgreSqlStorage(postgres => postgres.UseNpgsqlConnection(PostgresHelper.ConnectionString)))));
+            options.Hangfire(hangfire =>
+            {
+                hangfire.ConfigureHangfire(hangfireConfiguration => hangfireConfiguration
+                    .UseRecommendedSerializerSettings()
+                    .UsePostgreSqlStorage(postgres => postgres.UseNpgsqlConnection(PostgresHelper.ConnectionString)));
+
+                // Configuration sets WorkerCount to 4 and leaves Queues to it, so the running server shows
+                // whether code-level configuration wins and whether it leaves untouched settings alone.
+                hangfire.ConfigureServer(server => server.WorkerCount = ConfiguredWorkerCount);
+            }));
 
         await Task.Delay(3000);
     }

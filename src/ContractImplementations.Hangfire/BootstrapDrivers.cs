@@ -78,21 +78,21 @@ internal static class HangfireBootstrapRegistration
         {
             var options = GetOptions(context);
 
-            // The enqueuer and the scheduler resolve the storage through JobStorage.Current, so Hangfire is
-            // configured whether or not this process also runs a worker.
-            options.ApplyHangfireConfigurators(GlobalConfiguration.Configuration);
+            // Registers the whole Hangfire surface, including IGlobalConfiguration, JobStorage and the
+            // dashboard routes, so an application needs no Hangfire registration of its own.
+            context.Services.AddHangfire(options.ApplyHangfireConfigurators);
 
             var configurationState = GetConfigurationState(context);
             if (configurationState.StartWorker)
             {
-                var serverOptions = new BackgroundJobServerOptions();
-                configurationState.ApplyTo(serverOptions);
+                context.Services.AddHangfireServer(serverOptions =>
+                {
+                    configurationState.ApplyTo(serverOptions);
 
-                // Applied last, so a delegate overrides what configuration set while leaving untouched
-                // settings at their configured value.
-                options.ApplyServerConfigurators(serverOptions);
-
-                context.Services.AddHangfireWorker(serverOptions);
+                    // Applied last, so a delegate overrides what configuration set while leaving untouched
+                    // settings at their configured value.
+                    options.ApplyServerConfigurators(serverOptions);
+                });
             }
 
             return new RegistrationState();
