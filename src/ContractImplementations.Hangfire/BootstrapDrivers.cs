@@ -42,11 +42,11 @@ public sealed class HangfireJobSchedulerBootstrapDriver : IBootstrapDriverRegist
 }
 
 /// <summary>
-/// Configures Hangfire and the worker once for every contract the driver is selected for.
+/// Configures Hangfire and its background job servers once for every contract the driver is selected for.
 /// </summary>
 /// <remarks>
 /// The job enqueuer and the job scheduler are separate contracts backed by one Hangfire setup, so the storage is
-/// configured and the worker is registered through shared state instead of once per contract.
+/// configured and the servers are registered through shared state instead of once per contract.
 /// </remarks>
 internal static class HangfireBootstrapRegistration
 {
@@ -82,16 +82,15 @@ internal static class HangfireBootstrapRegistration
             // dashboard routes, so an application needs no Hangfire registration of its own.
             context.Services.AddHangfire(options.ApplyHangfireConfigurators);
 
-            var configurationState = GetConfigurationState(context);
-            if (configurationState.StartWorker)
+            foreach (var server in GetConfigurationState(context).Servers)
             {
                 context.Services.AddHangfireServer(serverOptions =>
                 {
-                    configurationState.ApplyTo(serverOptions);
+                    server.ApplyTo(serverOptions);
 
-                    // Applied last, so a delegate overrides what configuration set while leaving untouched
-                    // settings at their configured value.
-                    options.ApplyServerConfigurators(serverOptions);
+                    // Applied last, so a delegate overrides what configuration set for this server while
+                    // leaving untouched settings at their configured value.
+                    options.ApplyServerConfigurators(server.Name, serverOptions);
                 });
             }
 
@@ -113,6 +112,16 @@ internal static class HangfireBootstrapRegistration
                     ConfigurationSectionKey,
                     "A Hangfire storage is required. Supply it with options.Hangfire(hangfire => " +
                     "hangfire.ConfigureHangfire(configuration => configuration.UsePostgreSqlStorage(...)))."));
+            }
+
+            var configuredServerNames = GetConfigurationState(context).Servers
+                .Select(server => server.Name)
+                .ToArray();
+            foreach (var serverName in GetOptions(context).GetConfiguredServerNamesNotIn(configuredServerNames))
+            {
+                errors.Add(new BootstrapValidationError(
+                    $"{ConfigurationSectionKey}:Servers:{serverName}",
+                    "No server with this name is configured, so the options supplied for it would be discarded."));
             }
 
             return new ValidationState(new BootstrapValidationResult(errors));
@@ -139,30 +148,27 @@ internal static class HangfireBootstrapRegistration
             // OpinionatedFramework section, which holds the contract slots and nothing else.
             var section = context.Configuration.GetSection(ConfigurationSectionKey);
 
-            return new HangfireConfigurationState(
-                ReadStartWorker(section, errors),
-                ReadQueues(section, errors),
-                ReadWorkerCount(section, errors),
-                ReadShutdownTimeout(section, errors),
-                errors);
+            return new HangfireConfigurationState(ReadServers(section, errors), errors);
         });
     }
 
-    private static bool ReadStartWorker(IConfigurationSection section, List<BootstrapValidationError> errors)
+    /// <summary>
+    /// Reads one server per entry of the <c>Servers</c> dictionary, keyed by the server name.
+    /// </summary>
+    /// <remarks>
+    /// A dictionary rather than an array, because the key names the server and because configuration layering
+    /// overrides by key: an entry keeps its identity when a later source reorders or adds servers.
+    /// </remarks>
+    private static HangfireServerConfiguration[] ReadServers(IConfigurationSection section,
+        List<BootstrapValidationError> errors)
     {
-        var configuredValue = section["StartWorker"];
-        if (string.IsNullOrWhiteSpace(configuredValue))
-        {
-            return false;
-        }
-
-        if (bool.TryParse(configuredValue, out var startWorker))
-        {
-            return startWorker;
-        }
-
-        errors.Add(new BootstrapValidationError($"{section.Path}:StartWorker", "The value must be a boolean."));
-        return false;
+        return section.GetSection("Servers").GetChildren()
+            .Select(serverSection => new HangfireServerConfiguration(
+                serverSection.Key,
+                ReadQueues(serverSection, errors),
+                ReadWorkerCount(serverSection, errors),
+                ReadShutdownTimeout(serverSection, errors)))
+            .ToArray();
     }
 
     private static string[]? ReadQueues(IConfigurationSection section, List<BootstrapValidationError> errors)
@@ -250,20 +256,29 @@ internal static class HangfireBootstrapRegistration
     }
 
     private sealed class HangfireConfigurationState(
-        bool startWorker,
-        string[]? queues,
-        int? workerCount,
-        TimeSpan? shutdownTimeout,
+        IReadOnlyCollection<HangfireServerConfiguration> servers,
         IReadOnlyCollection<BootstrapValidationError> errors)
     {
-        public bool StartWorker { get; } = startWorker;
+        public IReadOnlyCollection<HangfireServerConfiguration> Servers { get; } = servers;
         public IReadOnlyCollection<BootstrapValidationError> Errors { get; } = errors;
+    }
+
+    private sealed class HangfireServerConfiguration(
+        string name,
+        string[]? queues,
+        int? workerCount,
+        TimeSpan? shutdownTimeout)
+    {
+        public string Name { get; } = name;
 
         /// <summary>
         /// Applies the configured values, leaving the Hangfire default in place for every absent key.
         /// </summary>
         public void ApplyTo(BackgroundJobServerOptions serverOptions)
         {
+            // The dictionary key names the server, so the dashboard lists it under a name the operator chose.
+            serverOptions.ServerName = Name;
+
             if (queues is not null)
             {
                 serverOptions.Queues = queues;

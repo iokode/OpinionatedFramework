@@ -50,22 +50,25 @@ public class HangfireBootstrapTests : IAsyncLifetime
     }
 
     [Fact]
-    public void StartWorkerRegistersTheBackgroundJobServer()
-    {
-        DriverRegistration.RegisterDrivers(BuildConfiguration(), BuildOptions());
-
-        Assert.Single(Container.Services, IsHangfireServer);
-    }
-
-    [Fact]
-    public void DisabledWorkerRegistersNoBackgroundJobServer()
+    public void EveryConfiguredServerIsRegistered()
     {
         var configuration = BuildConfiguration(new Dictionary<string, string?>
         {
-            ["Hangfire:StartWorker"] = "false"
+            ["Hangfire:Servers:default:Queues:0"] = "default",
+            ["Hangfire:Servers:events:Queues:0"] = "events",
+            ["Hangfire:Servers:events:WorkerCount"] = "2"
         });
 
         DriverRegistration.RegisterDrivers(configuration, BuildOptions());
+
+        Assert.Equal(2, Container.Services.Count(IsHangfireServer));
+    }
+
+    [Fact]
+    public void NoConfiguredServerStartsNoServer()
+    {
+        // A process that only enqueues is described by leaving Servers out entirely.
+        DriverRegistration.RegisterDrivers(BuildConfiguration(withDefaultServer: false), BuildOptions());
 
         Assert.DoesNotContain(Container.Services, IsHangfireServer);
 
@@ -109,7 +112,6 @@ public class HangfireBootstrapTests : IAsyncLifetime
     }
 
     [Theory]
-    [InlineData("StartWorker", "yes")]
     [InlineData("WorkerCount", "many")]
     [InlineData("WorkerCount", "0")]
     [InlineData("WorkerCount", "-1")]
@@ -119,13 +121,14 @@ public class HangfireBootstrapTests : IAsyncLifetime
     {
         var configuration = BuildConfiguration(new Dictionary<string, string?>
         {
-            [$"Hangfire:{key}"] = value
+            [$"Hangfire:Servers:events:{key}"] = value
         });
 
         var errors = AssertValidationFails(configuration, BuildOptions());
 
+        // The path names the entry, so the offending server is identifiable.
         var error = Assert.Single(errors);
-        Assert.Equal($"Hangfire:{key}", error.ConfigurationPath);
+        Assert.Equal($"Hangfire:Servers:events:{key}", error.ConfigurationPath);
     }
 
     [Fact]
@@ -133,14 +136,14 @@ public class HangfireBootstrapTests : IAsyncLifetime
     {
         var configuration = BuildConfiguration(new Dictionary<string, string?>
         {
-            ["Hangfire:Queues:0"] = "events",
-            ["Hangfire:Queues:1"] = " "
+            ["Hangfire:Servers:events:Queues:0"] = "events",
+            ["Hangfire:Servers:events:Queues:1"] = " "
         });
 
         var errors = AssertValidationFails(configuration, BuildOptions());
 
         var error = Assert.Single(errors);
-        Assert.Equal("Hangfire:Queues:1", error.ConfigurationPath);
+        Assert.Equal("Hangfire:Servers:events:Queues:1", error.ConfigurationPath);
     }
 
     [Fact]
@@ -148,16 +151,28 @@ public class HangfireBootstrapTests : IAsyncLifetime
     {
         var configuration = BuildConfiguration(new Dictionary<string, string?>
         {
-            ["Hangfire:StartWorker"] = "yes",
-            ["Hangfire:WorkerCount"] = "many"
+            ["Hangfire:Servers:default:WorkerCount"] = "many",
+            ["Hangfire:Servers:events:ShutdownTimeout"] = "forever"
         });
 
         var errors = AssertValidationFails(configuration, BuildOptions());
 
         // Both contracts select the same driver, so the shared errors are reported once rather than twice.
         Assert.Equal(
-            ["Hangfire:StartWorker", "Hangfire:WorkerCount"],
+            ["Hangfire:Servers:default:WorkerCount", "Hangfire:Servers:events:ShutdownTimeout"],
             errors.Select(error => error.ConfigurationPath).Order());
+    }
+
+    [Fact]
+    public void OptionsForAServerThatIsNotConfiguredAreReported()
+    {
+        var options = BuildOptions(hangfire =>
+            hangfire.ConfigureServer("reports", server => server.WorkerCount = 2));
+
+        var errors = AssertValidationFails(BuildConfiguration(), options);
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Hangfire:Servers:reports", error.ConfigurationPath);
     }
 
     [Fact]
@@ -173,14 +188,18 @@ public class HangfireBootstrapTests : IAsyncLifetime
         Assert.Contains(nameof(HangfireOptions), exception.Message);
     }
 
-    private static IConfiguration BuildConfiguration(Dictionary<string, string?>? settings = null)
+    private static IConfiguration BuildConfiguration(Dictionary<string, string?>? settings = null,
+        bool withDefaultServer = true)
     {
         var values = new Dictionary<string, string?>(settings ?? [])
         {
             ["OpinionatedFramework:JobScheduler:Driver"] = "hangfire"
         };
         values.TryAdd("OpinionatedFramework:JobEnqueuer:Driver", "hangfire");
-        values.TryAdd("Hangfire:StartWorker", "true");
+        if (withDefaultServer && !values.Keys.Any(key => key.StartsWith("Hangfire:Servers:", StringComparison.Ordinal)))
+        {
+            values.Add("Hangfire:Servers:default:Queues:0", "default");
+        }
 
         return new ConfigurationBuilder().AddInMemoryCollection(values).Build();
     }

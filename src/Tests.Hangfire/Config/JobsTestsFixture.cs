@@ -22,17 +22,23 @@ namespace IOKode.OpinionatedFramework.Tests.Hangfire.Config;
 /// </summary>
 /// <remarks>
 /// The storage and the server options come from the bootstrap alone, so the fixture registers nothing about
-/// Hangfire on the side. The worker serves the <c>events</c> queue as well as the default one, which is what the
-/// configured queues are for, and its worker count comes from the verb rather than from configuration.
+/// Hangfire on the side. Two servers run, each with its own worker pool and queue, which is what the
+/// <c>Servers</c> dictionary is for.
 /// </remarks>
 public class JobsTestsFixture : IAsyncLifetime
 {
     private DockerClient docker => DockerHelper.DockerClient;
 
     /// <summary>
-    /// The worker count the <c>ConfigureServer</c> delegate sets, overriding the 4 read from configuration.
+    /// The worker count of the <c>default</c> server, which configuration alone decides.
     /// </summary>
-    public const int ConfiguredWorkerCount = 6;
+    public const int DefaultServerWorkerCount = 4;
+
+    /// <summary>
+    /// The worker count the named <c>ConfigureServer</c> delegate sets on the <c>events</c> server, overriding
+    /// the 9 its configuration entry carries.
+    /// </summary>
+    public const int EventsServerWorkerCount = 3;
 
     public readonly PostgresContainer PostgresContainer = new();
     private HostHandle? hostHandle;
@@ -50,11 +56,12 @@ public class JobsTestsFixture : IAsyncLifetime
             {
                 ["OpinionatedFramework:JobEnqueuer:Driver"] = "hangfire",
                 ["OpinionatedFramework:JobScheduler:Driver"] = "hangfire",
-                ["Hangfire:StartWorker"] = "true",
-                ["Hangfire:Queues:0"] = "default",
-                ["Hangfire:Queues:1"] = "events",
-                ["Hangfire:WorkerCount"] = "4",
-                ["Hangfire:ShutdownTimeout"] = "00:00:30"
+                ["Hangfire:Servers:default:Queues:0"] = "default",
+                ["Hangfire:Servers:default:WorkerCount"] = DefaultServerWorkerCount.ToString(),
+                ["Hangfire:Servers:default:ShutdownTimeout"] = "00:00:30",
+                ["Hangfire:Servers:events:Queues:0"] = "events",
+                ["Hangfire:Servers:events:WorkerCount"] = "9",
+                ["Hangfire:Servers:events:ShutdownTimeout"] = "00:00:30"
             })
             .Build();
 
@@ -65,9 +72,9 @@ public class JobsTestsFixture : IAsyncLifetime
                     .UseRecommendedSerializerSettings()
                     .UsePostgreSqlStorage(postgres => postgres.UseNpgsqlConnection(PostgresHelper.ConnectionString)));
 
-                // Configuration sets WorkerCount to 4 and leaves Queues to it, so the running server shows
-                // whether code-level configuration wins and whether it leaves untouched settings alone.
-                hangfire.ConfigureServer(server => server.WorkerCount = ConfiguredWorkerCount);
+                // Only the events server is overridden, so the running servers show that a named delegate
+                // reaches its own server, wins over the configured value, and leaves the other server alone.
+                hangfire.ConfigureServer("events", server => server.WorkerCount = EventsServerWorkerCount);
             }));
 
         await Task.Delay(3000);

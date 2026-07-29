@@ -36,22 +36,28 @@ public class HangfireRegistrationTest(JobsTestsFixture fixture, ITestOutputHelpe
     }
 
     /// <summary>
-    /// The running server carries the queues read from configuration and the worker count set by the verb.
+    /// Every entry of the <c>Servers</c> dictionary runs as its own server, with its own queue and worker pool.
     /// </summary>
     /// <remarks>
-    /// The assertions read the server Hangfire itself announced in storage, so they describe the server that is
-    /// actually processing jobs rather than the options object the bootstrap composed. Configuration sets
-    /// <c>WorkerCount</c> to 4 and the verb overrides it, while <c>Queues</c> is left to configuration, so the
-    /// two assertions together pin down the precedence rule in both directions.
+    /// The assertions read the servers Hangfire itself announced in storage, so they describe what is actually
+    /// processing jobs rather than the options objects the bootstrap composed. The <c>events</c> entry
+    /// configures 9 workers and a named <c>ConfigureServer</c> delegate overrides it, while <c>default</c> has
+    /// no delegate, so the two worker counts together pin down both that a named delegate reaches its own
+    /// server and that it leaves the others alone.
     /// </remarks>
     [Fact]
-    public async Task ServerRunsWithTheConfiguredOptions()
+    public async Task EachConfiguredServerRunsWithItsOwnOptions()
     {
         var monitoringApi = Locator.Resolve<JobStorage>().GetMonitoringApi();
-        await PollingUtility.WaitUntilTrueAsync(() => monitoringApi.Servers().Count > 0, 10000, 500);
+        await PollingUtility.WaitUntilTrueAsync(() => monitoringApi.Servers().Count >= 2, 10000, 500);
 
-        var server = Assert.Single(monitoringApi.Servers());
-        Assert.Equal(JobsTestsFixture.ConfiguredWorkerCount, server.WorkersCount);
-        Assert.Equal(["default", "events"], server.Queues.Order());
+        // Hangfire makes the server id globally unique by appending the process id and a guid to the name.
+        var servers = monitoringApi.Servers().ToDictionary(server => server.Name.Split(':')[0]);
+
+        Assert.Equal(["default", "events"], servers.Keys.Order());
+        Assert.Equal(["default"], servers["default"].Queues);
+        Assert.Equal(["events"], servers["events"].Queues);
+        Assert.Equal(JobsTestsFixture.DefaultServerWorkerCount, servers["default"].WorkersCount);
+        Assert.Equal(JobsTestsFixture.EventsServerWorkerCount, servers["events"].WorkersCount);
     }
 }
