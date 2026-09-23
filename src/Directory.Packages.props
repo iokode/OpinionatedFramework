@@ -20,6 +20,11 @@
         <PackageVersion Include="Scriban" Version="7.2.3"/>
     </ItemGroup>
 
+    <ItemGroup Label="MyServiceBus">
+        <PackageVersion Include="Sundstrom.MyServiceBus" Version="0.1.0-preview.11"/>
+        <PackageVersion Include="Sundstrom.MyServiceBus.RabbitMq" Version="0.1.0-preview.11"/>
+    </ItemGroup>
+
     <ItemGroup Label="FluentMigrator">
         <PackageVersion Include="FluentMigrator" Version="8.0.1"/>
         <PackageVersion Include="FluentMigrator.Runner.Postgres" Version="8.0.1"/>
