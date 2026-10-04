@@ -72,9 +72,8 @@ public static class MyServiceBusEventsServiceExtensions
     /// <param name="configureTransport">Connects the bus to a broker and materializes the subscriptions.</param>
     /// <param name="configuration">Declares the handlers, or <see langword="null"/> to subscribe none.</param>
     /// <exception cref="ArgumentNullException"><paramref name="services"/> or <paramref name="configureTransport"/> is <see langword="null"/>.</exception>
-    /// <exception cref="InvalidOperationException">
-    /// Two declared event types share a name, or two handlers would subscribe to the same queue.
-    /// </exception>
+    /// <exception cref="DuplicateEventNameException">Two declared event types share a name.</exception>
+    /// <exception cref="DuplicateEventEndpointException">Two handlers would subscribe to the same queue.</exception>
     public static void AddMyServiceBusEventDispatcher(this IOpinionatedServiceCollection services,
         MyServiceBusTransportConfigurator configureTransport,
         Action<MyServiceBusEventsOptions>? configuration = null)
@@ -168,9 +167,8 @@ public static class MyServiceBusEventsServiceExtensions
                 var endpointName = EventEndpointName.For(eventType, registration.HandlerType);
                 if (takenEndpoints.TryGetValue(endpointName, out var existingHandler))
                 {
-                    throw new InvalidOperationException(
-                        $"The handlers '{existingHandler.FullName}' and '{registration.HandlerType.FullName}' " +
-                        $"would both subscribe to the queue '{endpointName}'. Rename one of them.");
+                    throw new DuplicateEventEndpointException(
+                        endpointName, registration.HandlerType, existingHandler);
                 }
 
                 takenEndpoints.Add(endpointName, registration.HandlerType);

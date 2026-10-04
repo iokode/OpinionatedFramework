@@ -84,6 +84,9 @@ public abstract class EventHandlerCollection<TPolicy> where TPolicy : new()
         // registered against a base of the event that gets dispatched.
         static Task InvokeHandler(IServiceProvider serviceProvider, IEvent @event, CancellationToken cancellationToken)
         {
+            // A provider without the handler is a state in which the call cannot mean anything, and this is
+            // the exception the provider's own GetRequiredService reports it with. Calling that extension
+            // method instead would make the contracts package depend on a dependency injection package.
             var handler = (THandler?) serviceProvider.GetService(typeof(THandler))
                 ?? throw new InvalidOperationException(
                     $"The event handler '{typeof(THandler).FullName}' is not registered in the service container.");

@@ -31,7 +31,7 @@ public static class EventNameUniqueness
         IEnumerable<Type> eventTypes, string configurationPath)
     {
         return FindClashes(eventTypes)
-            .Select(clash => new BootstrapValidationError(configurationPath, Describe(clash)))
+            .Select(clash => new BootstrapValidationError(configurationPath, Describe(clash).Message))
             .ToArray();
     }
 
@@ -43,13 +43,15 @@ public static class EventNameUniqueness
     /// </remarks>
     /// <param name="eventTypes">The concrete event types the driver knows about.</param>
     /// <exception cref="ArgumentNullException"><paramref name="eventTypes"/> is <see langword="null"/>.</exception>
-    /// <exception cref="InvalidOperationException">A name is declared by more than one event type.</exception>
+    /// <exception cref="DuplicateEventNameException">A name is declared by more than one event type.</exception>
     public static void EnsureUnique(IEnumerable<Type> eventTypes)
     {
         var clashes = FindClashes(eventTypes);
         if (clashes.Count > 0)
         {
-            throw new InvalidOperationException(string.Join(" ", clashes.Select(Describe)));
+            // The first clash is enough to stop the registration, and every clash is reported by the
+            // validation path, which is where a complete list belongs.
+            throw Describe(clashes[0]);
         }
     }
 
@@ -63,11 +65,9 @@ public static class EventNameUniqueness
             .ToArray();
     }
 
-    private static string Describe(IGrouping<string, Type> clash)
-    {
-        var declaringTypes = string.Join("', '", clash.Select(eventType => eventType.FullName));
-
-        return $"The event name '{clash.Key}' is declared by more than one event type: '{declaringTypes}'. " +
-               "An event name identifies the event beyond the running process, so it has to be unique.";
-    }
+    /// <remarks>
+    /// Both paths describe a clash with the exception, so the registration path and the validation path cannot
+    /// word the same failure differently.
+    /// </remarks>
+    private static DuplicateEventNameException Describe(IGrouping<string, Type> clash) => new(clash.Key, clash);
 }

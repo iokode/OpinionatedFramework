@@ -27,9 +27,8 @@ public static class RabbitMqEventsServiceExtensions
     /// <param name="connection">The broker connection.</param>
     /// <param name="configuration">Declares the handlers, or <see langword="null"/> to subscribe none.</param>
     /// <exception cref="ArgumentNullException"><paramref name="services"/> or <paramref name="connection"/> is <see langword="null"/>.</exception>
-    /// <exception cref="InvalidOperationException">
-    /// Two declared event types share a name, or two handlers would subscribe to the same queue.
-    /// </exception>
+    /// <exception cref="DuplicateEventNameException">Two declared event types share a name.</exception>
+    /// <exception cref="DuplicateEventEndpointException">Two handlers would subscribe to the same queue.</exception>
     public static void AddMyServiceBusRabbitMqEventDispatcher(this IOpinionatedServiceCollection services,
         MyServiceBusConnection connection, Action<MyServiceBusEventsOptions>? configuration = null)
     {

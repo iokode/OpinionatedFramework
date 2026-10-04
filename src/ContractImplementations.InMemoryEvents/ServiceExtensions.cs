@@ -15,7 +15,7 @@ public static class ServiceExtensions
     /// <param name="services">The framework service collection.</param>
     /// <param name="configuration">Declares the handlers, or <see langword="null"/> to register none.</param>
     /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
-    /// <exception cref="InvalidOperationException">Two declared event types share a name.</exception>
+    /// <exception cref="DuplicateEventNameException">Two declared event types share a name.</exception>
     public static void AddInMemoryEventDispatcher(this IOpinionatedServiceCollection services,
         Action<InMemoryEventsOptions>? configuration = null)
     {

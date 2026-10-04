@@ -24,9 +24,17 @@ public sealed class HangfireEventDispatcherBootstrapDriver : IBootstrapDriverReg
         var options = new HangfireEventsOptions();
         context.GetOptionsConfigurator<HangfireEventsOptions>()?.Invoke(options);
 
+        var concreteEventTypes = options.ResolveConcreteEventTypes();
+
         var errors = new List<BootstrapValidationError>(
-            EventNameUniqueness.Validate(
-                options.ResolveConcreteEventTypes(), context.DriverConfiguration.Path));
+            EventNameUniqueness.Validate(concreteEventTypes, context.DriverConfiguration.Path));
+
+        // This driver stores an event as JSON and rebuilds it when the job runs, so an event that does not
+        // survive that round trip is rejected now instead of when a job is already waiting for it. The round
+        // trip is the serializer the payload carries the event with.
+        errors.AddRange(EventSerializability.Validate(
+            concreteEventTypes, EventSerializer.RoundTrip, context.DriverConfiguration.Path));
+
         errors.AddRange(HangfireBootstrapRegistration.Validate(context).Errors);
 
         return new BootstrapValidationResult(errors);

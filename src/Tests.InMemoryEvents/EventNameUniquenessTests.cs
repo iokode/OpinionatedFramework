@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.InMemoryEvents;
 using IOKode.OpinionatedFramework.Drivers.Abstractions;
+using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ServiceContainer.Drivers;
 using IOKode.OpinionatedFramework.Tests.InMemoryEvents.Config;
@@ -36,7 +37,7 @@ public class EventNameUniquenessTests : IAsyncLifetime
     [Fact]
     public void Registration_rejects_two_event_types_declaring_the_same_name()
     {
-        var exception = Assert.Throws<InvalidOperationException>(() =>
+        var exception = Assert.Throws<DuplicateEventNameException>(() =>
             Container.Services.AddInMemoryEventDispatcher(events =>
             {
                 events.AddEventHandler<OrderSubmitted, SendConfirmationEmail>();

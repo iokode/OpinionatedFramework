@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using IOKode.OpinionatedFramework.Drivers.Abstractions;
-using IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
 using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.Internals.Events;
 
@@ -37,9 +36,15 @@ public sealed class MyServiceBusRabbitMqBootstrapDriver : IBootstrapDriverRegist
         var options = new MyServiceBusEventsOptions();
         context.GetOptionsConfigurator<MyServiceBusEventsOptions>()?.Invoke(options);
 
+        var concreteEventTypes = options.ResolveConcreteEventTypes();
+
         var errors = new List<BootstrapValidationError>(
-            EventNameUniqueness.Validate(
-                options.ResolveConcreteEventTypes(), context.DriverConfiguration.Path));
+            EventNameUniqueness.Validate(concreteEventTypes, context.DriverConfiguration.Path));
+
+        // The broker carries the event as JSON and the consumer rebuilds it, so an event that does not survive
+        // that round trip is rejected now instead of landing in an error queue later.
+        errors.AddRange(MyServiceBusEventSerialization.Validate(
+            concreteEventTypes, context.DriverConfiguration.Path));
 
         if (string.IsNullOrWhiteSpace(context.DriverConfiguration["Host"]))
         {

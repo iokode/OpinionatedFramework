@@ -20,7 +20,7 @@ public static class HangfireEventsServiceExtensions
     /// <param name="queueName">The queue the handler jobs are enqueued in.</param>
     /// <param name="configuration">Declares the handlers, or <see langword="null"/> to register none.</param>
     /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
-    /// <exception cref="InvalidOperationException">Two declared event types share a name.</exception>
+    /// <exception cref="DuplicateEventNameException">Two declared event types share a name.</exception>
     public static void AddHangfireEventDispatcher(this IOpinionatedServiceCollection services,
         string queueName = DefaultQueueName, Action<HangfireEventsOptions>? configuration = null)
     {
