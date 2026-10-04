@@ -23,7 +23,6 @@ public class PostgresContainer : IAsyncLifetime
         try
         {
             await DockerHelper.RemoveContainer(docker, ContainerId);
-            docker.Dispose();
         }
         catch (System.ObjectDisposedException){}
     }

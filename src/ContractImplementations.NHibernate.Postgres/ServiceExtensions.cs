@@ -1,7 +1,6 @@
 using System;
 using FluentNHibernate.Cfg;
 using IOKode.OpinionatedFramework.ServiceContainer;
-using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.Mappings;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres.UserTypes.NodaTime;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecutor;
 using NodaTime;
@@ -32,11 +31,4 @@ public static class ServiceExtensions
         }
     }
 
-    extension(FluentMappingsContainer container)
-    {
-        public void AddOpinionatedFrameworkPostgresMappings()
-        {
-            container.Add<EventMap>();
-        }
-    }
 }

@@ -2,17 +2,11 @@
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Packable.props"/>
 
-    <ItemGroup>
+    <ItemGroup Label="Project references">
         <ProjectReference Include="..\Drivers.Abstractions\Drivers.Abstractions.csproj" />
         <ProjectReference Include="..\ServiceContainer\ServiceContainer.csproj" />
         <ProjectReference Include="..\ServiceLocation\ServiceLocation.csproj" />
         <ProjectReference Include="..\Internals\Internals.csproj" />
-        <ProjectReference Include="..\Foundation\Foundation.csproj" />
+        <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Hangfire.Core" />
-        <PackageReference Include="Hangfire.NetCore" />
-    </ItemGroup>
-
 </Project>

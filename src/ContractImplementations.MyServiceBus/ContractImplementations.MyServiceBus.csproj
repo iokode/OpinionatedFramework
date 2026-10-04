@@ -2,7 +2,12 @@
     <Import Project="../MSBuild/Base.props"/>
     <Import Project="../MSBuild/Packable.props"/>
 
-    <ItemGroup>
+    <PropertyGroup Label="Base settings">
+        <!-- Preview packages report NU5104 when referenced from a stable-versioned package. -->
+        <NoWarn>$(NoWarn);NU5104</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup Label="Project references">
         <ProjectReference Include="..\Drivers.Abstractions\Drivers.Abstractions.csproj" />
         <ProjectReference Include="..\ServiceContainer\ServiceContainer.csproj" />
         <ProjectReference Include="..\ServiceLocation\ServiceLocation.csproj" />
@@ -10,9 +15,8 @@
         <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Hangfire.Core" />
-        <PackageReference Include="Hangfire.NetCore" />
+    <ItemGroup Label="Package references">
+        <!-- The runtime and its abstractions only. A transport is chosen by referencing a transport package. -->
+        <PackageReference Include="Sundstrom.MyServiceBus" />
     </ItemGroup>
-
 </Project>

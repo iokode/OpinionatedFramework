@@ -3,7 +3,7 @@
         <Project Path="ContractImplementations.Aes256GcmModeEncrypter/ContractImplementations.Aes256GcmModeEncrypter.csproj" />
         <Project Path="ContractImplementations.Bcrypt/ContractImplementations.Bcrypt.csproj" />
         <Project Path="ContractImplementations.CommandExecutor/ContractImplementations.CommandExecutor.csproj" />
-        <Project Path="ContractImplementations.Events/ContractImplementations.Events.csproj" />
+        <Project Path="ContractImplementations.InMemoryEvents/ContractImplementations.InMemoryEvents.csproj" />
         <Project Path="ContractImplementations.FluentMigrator/ContractImplementations.FluentMigrator.csproj" />
         <Project Path="ContractImplementations.FileSystem/ContractImplementations.FileSystem.csproj" />
         <Project Path="ContractImplementations.GoogleCloudStorage/ContractImplementations.GoogleCloudStorage.csproj" />
@@ -14,6 +14,8 @@
         <Project Path="ContractImplementations.MicrosoftConfiguration/ContractImplementations.MicrosoftConfiguration.csproj" />
         <Project Path="ContractImplementations.MicrosoftEALogging\ContractImplementations.MicrosoftEALogging.csproj" />
         <Project Path="ContractImplementations.NHibernate.Postgres/ContractImplementations.NHibernate.Postgres.csproj" />
+        <Project Path="ContractImplementations.MyServiceBus/ContractImplementations.MyServiceBus.csproj" />
+        <Project Path="ContractImplementations.MyServiceBus.RabbitMq/ContractImplementations.MyServiceBus.RabbitMq.csproj" />
         <Project Path="ContractImplementations.NHibernate/ContractImplementations.NHibernate.csproj" />
         <Project Path="ContractImplementations.TaskRunJobs/ContractImplementations.TaskRunJobs.csproj" />
     </Folder>
@@ -32,7 +34,7 @@
         <Project Path="Tests.Aes256GcmModeEncrypter/Tests.Aes256GcmModeEncrypter.csproj" />
         <Project Path="Tests.CommandExecutor/Tests.CommandExecutor.csproj" />
         <Project Path="Tests.Ensuring/Tests.Ensuring.csproj" />
-        <Project Path="Tests.Events/Tests.Events.csproj" />
+        <Project Path="Tests.InMemoryEvents/Tests.InMemoryEvents.csproj" />
         <Project Path="Tests.Foundation/Tests.Foundation.csproj" />
         <Project Path="Tests.GoogleCloudStorage/Tests.GoogleCloudStorage.csproj" />
         <Project Path="Tests.Hangfire/Tests.Hangfire.csproj" />
@@ -43,6 +45,7 @@
         <Project Path="Tests.MicrosoftConfiguration/Tests.MicrosoftConfiguration.csproj" />
         <Project Path="Tests.MicrosoftEALogging\Tests.MicrosoftEALogging.csproj" />
         <Project Path="Tests.Migrations/Tests.Migrations.csproj" />
+        <Project Path="Tests.MyServiceBus.RabbitMq/Tests.MyServiceBus.RabbitMq.csproj" />
         <Project Path="Tests.NHibernate.Postgres/Tests.NHibernate.Postgres.csproj" />
         <Project Path="Tests.ResourceControllers\Tests.ResourceControllers.csproj" />
         <Project Path="Tests.Resources\Tests.Resources.csproj" />
