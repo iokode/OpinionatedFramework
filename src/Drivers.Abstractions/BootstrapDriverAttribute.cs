@@ -11,13 +11,7 @@ namespace IOKode.OpinionatedFramework.Drivers.Abstractions;
 /// <typeparam name="TContract">The framework contract implemented by the driver.</typeparam>
 /// <typeparam name="TRegistrar">The registrar that validates configuration and registers the implementation.</typeparam>
 /// <param name="configurationKey">The configuration path relative to <c>OpinionatedFramework</c>.</param>
-/// <param name="driverKey">
-/// The value used by the section's <c>Driver</c> property to select this implementation. A key is written in
-/// PascalCase without separators, such as <c>InMemory</c>, and a technology that is agnostic about the
-/// infrastructure it runs on carries that infrastructure after a dot, such as <c>NHibernate.Postgres</c>. Each
-/// segment is spelled as the package providing it spells it rather than as the product writes its own name, so
-/// <c>RabbitMq</c> rather than <c>RabbitMQ</c>. A key carries no hyphen, and keys are compared ignoring case.
-/// </param>
+/// <param name="driverKey">The value used by the section's <c>Driver</c> property to select this implementation.</param>
 /// <param name="isDefault">Whether this driver is selected when the contract has no explicitly configured driver.</param>
 /// <param name="supportsNamedInstances">Whether the configuration section contains multiple named instances.</param>
 /// <example>
