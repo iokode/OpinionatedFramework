@@ -5,6 +5,8 @@
     <ItemGroup>
         <ProjectReference Include="..\Drivers.Abstractions\Drivers.Abstractions.csproj" />
         <ProjectReference Include="..\ServiceContainer\ServiceContainer.csproj" />
+        <ProjectReference Include="..\ServiceLocation\ServiceLocation.csproj" />
+        <ProjectReference Include="..\Internals\Internals.csproj" />
         <ProjectReference Include="..\Foundation\Foundation.csproj" />
     </ItemGroup>
 

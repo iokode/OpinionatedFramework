@@ -6,7 +6,7 @@ namespace IOKode.OpinionatedFramework.Events.Extensions;
 
 public static class EventExtensions
 {
-    public static async Task DispatchAsync(this Event @event, CancellationToken cancellationToken = default)
+    public static async Task DispatchAsync(this IPublishableEvent @event, CancellationToken cancellationToken = default)
     {
         var dispatcher = Locator.Resolve<IEventDispatcher>();
         await dispatcher.DispatchAsync(@event, cancellationToken);

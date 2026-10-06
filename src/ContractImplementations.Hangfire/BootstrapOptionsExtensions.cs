@@ -9,11 +9,11 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 public static class BootstrapOptionsExtensions
 {
     /// <summary>
-    /// Configures the <c>hangfire</c> driver with settings that cannot be expressed in configuration.
+    /// Configures the <c>Hangfire</c> driver with settings that cannot be expressed in configuration.
     /// </summary>
     /// <remarks>
     /// Referencing this package makes the verb available, which is not the same as its driver being selected.
-    /// Bootstrap fails when the <c>hangfire</c> driver is selected for neither the job enqueuer nor the job
+    /// Bootstrap fails when the <c>Hangfire</c> driver is selected for neither the job enqueuer nor the job
     /// scheduler, because the configuration would otherwise be discarded. The verb is named after the driver
     /// rather than after a contract, because one driver serves both contracts.
     /// </remarks>
@@ -35,6 +35,36 @@ public static class BootstrapOptionsExtensions
     /// <returns>The same options, to allow chaining.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     public static IBootstrapOptions Hangfire(this IBootstrapOptions options, Action<HangfireOptions> configure)
+    {   
+        ArgumentNullException.ThrowIfNull(options);
+
+        options.Configure(configure);
+        return options;
+    }
+
+    /// <summary>
+    /// Declares the handlers run by the <c>Hangfire</c> event dispatcher driver.
+    /// </summary>
+    /// <remarks>
+    /// Handler declarations live in their own options type rather than in <see cref="HangfireOptions"/>, because
+    /// they describe the application rather than the Hangfire setup, and because they must keep the same shape
+    /// across every event dispatcher driver so switching driver does not change what a policy means.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// options.HangfireEvents(events =>
+    /// {
+    ///     events.AddEventHandler&lt;OrderSubmitted, SendConfirmationEmail&gt;();
+    ///     events.AddEventHandler&lt;OrderSubmitted, UpdateStatistics&gt;(policy => policy.Retry(3));
+    /// });
+    /// </code>
+    /// </example>
+    /// <param name="options">The bootstrap options.</param>
+    /// <param name="configure">Declares the handlers.</param>
+    /// <returns>The same options, to allow chaining.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
+    public static IBootstrapOptions HangfireEvents(this IBootstrapOptions options,
+        Action<HangfireEventsOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(options);
 

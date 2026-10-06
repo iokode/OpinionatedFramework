@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 [assembly: BootstrapDriver<IFileDisk,
     IOKode.OpinionatedFramework.ContractImplementations.GoogleCloudStorage.GoogleCloudStorageDiskBootstrapDriver>(
-    "FileSystem:Disks", "google-cloud-storage", supportsNamedInstances: true)]
+    "FileSystem:Disks", "GoogleCloudStorage", supportsNamedInstances: true)]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.GoogleCloudStorage;
 

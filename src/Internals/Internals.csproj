@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup Label="ProjectReferences">
+        <ProjectReference Include="..\Drivers.Abstractions\Drivers.Abstractions.csproj"/>
         <ProjectReference Include="..\Foundation\Foundation.csproj"/>
     </ItemGroup>
 </Project>

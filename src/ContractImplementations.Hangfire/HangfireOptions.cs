@@ -6,7 +6,7 @@ using Hangfire;
 namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 
 /// <summary>
-/// Collects the code-level configuration of the <c>hangfire</c> driver.
+/// Collects the code-level configuration of the <c>Hangfire</c> driver.
 /// </summary>
 /// <remarks>
 /// The driver supplies one options type covering everything it registers, rather than one bootstrap verb per

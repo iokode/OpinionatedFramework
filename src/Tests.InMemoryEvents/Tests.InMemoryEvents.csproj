@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\Bootstrapping\Bootstrapping.csproj" />
+        <ProjectReference Include="..\ContractImplementations.InMemoryEvents\ContractImplementations.InMemoryEvents.csproj" />
+        <ProjectReference Include="..\SourceGenerators.BootstrapDrivers\SourceGenerators.BootstrapDrivers.csproj"
+                          OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup Label="Package references">
+        <PackageReference Include="Microsoft.Extensions.Configuration" />
+    </ItemGroup>
+</Project>

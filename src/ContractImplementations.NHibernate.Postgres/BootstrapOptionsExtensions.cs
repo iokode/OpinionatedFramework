@@ -9,10 +9,10 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgre
 public static class BootstrapOptionsExtensions
 {
     /// <summary>
-    /// Configures the <c>nhibernate-postgres</c> driver with settings that cannot be expressed in configuration.
+    /// Configures the <c>NHibernate.Postgres</c> driver with settings that cannot be expressed in configuration.
     /// </summary>
     /// <remarks>
-    /// Bootstrap fails when the <c>nhibernate-postgres</c> driver is not selected, because the configuration
+    /// Bootstrap fails when the <c>NHibernate.Postgres</c> driver is not selected, because the configuration
     /// would otherwise be discarded.
     /// </remarks>
     /// <example>

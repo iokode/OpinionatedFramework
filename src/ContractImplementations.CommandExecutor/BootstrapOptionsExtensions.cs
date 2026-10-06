@@ -13,7 +13,7 @@ public static class BootstrapOptionsExtensions
     /// </summary>
     /// <remarks>
     /// Referencing this package makes the verb available, which is not the same as its driver being selected.
-    /// Bootstrap fails when the <c>default</c> driver is not the selected one, because the configuration would
+    /// Bootstrap fails when the <c>Default</c> driver is not the selected one, because the configuration would
     /// otherwise be discarded. That happens when the contract is configured with <c>"Driver": "none"</c> so the
     /// application can register a command executor itself, or when another command executor driver is
     /// configured.

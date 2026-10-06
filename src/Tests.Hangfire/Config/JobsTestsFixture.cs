@@ -54,8 +54,10 @@ public class JobsTestsFixture : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["OpinionatedFramework:JobEnqueuer:Driver"] = "hangfire",
-                ["OpinionatedFramework:JobScheduler:Driver"] = "hangfire",
+                ["OpinionatedFramework:JobEnqueuer:Driver"] = "Hangfire",
+                ["OpinionatedFramework:JobScheduler:Driver"] = "Hangfire",
+                ["OpinionatedFramework:Events:Driver"] = "Hangfire",
+                ["OpinionatedFramework:Events:Queue"] = "events",
                 ["Hangfire:Servers:default:Queues:0"] = "default",
                 ["Hangfire:Servers:default:WorkerCount"] = DefaultServerWorkerCount.ToString(),
                 ["Hangfire:Servers:default:ShutdownTimeout"] = "00:00:30",
@@ -75,6 +77,14 @@ public class JobsTestsFixture : IAsyncLifetime
                 // Only the events server is overridden, so the running servers show that a named delegate
                 // reaches its own server, wins over the configured value, and leaves the other server alone.
                 hangfire.ConfigureServer("events", server => server.WorkerCount = EventsServerWorkerCount);
+            }).HangfireEvents(events =>
+            {
+                events.AddEventHandler<OrderSubmitted, SendConfirmationEmail>();
+                events.AddEventHandler<OrderSubmitted, UpdateStatistics>();
+                events.AddEventHandler<OrderSubmitted, FailOnFirstAttempt>(policy =>
+                    policy.Retry(1, TimeSpan.FromSeconds(1)));
+                events.AddEventHandler<OrderCancelled, AlwaysFail>(policy =>
+                    policy.Retry(2, TimeSpan.FromSeconds(1)));
             }));
 
         await Task.Delay(3000);

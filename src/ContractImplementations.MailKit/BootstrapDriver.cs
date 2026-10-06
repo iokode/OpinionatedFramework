@@ -3,7 +3,7 @@ using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.Emailing;
 
 [assembly: BootstrapDriver<IEmailSender,
-    IOKode.OpinionatedFramework.ContractImplementations.MailKit.MailKitBootstrapDriver>("Email", "mailkit")]
+    IOKode.OpinionatedFramework.ContractImplementations.MailKit.MailKitBootstrapDriver>("Email", "MailKit")]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.MailKit;
 

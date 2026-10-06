@@ -7,7 +7,7 @@ using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.QueryExecut
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 
 /// <summary>
-/// Collects the code-level configuration of the <c>nhibernate-postgres</c> driver.
+/// Collects the code-level configuration of the <c>NHibernate.Postgres</c> driver.
 /// </summary>
 /// <remarks>
 /// The driver supplies one options type covering everything it registers, rather than one bootstrap verb per

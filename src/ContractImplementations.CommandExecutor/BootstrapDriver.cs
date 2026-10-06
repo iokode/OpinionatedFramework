@@ -3,7 +3,7 @@ using IOKode.OpinionatedFramework.Commands;
 
 [assembly: BootstrapDriver<ICommandExecutor,
     IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor.CommandExecutorBootstrapDriver>(
-    "CommandExecutor", "default", true)]
+    "CommandExecutor", "Default", true)]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 
