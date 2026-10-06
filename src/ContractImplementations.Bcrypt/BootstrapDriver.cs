@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 [assembly: BootstrapDriver<IPasswordHasher,
     IOKode.OpinionatedFramework.ContractImplementations.Bcrypt.BcryptBootstrapDriver>(
-    "PasswordHashing", "bcrypt", true)]
+    "PasswordHashing", "Bcrypt", true)]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Bcrypt;
 

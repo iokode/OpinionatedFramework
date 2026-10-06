@@ -78,7 +78,7 @@ public class PublisherOnlyFixture : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["OpinionatedFramework:Events:Driver"] = "myservicebus-rabbitmq",
+                ["OpinionatedFramework:Events:Driver"] = "MyServiceBus.RabbitMq",
                 ["OpinionatedFramework:Events:Host"] = "localhost",
                 ["OpinionatedFramework:Events:Port"] = this.rabbitMq.Options.HostPort,
                 ["OpinionatedFramework:Events:Username"] = this.rabbitMq.Options.Username,

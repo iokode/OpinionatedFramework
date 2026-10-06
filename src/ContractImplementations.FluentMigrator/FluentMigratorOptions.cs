@@ -5,7 +5,7 @@ using System.Reflection;
 namespace IOKode.OpinionatedFramework.ContractImplementations.FluentMigrator;
 
 /// <summary>
-/// Collects the code-level configuration of the <c>fluent-migrator</c> driver.
+/// Collects the code-level configuration of the <c>FluentMigrator</c> driver.
 /// </summary>
 public sealed class FluentMigratorOptions
 {

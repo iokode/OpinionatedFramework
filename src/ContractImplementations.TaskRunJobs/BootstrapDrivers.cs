@@ -2,8 +2,8 @@ using IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.Jobs;
 
-[assembly: BootstrapDriver<IJobEnqueuer, TaskRunJobEnqueuerBootstrapDriver>("JobEnqueuer", "task-run", true)]
-[assembly: BootstrapDriver<IJobScheduler, TaskRunJobSchedulerBootstrapDriver>("JobScheduler", "task-run", true)]
+[assembly: BootstrapDriver<IJobEnqueuer, TaskRunJobEnqueuerBootstrapDriver>("JobEnqueuer", "TaskRun", true)]
+[assembly: BootstrapDriver<IJobScheduler, TaskRunJobSchedulerBootstrapDriver>("JobScheduler", "TaskRun", true)]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.TaskRunJobs;
 

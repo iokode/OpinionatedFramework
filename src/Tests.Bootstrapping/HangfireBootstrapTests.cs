@@ -83,7 +83,7 @@ public class HangfireBootstrapTests : IAsyncLifetime
         var configuration = BuildConfiguration(new Dictionary<string, string?>
         {
             // The scheduler alone selects the driver, so the enqueuer falls back to its default.
-            ["OpinionatedFramework:JobEnqueuer:Driver"] = "task-run"
+            ["OpinionatedFramework:JobEnqueuer:Driver"] = "TaskRun"
         });
 
         DriverRegistration.RegisterDrivers(configuration, BuildOptions());
@@ -193,9 +193,9 @@ public class HangfireBootstrapTests : IAsyncLifetime
     {
         var values = new Dictionary<string, string?>(settings ?? [])
         {
-            ["OpinionatedFramework:JobScheduler:Driver"] = "hangfire"
+            ["OpinionatedFramework:JobScheduler:Driver"] = "Hangfire"
         };
-        values.TryAdd("OpinionatedFramework:JobEnqueuer:Driver", "hangfire");
+        values.TryAdd("OpinionatedFramework:JobEnqueuer:Driver", "Hangfire");
         if (withDefaultServer && !values.Keys.Any(key => key.StartsWith("Hangfire:Servers:", StringComparison.Ordinal)))
         {
             values.Add("Hangfire:Servers:default:Queues:0", "default");
@@ -222,7 +222,7 @@ public class HangfireBootstrapTests : IAsyncLifetime
 
     /// <summary>
     /// Matches the hosted service <c>AddHangfireServer</c> registers, told apart from the one the
-    /// <c>task-run</c> driver registers by the assembly its factory comes from.
+    /// <c>TaskRun</c> driver registers by the assembly its factory comes from.
     /// </summary>
     private static bool IsHangfireServer(ServiceDescriptor service)
     {

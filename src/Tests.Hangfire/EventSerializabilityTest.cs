@@ -37,7 +37,7 @@ public class EventSerializabilityTest : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["OpinionatedFramework:Events:Driver"] = "hangfire"
+                ["OpinionatedFramework:Events:Driver"] = "Hangfire"
             })
             .Build();
 

@@ -8,8 +8,8 @@ using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.Jobs;
 using Microsoft.Extensions.Configuration;
 
-[assembly: BootstrapDriver<IJobEnqueuer, HangfireJobEnqueuerBootstrapDriver>("JobEnqueuer", "hangfire")]
-[assembly: BootstrapDriver<IJobScheduler, HangfireJobSchedulerBootstrapDriver>("JobScheduler", "hangfire")]
+[assembly: BootstrapDriver<IJobEnqueuer, HangfireJobEnqueuerBootstrapDriver>("JobEnqueuer", "Hangfire")]
+[assembly: BootstrapDriver<IJobScheduler, HangfireJobSchedulerBootstrapDriver>("JobScheduler", "Hangfire")]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 

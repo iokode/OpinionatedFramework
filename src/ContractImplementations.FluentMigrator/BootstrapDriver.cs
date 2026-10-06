@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-[assembly: BootstrapDriver<IMigrator, FluentMigratorBootstrapDriver>("Migrations", "fluent-migrator")]
+[assembly: BootstrapDriver<IMigrator, FluentMigratorBootstrapDriver>("Migrations", "FluentMigrator")]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.FluentMigrator;
 

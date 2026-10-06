@@ -9,11 +9,11 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 public static class BootstrapOptionsExtensions
 {
     /// <summary>
-    /// Configures the <c>hangfire</c> driver with settings that cannot be expressed in configuration.
+    /// Configures the <c>Hangfire</c> driver with settings that cannot be expressed in configuration.
     /// </summary>
     /// <remarks>
     /// Referencing this package makes the verb available, which is not the same as its driver being selected.
-    /// Bootstrap fails when the <c>hangfire</c> driver is selected for neither the job enqueuer nor the job
+    /// Bootstrap fails when the <c>Hangfire</c> driver is selected for neither the job enqueuer nor the job
     /// scheduler, because the configuration would otherwise be discarded. The verb is named after the driver
     /// rather than after a contract, because one driver serves both contracts.
     /// </remarks>
@@ -43,7 +43,7 @@ public static class BootstrapOptionsExtensions
     }
 
     /// <summary>
-    /// Declares the handlers run by the <c>hangfire</c> event dispatcher driver.
+    /// Declares the handlers run by the <c>Hangfire</c> event dispatcher driver.
     /// </summary>
     /// <remarks>
     /// Handler declarations live in their own options type rather than in <see cref="HangfireOptions"/>, because

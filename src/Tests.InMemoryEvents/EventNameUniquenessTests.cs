@@ -54,7 +54,7 @@ public class EventNameUniquenessTests : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["OpinionatedFramework:Events:Driver"] = "in-memory"
+                ["OpinionatedFramework:Events:Driver"] = "InMemory"
             })
             .Build();
 
