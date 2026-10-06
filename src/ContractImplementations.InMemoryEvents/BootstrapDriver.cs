@@ -3,7 +3,7 @@ using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.Internals.Events;
 
 [assembly: BootstrapDriver<IEventDispatcher,
-    IOKode.OpinionatedFramework.ContractImplementations.InMemoryEvents.InMemoryEventDispatcherBootstrapDriver>("Events", "in-memory", true)]
+    IOKode.OpinionatedFramework.ContractImplementations.InMemoryEvents.InMemoryEventDispatcherBootstrapDriver>("Events", "InMemory", true)]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.InMemoryEvents;
 

@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 [assembly: BootstrapDriver<IFileDisk,
     IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem.LocalFileDiskBootstrapDriver>(
-    "FileSystem:Disks", "local", supportsNamedInstances: true)]
+    "FileSystem:Disks", "Local", supportsNamedInstances: true)]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.LocalFileSystem;
 

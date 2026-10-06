@@ -19,20 +19,20 @@ public class BootstrapDriversGeneratorTests
     [Fact]
     public void DriverFromPackageMetadataReferenceIsDiscovered()
     {
-        var packageReference = CompileDriverAssembly("ThirdParty.Driver", "third-party");
+        var packageReference = CompileDriverAssembly("ThirdParty.Driver", "ThirdParty");
         var runResult = RunGenerator([packageReference]);
 
         Assert.Empty(runResult.Diagnostics);
         var generatedSource = Assert.Single(runResult.Results).GeneratedSources.Single().SourceText.ToString();
         Assert.Contains("global::ThirdParty.DriverRegistrar", generatedSource);
-        Assert.Contains("\"third-party\"", generatedSource);
+        Assert.Contains("\"ThirdParty\"", generatedSource);
     }
 
     [Fact]
     public void DuplicateContractAndDriverKeyProducesDiagnostic()
     {
-        var firstPackage = CompileDriverAssembly("First.Driver", "duplicate");
-        var secondPackage = CompileDriverAssembly("Second.Driver", "duplicate");
+        var firstPackage = CompileDriverAssembly("First.Driver", "Duplicate");
+        var secondPackage = CompileDriverAssembly("Second.Driver", "Duplicate");
         var runResult = RunGenerator([firstPackage, secondPackage]);
 
         var diagnostic = Assert.Single(runResult.Diagnostics, diagnostic => diagnostic.Id == "OF0002");

@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 [assembly: BootstrapDriver<IEncrypter,
     IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter.Aes256GcmBootstrapDriver>(
-    "Encryption", "aes-256-gcm")]
+    "Encryption", "Aes256Gcm")]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Aes256GcmModeEncrypter;
 

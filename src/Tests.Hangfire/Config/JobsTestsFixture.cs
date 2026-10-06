@@ -54,9 +54,9 @@ public class JobsTestsFixture : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["OpinionatedFramework:JobEnqueuer:Driver"] = "hangfire",
-                ["OpinionatedFramework:JobScheduler:Driver"] = "hangfire",
-                ["OpinionatedFramework:Events:Driver"] = "hangfire",
+                ["OpinionatedFramework:JobEnqueuer:Driver"] = "Hangfire",
+                ["OpinionatedFramework:JobScheduler:Driver"] = "Hangfire",
+                ["OpinionatedFramework:Events:Driver"] = "Hangfire",
                 ["OpinionatedFramework:Events:Queue"] = "events",
                 ["Hangfire:Servers:default:Queues:0"] = "default",
                 ["Hangfire:Servers:default:WorkerCount"] = DefaultServerWorkerCount.ToString(),

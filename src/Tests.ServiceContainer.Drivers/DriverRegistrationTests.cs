@@ -16,16 +16,22 @@ public class DriverRegistrationTests : IAsyncLifetime
     static DriverRegistrationTests()
     {
         BootstrapDriverCatalog.Register<FirstInvalidDriverRegistrar>(
-            typeof(IFirstInvalidDriver), "FirstInvalidDriver", "invalid", false, false,
+            typeof(IFirstInvalidDriver), "FirstInvalidDriver", "Invalid", false, false,
             "Tests.ServiceContainer.Drivers");
         BootstrapDriverCatalog.Register<SecondInvalidDriverRegistrar>(
-            typeof(ISecondInvalidDriver), "SecondInvalidDriver", "invalid", false, false,
+            typeof(ISecondInvalidDriver), "SecondInvalidDriver", "Invalid", false, false,
             "Tests.ServiceContainer.Drivers");
         BootstrapDriverCatalog.Register<NamedDriverRegistrar>(
-            typeof(INamedDriver), "NamedDrivers", "shared", false, true,
+            typeof(INamedDriver), "NamedDrivers", "Shared", false, true,
             "Tests.ServiceContainer.Drivers");
         BootstrapDriverCatalog.Register<ConfigurableDriverRegistrar>(
-            typeof(IConfigurableDriver), "ConfigurableDriver", "configurable", false, false,
+            typeof(IConfigurableDriver), "ConfigurableDriver", "Configurable", false, false,
+            "Tests.ServiceContainer.Drivers");
+        BootstrapDriverCatalog.Register<TransportDriverRegistrar>(
+            typeof(ITransportDriver), "TransportDriver", "TestBus.FirstTransport", false, false,
+            "Tests.ServiceContainer.Drivers");
+        BootstrapDriverCatalog.Register<TransportDriverRegistrar>(
+            typeof(ITransportDriver), "TransportDriver", "TestBus.SecondTransport", false, false,
             "Tests.ServiceContainer.Drivers");
     }
 
@@ -45,13 +51,13 @@ public class DriverRegistrationTests : IAsyncLifetime
     public void GeneratedCatalogContainsReferencedPackageDrivers()
     {
         Assert.Contains(BootstrapDriverCatalog.RegisteredDrivers,
-            driver => driver.ContractType == typeof(IEmailSender) && driver.DriverKey == "logger");
+            driver => driver.ContractType == typeof(IEmailSender) && driver.DriverKey == "Logger");
         Assert.Contains(BootstrapDriverCatalog.RegisteredDrivers,
-            driver => driver.ContractType == typeof(IEmailSender) && driver.DriverKey == "mailkit");
+            driver => driver.ContractType == typeof(IEmailSender) && driver.DriverKey == "MailKit");
         Assert.Contains(BootstrapDriverCatalog.RegisteredDrivers,
-            driver => driver.ContractType == typeof(IJobEnqueuer) && driver.DriverKey == "task-run");
+            driver => driver.ContractType == typeof(IJobEnqueuer) && driver.DriverKey == "TaskRun");
         Assert.Contains(BootstrapDriverCatalog.RegisteredDrivers,
-            driver => driver.ContractType == typeof(IJobScheduler) && driver.DriverKey == "task-run");
+            driver => driver.ContractType == typeof(IJobScheduler) && driver.DriverKey == "TaskRun");
     }
 
     [Fact]
@@ -60,7 +66,7 @@ public class DriverRegistrationTests : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["OpinionatedFramework:Email:Driver"] = "mailkit"
+                ["OpinionatedFramework:Email:Driver"] = "MailKit"
             })
             .Build();
 
@@ -85,7 +91,24 @@ public class DriverRegistrationTests : IAsyncLifetime
         var exception = Assert.Throws<BootstrapConfigurationException>(() =>
             DriverRegistration.RegisterDrivers(configuration));
 
-        Assert.Contains("Available drivers: logger, mailkit", exception.Message);
+        Assert.Contains("Available drivers: Logger, MailKit", exception.Message);
+    }
+
+    [Fact]
+    public void KeyNamingATechnologyWithoutItsInfrastructureReportsTheCandidates()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["OpinionatedFramework:TransportDriver:Driver"] = "TestBus"
+            })
+            .Build();
+
+        var exception = Assert.Throws<BootstrapConfigurationException>(() =>
+            DriverRegistration.RegisterDrivers(configuration));
+
+        Assert.Contains("missing the infrastructure segment", exception.Message);
+        Assert.Contains("Candidate drivers: TestBus.FirstTransport, TestBus.SecondTransport", exception.Message);
     }
 
     [Fact]
@@ -94,8 +117,8 @@ public class DriverRegistrationTests : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["OpinionatedFramework:FirstInvalidDriver:Driver"] = "invalid",
-                ["OpinionatedFramework:SecondInvalidDriver:Driver"] = "invalid"
+                ["OpinionatedFramework:FirstInvalidDriver:Driver"] = "Invalid",
+                ["OpinionatedFramework:SecondInvalidDriver:Driver"] = "Invalid"
             })
             .Build();
 
@@ -113,8 +136,8 @@ public class DriverRegistrationTests : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["OpinionatedFramework:NamedDrivers:first:Driver"] = "shared",
-                ["OpinionatedFramework:NamedDrivers:second:Driver"] = "shared"
+                ["OpinionatedFramework:NamedDrivers:first:Driver"] = "Shared",
+                ["OpinionatedFramework:NamedDrivers:second:Driver"] = "Shared"
             })
             .Build();
 
@@ -160,7 +183,7 @@ public class DriverRegistrationTests : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["OpinionatedFramework:NamedDrivers:first:Driver"] = "shared",
+                ["OpinionatedFramework:NamedDrivers:first:Driver"] = "Shared",
                 ["OpinionatedFramework:NamedDrivers:second:Driver"] = "none"
             })
             .Build();
@@ -187,7 +210,7 @@ public class DriverRegistrationTests : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["OpinionatedFramework:ConfigurableDriver:Driver"] = "configurable"
+                ["OpinionatedFramework:ConfigurableDriver:Driver"] = "Configurable"
             })
             .Build();
         var options = new BootstrapOptions();
@@ -217,6 +240,7 @@ public class DriverRegistrationTests : IAsyncLifetime
     private interface INamedDriver;
     private interface IConfigurableDriver;
     private interface IReservedKeyDriver;
+    private interface ITransportDriver;
 
     private sealed class ConfigurableDriverOptions
     {
@@ -242,6 +266,23 @@ public class DriverRegistrationTests : IAsyncLifetime
         public static void Reset()
         {
             ConfiguredValue = null;
+        }
+    }
+
+    /// <summary>
+    /// Stands for a technology that is agnostic about the infrastructure it runs on, so its keys carry that
+    /// infrastructure after a dot and naming the technology alone selects nothing.
+    /// </summary>
+    private sealed class TransportDriverRegistrar : IBootstrapDriverRegistrar
+    {
+        public static BootstrapValidationResult Validate(BootstrapDriverContext context)
+        {
+            return BootstrapValidationResult.Success;
+        }
+
+        public static void Register(BootstrapDriverContext context)
+        {
+            throw new Xunit.Sdk.XunitException("An incomplete driver key must not select a driver.");
         }
     }
 

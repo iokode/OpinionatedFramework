@@ -7,8 +7,8 @@ using IOKode.OpinionatedFramework.Persistence.Queries;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using Microsoft.Extensions.Configuration;
 
-[assembly: BootstrapDriver<IUnitOfWorkFactory, NHibernatePostgresBootstrapDriver>("UnitOfWork", "nhibernate-postgres")]
-[assembly: BootstrapDriver<IQueryExecutor, NHibernatePostgresBootstrapDriver>("QueryExecutor", "nhibernate-postgres")]
+[assembly: BootstrapDriver<IUnitOfWorkFactory, NHibernatePostgresBootstrapDriver>("UnitOfWork", "NHibernate.Postgres")]
+[assembly: BootstrapDriver<IQueryExecutor, NHibernatePostgresBootstrapDriver>("QueryExecutor", "NHibernate.Postgres")]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
 

@@ -6,12 +6,12 @@ using IOKode.OpinionatedFramework.Internals.Events;
 
 [assembly: BootstrapDriver<IEventDispatcher,
     IOKode.OpinionatedFramework.ContractImplementations.Hangfire.HangfireEventDispatcherBootstrapDriver>(
-    "Events", "hangfire")]
+    "Events", "Hangfire")]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
 
 /// <summary>
-/// Registers the Hangfire-backed event dispatcher when the <c>hangfire</c> driver is selected for events.
+/// Registers the Hangfire-backed event dispatcher when the <c>Hangfire</c> driver is selected for events.
 /// </summary>
 /// <remarks>
 /// Selecting this driver requires a Hangfire server processing the configured queue. Without one the events are

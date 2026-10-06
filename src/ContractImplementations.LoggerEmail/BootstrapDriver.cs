@@ -3,7 +3,7 @@ using IOKode.OpinionatedFramework.Emailing;
 
 [assembly: BootstrapDriver<IEmailSender,
     IOKode.OpinionatedFramework.ContractImplementations.LoggerEmail.LoggerEmailBootstrapDriver>(
-    "Email", "logger", true)]
+    "Email", "Logger", true)]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.LoggerEmail;
 

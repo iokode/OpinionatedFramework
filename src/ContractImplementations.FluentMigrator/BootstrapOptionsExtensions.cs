@@ -12,7 +12,7 @@ public static class BootstrapOptionsExtensions
     /// Configures the FluentMigrator driver with settings that cannot be expressed in configuration.
     /// </summary>
     /// <remarks>
-    /// Bootstrap fails when the <c>fluent-migrator</c> driver is not selected, because the configuration would
+    /// Bootstrap fails when the <c>FluentMigrator</c> driver is not selected, because the configuration would
     /// otherwise be discarded.
     /// </remarks>
     /// <example>

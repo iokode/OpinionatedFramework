@@ -6,18 +6,18 @@ using IOKode.OpinionatedFramework.Internals.Events;
 
 [assembly: BootstrapDriver<IEventDispatcher,
     IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus.RabbitMq.MyServiceBusRabbitMqBootstrapDriver>(
-    "Events", "myservicebus-rabbitmq")]
+    "Events", "MyServiceBus.RabbitMq")]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus.RabbitMq;
 
 /// <summary>
-/// Registers the RabbitMQ-carried event dispatcher when the <c>myservicebus-rabbitmq</c> driver is selected.
+/// Registers the RabbitMQ-carried event dispatcher when the <c>MyServiceBus.RabbitMq</c> driver is selected.
 /// </summary>
 /// <example>
 /// <code>
 /// "OpinionatedFramework": {
 ///   "Events": {
-///     "Driver": "myservicebus-rabbitmq",
+///     "Driver": "MyServiceBus.RabbitMq",
 ///     "Host": "localhost",
 ///     "Port": 5672,
 ///     "Username": "guest",
@@ -50,7 +50,7 @@ public sealed class MyServiceBusRabbitMqBootstrapDriver : IBootstrapDriverRegist
         {
             errors.Add(new BootstrapValidationError(
                 $"{context.DriverConfiguration.Path}:Host",
-                "A broker host is required by the myservicebus-rabbitmq driver."));
+                "A broker host is required by the MyServiceBus.RabbitMq driver."));
         }
 
         if (ReadPort(context) is null)
