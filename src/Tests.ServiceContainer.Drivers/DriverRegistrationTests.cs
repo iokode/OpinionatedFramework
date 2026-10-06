@@ -27,12 +27,6 @@ public class DriverRegistrationTests : IAsyncLifetime
         BootstrapDriverCatalog.Register<ConfigurableDriverRegistrar>(
             typeof(IConfigurableDriver), "ConfigurableDriver", "Configurable", false, false,
             "Tests.ServiceContainer.Drivers");
-        BootstrapDriverCatalog.Register<TransportDriverRegistrar>(
-            typeof(ITransportDriver), "TransportDriver", "TestBus.FirstTransport", false, false,
-            "Tests.ServiceContainer.Drivers");
-        BootstrapDriverCatalog.Register<TransportDriverRegistrar>(
-            typeof(ITransportDriver), "TransportDriver", "TestBus.SecondTransport", false, false,
-            "Tests.ServiceContainer.Drivers");
     }
 
     public Task InitializeAsync()
@@ -92,23 +86,6 @@ public class DriverRegistrationTests : IAsyncLifetime
             DriverRegistration.RegisterDrivers(configuration));
 
         Assert.Contains("Available drivers: Logger, MailKit", exception.Message);
-    }
-
-    [Fact]
-    public void KeyNamingATechnologyWithoutItsInfrastructureReportsTheCandidates()
-    {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["OpinionatedFramework:TransportDriver:Driver"] = "TestBus"
-            })
-            .Build();
-
-        var exception = Assert.Throws<BootstrapConfigurationException>(() =>
-            DriverRegistration.RegisterDrivers(configuration));
-
-        Assert.Contains("missing the infrastructure segment", exception.Message);
-        Assert.Contains("Candidate drivers: TestBus.FirstTransport, TestBus.SecondTransport", exception.Message);
     }
 
     [Fact]
@@ -240,7 +217,6 @@ public class DriverRegistrationTests : IAsyncLifetime
     private interface INamedDriver;
     private interface IConfigurableDriver;
     private interface IReservedKeyDriver;
-    private interface ITransportDriver;
 
     private sealed class ConfigurableDriverOptions
     {
@@ -266,23 +242,6 @@ public class DriverRegistrationTests : IAsyncLifetime
         public static void Reset()
         {
             ConfiguredValue = null;
-        }
-    }
-
-    /// <summary>
-    /// Stands for a technology that is agnostic about the infrastructure it runs on, so its keys carry that
-    /// infrastructure after a dot and naming the technology alone selects nothing.
-    /// </summary>
-    private sealed class TransportDriverRegistrar : IBootstrapDriverRegistrar
-    {
-        public static BootstrapValidationResult Validate(BootstrapDriverContext context)
-        {
-            return BootstrapValidationResult.Success;
-        }
-
-        public static void Register(BootstrapDriverContext context)
-        {
-            throw new Xunit.Sdk.XunitException("An incomplete driver key must not select a driver.");
         }
     }
 

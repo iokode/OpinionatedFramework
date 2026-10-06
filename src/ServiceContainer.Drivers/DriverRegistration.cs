@@ -146,23 +146,6 @@ public static class DriverRegistration
             string.Equals(driver.DriverKey, configuredDriverKey, StringComparison.OrdinalIgnoreCase));
         if (selectedDriver is null)
         {
-            // A key names its technology and, when the technology is agnostic about the infrastructure it runs
-            // on, a dot and that infrastructure. Naming the technology alone is a key that looks right, so it
-            // is told apart from any other unknown key and answered with the combinations that exist.
-            var infrastructureCandidates = availableDriversArray
-                .Select(driver => driver.DriverKey)
-                .Where(driverKey => driverKey.StartsWith($"{configuredDriverKey}.", StringComparison.OrdinalIgnoreCase))
-                .Order()
-                .ToArray();
-            if (infrastructureCandidates.Length > 0)
-            {
-                throw new BootstrapConfigurationException(
-                    $"Driver '{configuredDriverKey}' for contract '{availableDriversArray[0].ContractType.FullName}' " +
-                    $"is missing the infrastructure segment of its key. " +
-                    $"Candidate drivers: {string.Join(", ", infrastructureCandidates)}. " +
-                    $"Configuration path: {driverConfiguration.Path}:Driver.");
-            }
-
             var availableKeys = string.Join(", ", availableDriversArray.Select(driver => driver.DriverKey).Order());
             throw new BootstrapConfigurationException(
                 $"Unknown driver '{configuredDriverKey}' for contract '{availableDriversArray[0].ContractType.FullName}'. " +
