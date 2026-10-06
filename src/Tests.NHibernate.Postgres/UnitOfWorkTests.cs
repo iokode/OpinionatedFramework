@@ -5,6 +5,7 @@ using Dapper;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config;
 using IOKode.OpinionatedFramework.Tests.NHibernate.Postgres.Config.Entities;
 using Xunit;
@@ -74,6 +75,40 @@ public class UnitOfWorkTests(NHibernateTestsFixture fixture, ITestOutputHelper o
         var shouldSaved = await npgsqlClient.QuerySingleOrDefaultAsync<(string, string, string, bool)>("SELECT * FROM users;");
         Assert.Equal("Ivan", shouldSaved.Item2);
         await Assert.ThrowsAsync<ArgumentException>(async () => { await repository.AddAsync(user, default); });
+    }
+
+    [Fact]
+    public async Task BulkDeleteByFilter()
+    {
+        // Arrange
+        await npgsqlClient.ExecuteAsync("INSERT INTO Users (id, name, email, is_active) VALUES ('1', 'Ivan', 'ivan@example.com', true), ('2', 'Marta', 'marta@example.com', false), ('3', 'Javier', 'javier@example.com', false);");
+        var sessionFactory = configuration.BuildSessionFactory();
+        sessionFactory.Statistics.IsStatisticsEnabled = true;
+        await using IUnitOfWork unitOfWork = new UnitOfWork(sessionFactory);
+        await unitOfWork.BeginTransactionAsync();
+
+        var filter = new OrFilter(
+            new EqualsFilter(nameof(User.Username), "Nobody"),
+            new AndFilter(
+                new EqualsFilter(nameof(User.IsActive), false),
+                new NotEqualsFilter(nameof(User.Username), "Marta"),
+                new InFilter(nameof(User.Username), "Marta", "Javier"),
+                new BetweenFilter(nameof(User.Username), "Ana", "Zoe"),
+                new GreaterThanFilter(nameof(User.Username), "Ana"),
+                new LessThanFilter(nameof(User.Username), "Zoe"),
+                new LikeFilter(nameof(User.Username), "%v%"),
+                new NotFilter(new EqualsFilter(nameof(User.Username), "Ivan"))));
+
+        // Act
+        await unitOfWork.DeleteAsync<User>(filter);
+
+        // Assert
+        Assert.Equal(0, sessionFactory.Statistics.EntityLoadCount);
+        Assert.Equal(3, await npgsqlClient.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Users;"));
+
+        await unitOfWork.CommitTransactionAsync();
+        Assert.Equal(2, await npgsqlClient.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Users;"));
+        Assert.Equal(0, await npgsqlClient.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Users WHERE name = 'Javier';"));
     }
 
     [Fact]

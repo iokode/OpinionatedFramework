@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Ensuring;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters;
 
 namespace IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 
@@ -22,6 +23,8 @@ public interface IUnitOfWork : IAsyncDisposable
     public Task AddAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity;
 
     public Task DeleteAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : Entity;
+
+    public Task DeleteAsync<TEntity>(Filter filter, CancellationToken cancellationToken = default) where TEntity : Entity;
     
     public async Task DeleteAsync<TEntity, TId>(TId entityId, CancellationToken cancellationToken = default)
         where TEntity : Entity

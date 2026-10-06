@@ -9,6 +9,7 @@ using IOKode.OpinionatedFramework.Persistence.Queries;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.Exceptions;
 using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder;
+using IOKode.OpinionatedFramework.Persistence.UnitOfWork.QueryBuilder.Filters;
 using IOKode.OpinionatedFramework.ServiceLocation;
 using NHibernate;
 
@@ -88,6 +89,25 @@ public class UnitOfWork : IUnitOfWork
     {
         ThrowsIfRolledBack();
         await this.session.DeleteAsync(entity, cancellationToken);
+    }
+
+    public async Task DeleteAsync<TEntity>(Filter filter, CancellationToken cancellationToken = default)
+        where TEntity : Entity
+    {
+        ThrowsIfRolledBack();
+
+        var filterBuilder = new FilterHqlBuilder();
+        string predicate = filterBuilder.Build(filter);
+        string entityName = this.session.SessionFactory.GetClassMetadata(typeof(TEntity))?.EntityName
+            ?? throw new MappingException($"Type '{typeof(TEntity).FullName}' is not mapped as an entity.");
+        var query = this.session.CreateQuery($"delete from {entityName} where {predicate}");
+
+        foreach ((string name, object value) in filterBuilder.Parameters)
+        {
+            query.SetParameter(name, value);
+        }
+
+        await query.ExecuteUpdateAsync(cancellationToken);
     }
 
     public Task<bool> IsTrackedAsync<T>(T entity, CancellationToken cancellationToken = default) where T : Entity
