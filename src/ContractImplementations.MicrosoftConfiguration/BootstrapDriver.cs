@@ -3,7 +3,7 @@ using IOKode.OpinionatedFramework.Configuration;
 
 [assembly: BootstrapDriver<IConfigurationProvider,
     IOKode.OpinionatedFramework.ContractImplementations.MicrosoftConfiguration.MicrosoftConfigurationBootstrapDriver>(
-    "Configuration", "Microsoft", true)]
+    "Configuration", "MicrosoftExtensions", true)]
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.MicrosoftConfiguration;
 
