@@ -36,7 +36,11 @@ public class InMemoryEventsBootstrapTests : IAsyncLifetime
             .Build();
 
         this.host = await OpinionatedFrameworkBootstrapping.StartAsync(configuration, options =>
-            options.InMemoryEvents(events => events.AddEventHandler<OrderSubmitted, SendConfirmationEmail>()));
+            options.InMemoryEvents(events =>
+            {
+                events.Publishes<OrderSubmitted>();
+                events.Handles<OrderSubmitted, SendConfirmationEmail>();
+            }));
     }
 
     public async Task DisposeAsync()

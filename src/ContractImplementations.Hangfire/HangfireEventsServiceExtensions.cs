@@ -18,7 +18,9 @@ public static class HangfireEventsServiceExtensions
     /// </summary>
     /// <param name="services">The framework service collection.</param>
     /// <param name="queueName">The queue the handler jobs are enqueued in.</param>
-    /// <param name="configuration">Declares the handlers, or <see langword="null"/> to register none.</param>
+    /// <param name="configuration">
+    /// Declares the events and their handlers, or <see langword="null"/> to declare none.
+    /// </param>
     /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
     /// <exception cref="DuplicateEventNameException">Two declared event types share a name.</exception>
     public static void AddHangfireEventDispatcher(this IOpinionatedServiceCollection services,
@@ -30,8 +32,8 @@ public static class HangfireEventsServiceExtensions
         var options = new HangfireEventsOptions();
         configuration?.Invoke(options);
 
-        var concreteEventTypes = options.ResolveConcreteEventTypes();
-        EventNameUniqueness.EnsureUnique(concreteEventTypes);
+        var declaredEventTypes = options.DeclaredEventTypes;
+        EventNameUniqueness.EnsureUnique(declaredEventTypes);
 
         // Hangfire resolves filters through a process-wide provider collection, so this is what makes the
         // declared retry policy reach the job.
@@ -43,7 +45,7 @@ public static class HangfireEventsServiceExtensions
         }
 
         services.AddSingleton(options);
-        services.AddSingleton(new HangfireEventTypeMap(new EventTypeMap(concreteEventTypes)));
+        services.AddSingleton(new HangfireEventTypeMap(new EventTypeMap(declaredEventTypes)));
         services.AddTransient<IEventDispatcher>(provider =>
             new HangfireEventDispatcher(options, provider.GetRequiredService<IJobEnqueuer>(), queueName));
     }

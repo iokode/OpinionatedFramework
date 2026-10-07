@@ -40,8 +40,8 @@ public class EventNameUniquenessTests : IAsyncLifetime
         var exception = Assert.Throws<DuplicateEventNameException>(() =>
             Container.Services.AddInMemoryEventDispatcher(events =>
             {
-                events.AddEventHandler<OrderSubmitted, SendConfirmationEmail>();
-                events.AddEventHandler<DuplicateOrderSubmitted, HandleDuplicate>();
+                events.Handles<OrderSubmitted, SendConfirmationEmail>();
+                events.Handles<DuplicateOrderSubmitted, HandleDuplicate>();
             }));
 
         Assert.Contains("tests.order-submitted", exception.Message, StringComparison.Ordinal);
@@ -62,8 +62,8 @@ public class EventNameUniquenessTests : IAsyncLifetime
             OpinionatedFrameworkBootstrapping.StartAsync(configuration, options =>
                 options.InMemoryEvents(events =>
                 {
-                    events.AddEventHandler<OrderSubmitted, SendConfirmationEmail>();
-                    events.AddEventHandler<DuplicateOrderSubmitted, HandleDuplicate>();
+                    events.Handles<OrderSubmitted, SendConfirmationEmail>();
+                    events.Handles<DuplicateOrderSubmitted, HandleDuplicate>();
                 })));
 
         // Reported as a configuration error, so the application never starts with an ambiguous event identity.

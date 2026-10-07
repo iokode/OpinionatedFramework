@@ -25,7 +25,9 @@ public static class RabbitMqEventsServiceExtensions
     /// </remarks>
     /// <param name="services">The framework service collection.</param>
     /// <param name="connection">The broker connection.</param>
-    /// <param name="configuration">Declares the handlers, or <see langword="null"/> to subscribe none.</param>
+    /// <param name="configuration">
+    /// Declares the events and their handlers, or <see langword="null"/> to declare none.
+    /// </param>
     /// <exception cref="ArgumentNullException"><paramref name="services"/> or <paramref name="connection"/> is <see langword="null"/>.</exception>
     /// <exception cref="DuplicateEventNameException">Two declared event types share a name.</exception>
     /// <exception cref="DuplicateEventEndpointException">Two handlers would subscribe to the same queue.</exception>

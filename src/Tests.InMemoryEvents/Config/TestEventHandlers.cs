@@ -13,18 +13,28 @@ namespace IOKode.OpinionatedFramework.Tests.InMemoryEvents.Config;
 /// </summary>
 public static class HandledEvents
 {
-    private static readonly ConcurrentBag<(string Handler, string EventName)> handled = [];
+    private static readonly ConcurrentBag<(string Handler, string EventName, string? Payload)> handled = [];
     private static int attempts;
 
-    public static void Record<THandler>(IEvent @event)
+    /// <param name="event">The event the handler received.</param>
+    /// <param name="payload">
+    /// Something the handler read out of it, for an assertion that the data arrived and not only the event.
+    /// </param>
+    public static void Record<THandler>(IEvent @event, string? payload = null)
     {
-        handled.Add((typeof(THandler).Name, EventName.Of(@event.GetType())));
+        handled.Add((typeof(THandler).Name, EventName.Of(@event.GetType()), payload));
     }
 
     public static int CountFor<THandler>() =>
         handled.Count(entry => entry.Handler == typeof(THandler).Name);
 
     public static bool WasHandledBy<THandler>() => CountFor<THandler>() > 0;
+
+    /// <summary>Whether the handler saw that event carrying that value.</summary>
+    public static bool SawPayload<THandler>(string eventName, string payload) =>
+        handled.Any(entry => entry.Handler == typeof(THandler).Name
+                             && entry.EventName == eventName
+                             && entry.Payload == payload);
 
     public static int Attempts => attempts;
 
@@ -82,14 +92,16 @@ public class UpdateStatistics : IEventHandler<OrderSubmitted>
 }
 
 /// <summary>
-/// Registered against the event interface, which is how an application stores or audits everything it reacts
-/// to. An event it does not react to — one that is only publishable — never reaches it.
+/// Written against the event interface, which is how an application stores or audits what it reacts to. It is
+/// declared once per event it covers, and the contravariance of the handler contract is what makes it
+/// acceptable there.
 /// </summary>
 public class StoreEvent : IEventHandler<ISubscribableEvent>
 {
     public Task HandleAsync(ISubscribableEvent @event, CancellationToken cancellationToken)
     {
-        HandledEvents.Record<StoreEvent>(@event);
+        // What arrives is the concrete event, so the data it declares is reachable from here.
+        HandledEvents.Record<StoreEvent>(@event, (@event as OrderSubmitted)?.Customer);
         return Task.CompletedTask;
     }
 }

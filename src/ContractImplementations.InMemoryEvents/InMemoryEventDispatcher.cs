@@ -58,8 +58,8 @@ public sealed class InMemoryEventDispatcher : IEventDispatcher, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(@event);
 
         // Fails here rather than in a driver that would only notice when the event has to leave the process,
-        // so a missing name is found with the in-memory driver too.
-        _ = EventName.Of(@event.GetType());
+        // so an event the application never declared it raises is refused with the in-memory driver too.
+        this.options.EnsureDeclaredAsPublished(@event.GetType());
 
         foreach (var registration in this.options.GetRegistrationsFor(@event.GetType()))
         {

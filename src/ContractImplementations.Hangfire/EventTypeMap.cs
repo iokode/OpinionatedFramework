@@ -55,8 +55,8 @@ public sealed class EventTypeMap
 /// </summary>
 /// <param name="eventName">The name read from the payload.</param>
 public sealed class UnknownEventNameException(string eventName)
-    : Exception($"No registered event type declares the name '{eventName}'. " +
-                "Register a handler for it, or declare it with AddEvent<TEvent>().")
+    : Exception($"No declared event type carries the name '{eventName}'. " +
+                "Declare the event with 'events.Handles<TEvent, THandler>()'.")
 {
     /// <summary>Gets the name read from the payload.</summary>
     public string EventName { get; } = eventName;

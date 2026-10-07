@@ -13,21 +13,19 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
 /// affecting the other subscribers of the same event.
 /// </remarks>
 /// <remarks>
-/// The message type and the declared type are separate parameters because they need not be the same: the
-/// transport delivers a concrete event, while the handler may have been registered against an event interface.
-/// Naming both keeps the consumer fully typed, so the transport resolves the handler and the call is direct.
+/// A handler is declared for the concrete event it reacts to, so the delivered event is the event the handler
+/// is asked for and nothing has to be reconciled here. A handler written against a group of events satisfies
+/// <see cref="IEventHandler{TEvent}"/> for the concrete one because that parameter is contravariant.
 /// </remarks>
 /// <remarks>
 /// A failure is allowed to leave this method so the receive pipeline sees it, applies the endpoint's retry
 /// policy and, once exhausted, settles the delivery as failed.
 /// </remarks>
 /// <typeparam name="TMessage">The concrete event type delivered to this consumer.</typeparam>
-/// <typeparam name="TDeclared">The event type the handler was registered against.</typeparam>
 /// <typeparam name="THandler">The handler type this consumer runs.</typeparam>
-public sealed class EventHandlerConsumer<TMessage, TDeclared, THandler>(THandler handler) : IConsumer<TMessage>
-    where TDeclared : ISubscribableEvent
-    where TMessage : class, TDeclared
-    where THandler : class, IEventHandler<TDeclared>
+public sealed class EventHandlerConsumer<TMessage, THandler>(THandler handler) : IConsumer<TMessage>
+    where TMessage : class, ISubscribableEvent
+    where THandler : class, IEventHandler<TMessage>
 {
     /// <inheritdoc/>
     public Task Consume(ConsumeContext<TMessage> context)

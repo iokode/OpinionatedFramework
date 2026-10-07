@@ -20,14 +20,12 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
 /// </remarks>
 /// <param name="EndpointName">The queue carrying this event to this handler.</param>
 /// <param name="EventType">The concrete event type delivered to the consumer.</param>
-/// <param name="DeclaredEventType">The event type the handler was registered against, possibly a base.</param>
 /// <param name="HandlerType">The handler type.</param>
 /// <param name="ConsumerType">The closed consumer type adapting the handler to the transport.</param>
 /// <param name="Policy">How the transport is asked to execute the handler.</param>
 public sealed record EventSubscription(
     string EndpointName,
     Type EventType,
-    Type DeclaredEventType,
     Type HandlerType,
     Type ConsumerType,
     MyServiceBusEventHandlerPolicy Policy);
@@ -70,7 +68,9 @@ public static class MyServiceBusEventsServiceExtensions
     /// </remarks>
     /// <param name="services">The framework service collection.</param>
     /// <param name="configureTransport">Connects the bus to a broker and materializes the subscriptions.</param>
-    /// <param name="configuration">Declares the handlers, or <see langword="null"/> to subscribe none.</param>
+    /// <param name="configuration">
+    /// Declares the events and their handlers, or <see langword="null"/> to declare none.
+    /// </param>
     /// <exception cref="ArgumentNullException"><paramref name="services"/> or <paramref name="configureTransport"/> is <see langword="null"/>.</exception>
     /// <exception cref="DuplicateEventNameException">Two declared event types share a name.</exception>
     /// <exception cref="DuplicateEventEndpointException">Two handlers would subscribe to the same queue.</exception>
@@ -84,17 +84,19 @@ public static class MyServiceBusEventsServiceExtensions
         var options = new MyServiceBusEventsOptions();
         configuration?.Invoke(options);
 
-        var concreteEventTypes = options.ResolveConcreteEventTypes();
-        EventNameUniqueness.EnsureUnique(concreteEventTypes);
+        var declaredEventTypes = options.DeclaredEventTypes;
+        EventNameUniqueness.EnsureUnique(declaredEventTypes);
 
-        var subscriptions = BuildSubscriptions(options, concreteEventTypes);
+        var subscriptions = BuildSubscriptions(options);
 
         services.AddServiceBus(configurator =>
         {
-            foreach (var eventType in concreteEventTypes)
+            foreach (var eventType in declaredEventTypes)
             {
                 // The declared name, and not the CLR type, is what goes on the wire, so an event raised by
                 // another application is recognized here even though the two declare their own types for it.
+                // Every declared event is named, the ones this process raises as much as the ones it reacts
+                // to: an event is written under its identity and read back by it.
                 configurator.SetMessageUrn(eventType, EventMessageUrn.For(eventType));
             }
 
@@ -150,49 +152,40 @@ public static class MyServiceBusEventsServiceExtensions
     }
 
     /// <summary>
-    /// Expands every registration into the concrete event types it subscribes to.
+    /// Turns every declared handler into the subscription that carries its event to it.
     /// </summary>
     /// <remarks>
-    /// A handler registered against an event interface cannot be subscribed to that interface, because the
-    /// transport has to construct the event it received and an interface cannot be constructed. It is therefore
-    /// subscribed once per concrete event assignable to it.
+    /// One declaration is one subscription: a handler is declared for the concrete event it reacts to, which is
+    /// also the only thing a queue can be bound to and the only thing the transport can construct what it
+    /// received into.
     /// </remarks>
-    private static List<EventSubscription> BuildSubscriptions(
-        MyServiceBusEventsOptions options, IReadOnlyList<Type> concreteEventTypes)
+    private static List<EventSubscription> BuildSubscriptions(MyServiceBusEventsOptions options)
     {
         var subscriptions = new List<EventSubscription>();
         var takenEndpoints = new Dictionary<string, Type>(StringComparer.Ordinal);
 
         foreach (var registration in options.EventHandlerRegistrations)
         {
-            var eventTypes = registration.EventType.IsAbstract
-                ? concreteEventTypes.Where(registration.EventType.IsAssignableFrom).ToArray()
-                : [registration.EventType];
-
-            foreach (var eventType in eventTypes)
+            var endpointName = EventEndpointName.For(registration.EventType, registration.HandlerType);
+            if (takenEndpoints.TryGetValue(endpointName, out var existingHandler))
             {
-                var endpointName = EventEndpointName.For(eventType, registration.HandlerType);
-                if (takenEndpoints.TryGetValue(endpointName, out var existingHandler))
-                {
-                    throw new DuplicateEventEndpointException(
-                        endpointName, registration.HandlerType, existingHandler);
-                }
-
-                takenEndpoints.Add(endpointName, registration.HandlerType);
-
-                // Closes the consumer over the delivered event, the type the handler was registered against, and
-                // the handler itself, so no part of the call has to be reconstructed while a message is handled.
-                var consumerType = typeof(EventHandlerConsumer<,,>)
-                    .MakeGenericType(eventType, registration.EventType, registration.HandlerType);
-
-                subscriptions.Add(new EventSubscription(
-                    endpointName,
-                    eventType,
-                    registration.EventType,
-                    registration.HandlerType,
-                    consumerType,
-                    registration.Policy));
+                throw new DuplicateEventEndpointException(
+                    endpointName, registration.HandlerType, existingHandler);
             }
+
+            takenEndpoints.Add(endpointName, registration.HandlerType);
+
+            // Closes the consumer over the delivered event and the handler itself, so no part of the call has
+            // to be reconstructed while a message is handled.
+            var consumerType = typeof(EventHandlerConsumer<,>)
+                .MakeGenericType(registration.EventType, registration.HandlerType);
+
+            subscriptions.Add(new EventSubscription(
+                endpointName,
+                registration.EventType,
+                registration.HandlerType,
+                consumerType,
+                registration.Policy));
         }
 
         return subscriptions;

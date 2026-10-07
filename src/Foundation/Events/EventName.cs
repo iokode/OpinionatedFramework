@@ -45,8 +45,7 @@ public static class EventName
     /// events, such as a driver naming the application's events alongside the messages its broker invents.
     /// </remarks>
     /// <remarks>
-    /// The attribute is not inherited, so an interface used only to group or filter events does not take the
-    /// name of anything.
+    /// The attribute is not inherited, so an interface an event implements does not take the name of anything.
     /// </remarks>
     /// <param name="eventType">The type to read the name from.</param>
     /// <exception cref="ArgumentNullException"><paramref name="eventType"/> is <see langword="null"/>.</exception>

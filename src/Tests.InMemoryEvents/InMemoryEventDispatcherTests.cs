@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.ContractImplementations.InMemoryEvents;
@@ -33,7 +32,11 @@ public class InMemoryEventDispatcherTests : IAsyncLifetime
     [Fact]
     public async Task Dispatching_does_not_wait_for_the_handlers()
     {
-        Configure(events => events.AddEventHandler<OrderSubmitted, SlowHandler>());
+        Configure(events =>
+        {
+            events.Publishes<OrderSubmitted>();
+            events.Handles<OrderSubmitted, SlowHandler>();
+        });
 
         await DispatchAsync(new OrderSubmitted {OrderId = Guid.NewGuid(), Customer = "ada"});
 
@@ -47,8 +50,10 @@ public class InMemoryEventDispatcherTests : IAsyncLifetime
     {
         Configure(events =>
         {
-            events.AddEventHandler<OrderSubmitted, SendConfirmationEmail>();
-            events.AddEventHandler<OrderSubmitted, UpdateStatistics>();
+            // Declared in both directions, because this application both raises it and reacts to it.
+            events.Publishes<OrderSubmitted>();
+            events.Handles<OrderSubmitted, SendConfirmationEmail>();
+            events.Handles<OrderSubmitted, UpdateStatistics>();
         });
 
         await DispatchAsync(new OrderSubmitted {OrderId = Guid.NewGuid(), Customer = "ada"});
@@ -58,9 +63,15 @@ public class InMemoryEventDispatcherTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task A_handler_registered_for_the_event_interface_receives_every_subscribable_event()
+    public async Task A_handler_written_against_the_event_interface_is_declared_once_per_event_it_covers()
     {
-        Configure(events => events.AddEventHandler<ISubscribableEvent, StoreEvent>());
+        Configure(events =>
+        {
+            events.Publishes<OrderSubmitted>();
+            events.Publishes<OrderCancelled>();
+            events.Handles<OrderSubmitted, StoreEvent>();
+            events.Handles<OrderCancelled, StoreEvent>();
+        });
 
         await DispatchAsync(new OrderSubmitted {OrderId = Guid.NewGuid(), Customer = "ada"});
         await DispatchAsync(new OrderCancelled {OrderId = Guid.NewGuid()});
@@ -69,9 +80,30 @@ public class InMemoryEventDispatcherTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_handler_written_against_the_event_interface_receives_the_concrete_event_with_its_data()
+    {
+        Configure(events =>
+        {
+            events.Publishes<OrderSubmitted>();
+            events.Handles<OrderSubmitted, StoreEvent>();
+        });
+
+        await DispatchAsync(new OrderSubmitted {OrderId = Guid.NewGuid(), Customer = "ada"});
+
+        // The handler takes ISubscribableEvent, and the contravariance is what let it be declared for the
+        // concrete event. What it receives is that event, with the members only it declares.
+        Assert.True(await WaitForAsync(
+            () => HandledEvents.SawPayload<StoreEvent>("tests.order-submitted", "ada")));
+    }
+
+    [Fact]
     public async Task A_handler_is_retried_as_its_policy_declares()
     {
-        Configure(events => events.AddEventHandler<OrderSubmitted, FailOnFirstAttempt>(policy => policy.Retry(1)));
+        Configure(events =>
+        {
+            events.Publishes<OrderSubmitted>();
+            events.Handles<OrderSubmitted, FailOnFirstAttempt>(policy => policy.Retry(1));
+        });
 
         await DispatchAsync(new OrderSubmitted {OrderId = Guid.NewGuid(), Customer = "ada"});
 
@@ -84,8 +116,9 @@ public class InMemoryEventDispatcherTests : IAsyncLifetime
     {
         Configure(events =>
         {
-            events.AddEventHandler<OrderCancelled, AlwaysFail>();
-            events.AddEventHandler<OrderCancelled, RecordCancellation>();
+            events.Publishes<OrderCancelled>();
+            events.Handles<OrderCancelled, AlwaysFail>();
+            events.Handles<OrderCancelled, RecordCancellation>();
         });
 
         // Nothing is thrown at the caller: the handlers are no longer running in this call.
@@ -100,7 +133,8 @@ public class InMemoryEventDispatcherTests : IAsyncLifetime
         Configure(events =>
         {
             events.SetWorkerCount(1);
-            events.AddEventHandler<OrderSubmitted, ConcurrencyProbe>();
+            events.Publishes<OrderSubmitted>();
+            events.Handles<OrderSubmitted, ConcurrencyProbe>();
         });
 
         await DispatchAsync(new OrderSubmitted {OrderId = Guid.NewGuid(), Customer = "ada"});
@@ -117,12 +151,14 @@ public class InMemoryEventDispatcherTests : IAsyncLifetime
     {
         Configure(events =>
         {
-            events.AddEventHandler<OrderSubmitted, SendConfirmationEmail>();
-            events.AddEventHandler<ISubscribableEvent, StoreEvent>();
+            events.Publishes<AuditRecorded>();
+            events.Publishes<OrderSubmitted>();
+            events.Handles<OrderSubmitted, SendConfirmationEmail>();
+            events.Handles<OrderSubmitted, StoreEvent>();
         });
 
-        // Nothing can be registered for it, and the handler that observes everything subscribable does not
-        // reach it either, because it is not subscribable.
+        // It is declared as raised and nothing else: no handler can be declared for it, because reacting to an
+        // event the application is not meant to react to does not compile.
         await DispatchAsync(new AuditRecorded {OrderId = Guid.NewGuid()});
         await DispatchAsync(new OrderSubmitted {OrderId = Guid.NewGuid(), Customer = "ada"});
 
@@ -134,7 +170,7 @@ public class InMemoryEventDispatcherTests : IAsyncLifetime
     [Fact]
     public void A_subscribable_only_event_can_be_handled_but_not_dispatched()
     {
-        Configure(events => events.AddEventHandler<PartnerPayment, HandlePartnerPayment>());
+        Configure(events => events.Handles<PartnerPayment, HandlePartnerPayment>());
 
         // Its handler registers, so this application can react to it.
         Assert.NotNull(Locator.Resolve<HandlePartnerPayment>());
@@ -151,12 +187,27 @@ public class InMemoryEventDispatcherTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task An_event_without_a_declared_name_cannot_be_dispatched()
+    public async Task An_event_the_application_did_not_declare_it_raises_cannot_be_dispatched()
     {
-        Configure(_ => { });
+        Configure(events =>
+        {
+            events.Publishes<OrderSubmitted>();
+            events.Handles<OrderSubmitted, SendConfirmationEmail>();
+        });
 
-        // Validated before queueing, so the caller still learns about a contract mistake.
-        await Assert.ThrowsAsync<MissingEventNameException>(() => DispatchAsync(new UnnamedEvent()));
+        var exception = await Assert.ThrowsAsync<MissingPublishDeclarationException>(
+            () => DispatchAsync(new AuditRecorded {OrderId = Guid.NewGuid()}));
+
+        // The failure names the declaration that is missing, so what to write is not left to be worked out.
+        Assert.Equal(typeof(AuditRecorded), exception.EventType);
+        Assert.Contains("events.Publishes<AuditRecorded>()", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void An_event_without_a_declared_name_cannot_be_declared()
+    {
+        // Caught where the event is declared, which is the earliest point at which the name is asked for.
+        Assert.Throws<MissingEventNameException>(() => Configure(events => events.Publishes<UnnamedEvent>()));
     }
 
     private static void Configure(Action<InMemoryEventsOptions> configure)

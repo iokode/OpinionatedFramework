@@ -23,7 +23,7 @@ public static class ServiceExtensions
 
         var options = new InMemoryEventsOptions();
         configuration?.Invoke(options);
-        EventNameUniqueness.EnsureUnique(ConcreteEventTypes.RegisteredIn(options));
+        EventNameUniqueness.EnsureUnique(options.DeclaredEventTypes);
 
         // Handlers are ordinary services, so they get constructor injection instead of being activated by the
         // dispatcher, and a handler can depend on whatever the scope it runs in provides.

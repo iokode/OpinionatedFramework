@@ -28,6 +28,8 @@ public class HangfireEventDispatcher(
     {
         ArgumentNullException.ThrowIfNull(@event);
 
+        options.EnsureDeclaredAsPublished(@event.GetType());
+
         var payload = EventPayload.From(@event);
         var queue = Queue.Create(queueName);
 

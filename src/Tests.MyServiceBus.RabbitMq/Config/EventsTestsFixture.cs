@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
-using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.TestHelpers.Containers;
 using Microsoft.Extensions.Configuration;
@@ -22,8 +21,9 @@ namespace IOKode.OpinionatedFramework.Tests.MyServiceBus.RabbitMq.Config;
 /// The bus starts through the host, as it does in an application, so nothing here starts it by hand.
 /// </remarks>
 /// <remarks>
-/// The handlers declared here are what create their queues in the broker. A process declaring none would still
-/// be able to dispatch, which is the difference between this driver and the other two.
+/// The handlers declared here are what create their queues in the broker. A process declaring no handler at
+/// all would still be able to raise what it declares it raises, which is the difference between this driver and
+/// the other two.
 /// </remarks>
 /// <remarks>
 /// The other application is a MyServiceBus bus of its own, built on its own service collection, so nothing it
@@ -65,17 +65,26 @@ public class EventsTestsFixture : IAsyncLifetime
         this.host = await OpinionatedFrameworkBootstrapping.StartAsync(configuration, options =>
             options.MyServiceBusEvents(events =>
             {
-                events.AddEventHandler<OrderSubmitted, SendConfirmationEmail>();
-                events.AddEventHandler<OrderSubmitted, UpdateStatistics>();
-                events.AddEventHandler<OrderCancelled, FailOnFirstDelivery>(policy => policy.Retry(1));
+                events.Publishes<OrderSubmitted>();
+                events.Publishes<OrderCancelled>();
+                events.Publishes<InventoryAdjusted>();
+
+                // Raised here and reacted to nowhere, which only the publish declaration reveals.
+                events.Publishes<AuditRecorded>();
+
+                events.Handles<OrderSubmitted, SendConfirmationEmail>();
+                events.Handles<OrderSubmitted, UpdateStatistics>();
+                events.Handles<OrderCancelled, FailOnFirstDelivery>(policy => policy.Retry(1));
 
                 // Reacts to an event this application never raises.
-                events.AddEventHandler<PartnerPayment, HandlePartnerPayment>();
+                events.Handles<PartnerPayment, HandlePartnerPayment>();
 
-                // Registered against the event interface, so a concrete event no handler names directly has to
-                // be declared: a queue cannot be bound to an interface the transport could not construct.
-                events.AddEvent<InventoryAdjusted>();
-                events.AddEventHandler<ISubscribableEvent, StoreEvent>();
+                // Written against the event interface, so it is declared once per event it covers: a queue
+                // carries one concrete event, and the transport has to construct what it received into it.
+                events.Handles<OrderSubmitted, StoreEvent>();
+                events.Handles<OrderCancelled, StoreEvent>();
+                events.Handles<PartnerPayment, StoreEvent>();
+                events.Handles<InventoryAdjusted, StoreEvent>();
             }));
     }
 

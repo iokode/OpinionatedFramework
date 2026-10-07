@@ -19,7 +19,8 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
 /// The event is durable once the broker has accepted it. Publishing happens outside any transaction the
 /// application may have open, so a crash between committing a business change and publishing loses the event.
 /// </remarks>
-public class MyServiceBusEventDispatcher(IServiceProvider serviceProvider) : IEventDispatcher
+public class MyServiceBusEventDispatcher(MyServiceBusEventsOptions options, IServiceProvider serviceProvider)
+    : IEventDispatcher
 {
     /// <inheritdoc/>
     public Task DispatchAsync(IPublishableEvent @event, CancellationToken cancellationToken)
@@ -31,7 +32,10 @@ public class MyServiceBusEventDispatcher(IServiceProvider serviceProvider) : IEv
         // explicitly because the overload that infers it would infer the declared type of the argument, which
         // here is the interface every publishable event implements.
         var eventType = @event.GetType();
-        _ = EventName.Of(eventType);
+
+        // An event the application never declared it raises has no identity on this bus, so it would be
+        // published under its CLR type and reach nothing that expects it.
+        options.EnsureDeclaredAsPublished(eventType);
 
         var publishEndpoint = serviceProvider.GetRequiredService<IPublishEndpoint>();
 
