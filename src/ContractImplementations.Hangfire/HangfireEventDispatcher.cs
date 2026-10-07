@@ -28,6 +28,8 @@ public class HangfireEventDispatcher(
     {
         ArgumentNullException.ThrowIfNull(@event);
 
+        // The payload carries the declared name and the job rebuilds the event from the map built out of the
+        // declarations, so an event never declared would be stored under a name no job can read back.
         options.EnsureDeclaredAsPublished(@event.GetType());
 
         var payload = EventPayload.From(@event);

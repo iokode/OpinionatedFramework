@@ -30,7 +30,7 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.InMemoryEvents;
 /// This dispatcher offers no durability: work that has not finished is lost if the process stops. Disposal
 /// drains what is queued, which covers an orderly shutdown but not a crash.
 /// </remarks>
-public sealed class InMemoryEventDispatcher : IEventDispatcher, IAsyncDisposable
+public class InMemoryEventDispatcher : IEventDispatcher, IAsyncDisposable
 {
     private readonly InMemoryEventsOptions options;
     private readonly Channel<PendingExecution> queue = Channel.CreateUnbounded<PendingExecution>();
