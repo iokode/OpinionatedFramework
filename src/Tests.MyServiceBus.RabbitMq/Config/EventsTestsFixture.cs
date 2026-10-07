@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
@@ -6,12 +8,15 @@ using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.TestHelpers.Containers;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using MyServiceBus;
 using Xunit;
 
 namespace IOKode.OpinionatedFramework.Tests.MyServiceBus.RabbitMq.Config;
 
 /// <summary>
-/// Starts RabbitMQ and bootstraps the framework with the broker-backed event driver selected in configuration.
+/// Starts RabbitMQ and bootstraps the framework with the broker-backed event driver selected in configuration,
+/// alongside another application that declares its own types for two of the same events.
 /// </summary>
 /// <remarks>
 /// The bus starts through the host, as it does in an application, so nothing here starts it by hand.
@@ -20,17 +25,31 @@ namespace IOKode.OpinionatedFramework.Tests.MyServiceBus.RabbitMq.Config;
 /// The handlers declared here are what create their queues in the broker. A process declaring none would still
 /// be able to dispatch, which is the difference between this driver and the other two.
 /// </remarks>
+/// <remarks>
+/// The other application is a MyServiceBus bus of its own, built on its own service collection, so nothing it
+/// registers can reach the container of the application under test. It is started first, because a broker
+/// drops a published event that no queue is bound to yet.
+/// </remarks>
 public class EventsTestsFixture : IAsyncLifetime
 {
     private readonly RabbitMqContainer rabbitMq = new();
     private HostHandle? host;
+    private ServiceProvider? partnerApplication;
+    private IMessageBus? partnerBus;
+
+    /// <summary>Gets the bus of the other application, which the test raising its event publishes through.</summary>
+    /// <exception cref="InvalidOperationException">The other application is not running.</exception>
+    public IMessageBus PartnerBus => this.partnerBus
+                                     ?? throw new InvalidOperationException("The other application is not running.");
 
     public async Task InitializeAsync()
     {
         await Container.Advanced.ResetAsync();
         HandledEvents.Reset();
+        PartnerApplication.PartnerSubscriber.Reset();
 
         await this.rabbitMq.InitializeAsync();
+        await this.StartPartnerApplicationAsync();
 
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -68,7 +87,62 @@ public class EventsTestsFixture : IAsyncLifetime
         }
 
         await Container.Advanced.ResetAsync();
+
+        if (this.partnerBus is not null)
+        {
+            await this.partnerBus.StopAsync(CancellationToken.None);
+        }
+
+        if (this.partnerApplication is not null)
+        {
+            await this.partnerApplication.DisposeAsync();
+        }
+
         await this.rabbitMq.DisposeAsync();
+    }
+
+    /// <summary>
+    /// Starts the other application, outside the framework and outside its container.
+    /// </summary>
+    /// <remarks>
+    /// Nothing of the framework reaches it, so it names the wire identity and the exchange of each contract
+    /// itself. Those are the two names the driver derives from <c>[EventName]</c>, and agreeing on them is all
+    /// it takes for two applications that share no type to exchange an event.
+    /// </remarks>
+    private async Task StartPartnerApplicationAsync()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddServiceBus(bus =>
+        {
+            bus.SetMessageUrn<PartnerApplication.PartnerPayment>("urn:message:tests.partner-payment");
+            bus.SetMessageUrn<PartnerApplication.OrderSubmitted>("urn:message:tests.order-submitted");
+
+            bus.AddConsumer<PartnerApplication.PartnerOrderConsumer, PartnerApplication.OrderSubmitted>(
+                PartnerApplication.PartnerSubscriber.EndpointName);
+
+            bus.UsingRabbitMq((context, rabbit) =>
+            {
+                rabbit.Message<PartnerApplication.PartnerPayment>(
+                    message => message.SetEntityName("tests.partner-payment"));
+                rabbit.Message<PartnerApplication.OrderSubmitted>(
+                    message => message.SetEntityName("tests.order-submitted"));
+
+                rabbit.Host("localhost", int.Parse(this.rabbitMq.Options.HostPort), host =>
+                {
+                    host.Username(this.rabbitMq.Options.Username);
+                    host.Password(this.rabbitMq.Options.Password);
+                });
+
+                rabbit.ReceiveEndpoint(PartnerApplication.PartnerSubscriber.EndpointName,
+                    endpoint => endpoint.ConfigureConsumer<PartnerApplication.PartnerOrderConsumer>(context));
+            });
+        });
+
+        this.partnerApplication = services.BuildServiceProvider();
+
+        this.partnerBus = this.partnerApplication.GetRequiredService<IMessageBus>();
+        await this.partnerBus.StartAsync(CancellationToken.None);
     }
 }
 

@@ -125,6 +125,10 @@ public class PublisherOnlyFixture : IAsyncLifetime
             bus.AddConsumer<ExternalAuditConsumer, AuditRecorded>(ExternalSubscriber.EndpointName);
             bus.UsingRabbitMq((context, rabbit) =>
             {
+                // The driver carries an event in the exchange named after its declared name, so an application
+                // outside the framework says which exchange its contract is carried by.
+                rabbit.Message<AuditRecorded>(message => message.SetEntityName("tests.audit-recorded"));
+
                 rabbit.Host("localhost", int.Parse(this.rabbitMq.Options.HostPort), host =>
                 {
                     host.Username(this.rabbitMq.Options.Username);
@@ -137,13 +141,6 @@ public class PublisherOnlyFixture : IAsyncLifetime
         });
 
         this.subscribingApplication = services.BuildServiceProvider();
-
-        // Outside a host, the actions that bind the consumers to the topology have to be run by hand: the
-        // MyServiceBus hosted service is what does it in an application, and there is no host here.
-        foreach (var action in this.subscribingApplication.GetServices<IPostBuildAction>())
-        {
-            action.Execute(this.subscribingApplication);
-        }
 
         this.subscribingBus = this.subscribingApplication.GetRequiredService<IMessageBus>();
         await this.subscribingBus.StartAsync(CancellationToken.None);

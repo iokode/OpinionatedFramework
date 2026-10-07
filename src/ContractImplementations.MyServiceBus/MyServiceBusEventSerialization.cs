@@ -19,12 +19,9 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
 /// </remarks>
 public static class MyServiceBusEventSerialization
 {
-    private static readonly MethodInfo getMessageBodyMethod = typeof(SendContext).GetMethods()
-        .Single(method => method is {Name: nameof(SendContext.GetMessageBody), IsGenericMethodDefinition: true});
-
-    private static readonly MethodInfo tryGetMessageMethod = typeof(IInboundMessage).GetMethods()
-        .Single(method => method is
-            {Name: nameof(IInboundMessage.TryGetMessage), IsGenericMethodDefinition: true});
+    private static readonly MethodInfo roundTripMethod = typeof(MyServiceBusEventSerialization)
+        .GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
+        .Single(method => method is {Name: nameof(RoundTrip), IsGenericMethodDefinition: true});
 
     /// <summary>
     /// Reports every event MyServiceBus could not write and read back as a configuration error.
@@ -44,6 +41,16 @@ public static class MyServiceBusEventSerialization
     /// Writes an event the way MyServiceBus writes it and reads it back the way MyServiceBus reads it.
     /// </summary>
     /// <remarks>
+    /// The round trip is closed over the event type with a delegate rather than invoked through reflection, so
+    /// what MyServiceBus throws when it cannot read the event back arrives at the caller as it was thrown.
+    /// </remarks>
+    private static void RoundTrip(object @event, Type eventType) =>
+        roundTripMethod.MakeGenericMethod(eventType).CreateDelegate<Action<object>>().Invoke(@event);
+
+    /// <summary>
+    /// Writes an event of a known type into an envelope and reads it back out of it.
+    /// </summary>
+    /// <remarks>
     /// The envelope is built by <see cref="SendContext.GetMessageBody{T}"/>, which is the same code a real
     /// publish goes through, so every value in it — the identifiers, the message type URNs, the addresses, the
     /// host information and the time — is the one MyServiceBus puts there. What is supplied here is only the
@@ -54,45 +61,18 @@ public static class MyServiceBusEventSerialization
     /// leaves in place. A receive endpoint given a serializer of its own is not covered.
     /// </remarks>
     /// <remarks>
-    /// Both calls are closed with reflection because the MyServiceBus API is generic and the event type is
-    /// only known at run time.
+    /// The answer of the read is of no interest: MyServiceBus answers <see langword="false"/> only for a
+    /// payload it has already read as another type, and reports every failure by throwing.
     /// </remarks>
-    /// <exception cref="UnreadableEventException">MyServiceBus could not read the event back.</exception>
-    private static void RoundTrip(object @event, Type eventType)
+    /// <exception cref="MessageDeserializationException">MyServiceBus could not read the event back.</exception>
+    private static void RoundTrip<TEvent>(object @event) where TEvent : class
     {
         var serializerFactory = new EnvelopeSerializerFactory();
-        var sendContext = new SendContext([eventType], serializerFactory.CreateSerializer());
+        var sendContext = new SendContext([typeof(TEvent)], serializerFactory.CreateSerializer());
 
-        var body = (MessageBody) getMessageBodyMethod
-            .MakeGenericMethod(eventType)
-            .Invoke(sendContext, [@event])!;
-
+        var body = sendContext.GetMessageBody((TEvent) @event);
         var inboundMessage = serializerFactory.CreateDeserializer().Deserialize(body, sendContext.Headers);
 
-        var arguments = new object?[] {null};
-        bool wasRead = (bool) tryGetMessageMethod
-            .MakeGenericMethod(eventType)
-            .Invoke(inboundMessage, arguments)!;
-
-        if (!wasRead)
-        {
-            throw new UnreadableEventException(eventType);
-        }
+        _ = inboundMessage.TryGetMessage<TEvent>(out _);
     }
-}
-
-/// <summary>
-/// Thrown when MyServiceBus writes an event but cannot read it back.
-/// </summary>
-/// <remarks>
-/// MyServiceBus answers whether it could read a message back without saying what stopped it, because the read
-/// swallows the failure and returns false, so there is no reason to carry here beyond the event type.
-/// </remarks>
-/// <param name="eventType">The event type that could not be read back.</param>
-public sealed class UnreadableEventException(Type eventType)
-    : Exception($"MyServiceBus wrote the event '{eventType.FullName}' into an envelope but could not read it " +
-                "back out of it. MyServiceBus reports no reason for it.")
-{
-    /// <summary>Gets the event type that could not be read back.</summary>
-    public Type EventType { get; } = eventType;
 }

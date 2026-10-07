@@ -60,9 +60,9 @@ public static class MyServiceBusEventsServiceExtensions
     /// Registers the broker-backed event dispatcher and subscribes the handlers declared for it.
     /// </summary>
     /// <remarks>
-    /// Everything that does not depend on the broker happens here: which queue carries which event to which
-    /// handler, the retry policy, and the dispatcher itself. A transport package supplies
-    /// <paramref name="configureTransport"/>, which connects to the broker and materializes the queues.
+    /// Everything that does not depend on the broker happens here: the wire identity of each event, which queue
+    /// carries which event to which handler, the retry policy, and the dispatcher itself. A transport package
+    /// supplies <paramref name="configureTransport"/>, which connects to the broker and materializes the queues.
     /// </remarks>
     /// <remarks>
     /// Each handler gets its own endpoint, named after the event and the handler, so subscribers are added and
@@ -91,6 +91,13 @@ public static class MyServiceBusEventsServiceExtensions
 
         services.AddServiceBus(configurator =>
         {
+            foreach (var eventType in concreteEventTypes)
+            {
+                // The declared name, and not the CLR type, is what goes on the wire, so an event raised by
+                // another application is recognized here even though the two declare their own types for it.
+                configurator.SetMessageUrn(eventType, EventMessageUrn.For(eventType));
+            }
+
             foreach (var subscription in subscriptions)
             {
                 // The endpoint name and the retry policy are core concepts, so they are declared here and not

@@ -49,5 +49,9 @@ public class EventSerializabilityTest : IAsyncLifetime
         // queue and fail there, which is why it is rejected while validating instead.
         Assert.Contains("tests.not-readable", exception.Message, StringComparison.Ordinal);
         Assert.Contains("cannot be carried by this driver", exception.Message, StringComparison.Ordinal);
+
+        // MyServiceBus says what stopped it from reading the event back, and the error reports what it said
+        // rather than describing the failure on its own.
+        Assert.Contains("Cannot deserialize message as", exception.Message, StringComparison.Ordinal);
     }
 }

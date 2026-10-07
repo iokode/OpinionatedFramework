@@ -37,12 +37,23 @@ public static class EventName
             Declared(type) ?? throw new MissingEventNameException(type));
     }
 
+    /// <summary>
+    /// Gets the name declared by <paramref name="eventType"/>, or <see langword="null"/> when it declares none.
+    /// </summary>
+    /// <remarks>
+    /// For a caller that is handed types beyond the application's events and has to tell which ones are
+    /// events, such as a driver naming the application's events alongside the messages its broker invents.
+    /// </remarks>
     /// <remarks>
     /// The attribute is not inherited, so an interface used only to group or filter events does not take the
     /// name of anything.
     /// </remarks>
-    private static string? Declared(Type eventType)
+    /// <param name="eventType">The type to read the name from.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="eventType"/> is <see langword="null"/>.</exception>
+    public static string? Declared(Type eventType)
     {
+        ArgumentNullException.ThrowIfNull(eventType);
+
         return eventType.GetCustomAttribute<EventNameAttribute>(inherit: false)?.Name;
     }
 }
