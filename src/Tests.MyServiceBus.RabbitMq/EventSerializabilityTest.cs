@@ -43,11 +43,16 @@ public class EventSerializabilityTest : IAsyncLifetime
 
         var exception = await Assert.ThrowsAsync<BootstrapConfigurationException>(() =>
             OpinionatedFrameworkBootstrapping.StartAsync(configuration, options =>
-                options.MyServiceBusEvents(events => events.AddEvent<NotReadableEvent>())));
+                options.MyServiceBusEvents(events => events.Publishes<NotReadableEvent>())));
 
         // A consumer rebuilds the event the broker delivered, so one that could not be rebuilt would reach a
-        // queue and fail there, which is why it is rejected while validating instead.
+        // queue and fail there, which is why it is rejected while validating instead. The event is only
+        // declared as raised, so this is also what shows the check covers an event no handler reacts to.
         Assert.Contains("tests.not-readable", exception.Message, StringComparison.Ordinal);
         Assert.Contains("cannot be carried by this driver", exception.Message, StringComparison.Ordinal);
+
+        // MyServiceBus says what stopped it from reading the event back, and the error reports what it said
+        // rather than describing the failure on its own.
+        Assert.Contains("Cannot deserialize message as", exception.Message, StringComparison.Ordinal);
     }
 }

@@ -43,10 +43,10 @@ public static class BootstrapOptionsExtensions
     }
 
     /// <summary>
-    /// Declares the handlers run by the <c>Hangfire</c> event dispatcher driver.
+    /// Declares the events raised and the handlers run by the <c>Hangfire</c> event dispatcher driver.
     /// </summary>
     /// <remarks>
-    /// Handler declarations live in their own options type rather than in <see cref="HangfireOptions"/>, because
+    /// Event declarations live in their own options type rather than in <see cref="HangfireOptions"/>, because
     /// they describe the application rather than the Hangfire setup, and because they must keep the same shape
     /// across every event dispatcher driver so switching driver does not change what a policy means.
     /// </remarks>
@@ -54,13 +54,14 @@ public static class BootstrapOptionsExtensions
     /// <code>
     /// options.HangfireEvents(events =>
     /// {
-    ///     events.AddEventHandler&lt;OrderSubmitted, SendConfirmationEmail&gt;();
-    ///     events.AddEventHandler&lt;OrderSubmitted, UpdateStatistics&gt;(policy => policy.Retry(3));
+    ///     events.Publishes&lt;OrderSubmitted&gt;();
+    ///     events.Handles&lt;OrderSubmitted, SendConfirmationEmail&gt;();
+    ///     events.Handles&lt;OrderSubmitted, UpdateStatistics&gt;(policy => policy.Retry(3));
     /// });
     /// </code>
     /// </example>
     /// <param name="options">The bootstrap options.</param>
-    /// <param name="configure">Declares the handlers.</param>
+    /// <param name="configure">Declares the events and their handlers.</param>
     /// <returns>The same options, to allow chaining.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     public static IBootstrapOptions HangfireEvents(this IBootstrapOptions options,

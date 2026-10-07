@@ -13,7 +13,7 @@ public static class BootstrapOptionsExtensions
     /// </summary>
     /// <remarks>
     /// Referencing this package makes the verb available, which is not the same as its driver being selected.
-    /// Bootstrap fails when the <c>InMemory</c> driver is not the selected one, because the handlers declared
+    /// Bootstrap fails when the <c>InMemory</c> driver is not the selected one, because the declarations made
     /// here would otherwise be discarded. The driver is named after where it runs handlers rather than after
     /// being the default, so a configuration file states what it does and not merely that nothing else was
     /// chosen.
@@ -23,13 +23,14 @@ public static class BootstrapOptionsExtensions
     /// <code>
     /// options.InMemoryEvents(events =>
     /// {
-    ///     events.AddEventHandler&lt;OrderSubmitted, SendConfirmationEmail&gt;();
-    ///     events.AddEventHandler&lt;OrderSubmitted, UpdateStatistics&gt;(policy => policy.Retry(3));
+    ///     events.Publishes&lt;OrderSubmitted&gt;();
+    ///     events.Handles&lt;OrderSubmitted, SendConfirmationEmail&gt;();
+    ///     events.Handles&lt;OrderSubmitted, UpdateStatistics&gt;(policy => policy.Retry(3));
     /// });
     /// </code>
     /// </example>
     /// <param name="options">The bootstrap options.</param>
-    /// <param name="configure">Declares the handlers.</param>
+    /// <param name="configure">Declares the events and their handlers.</param>
     /// <returns>The same options, to allow chaining.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     public static IBootstrapOptions InMemoryEvents(this IBootstrapOptions options,

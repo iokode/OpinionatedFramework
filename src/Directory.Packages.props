@@ -21,8 +21,8 @@
     </ItemGroup>
 
     <ItemGroup Label="MyServiceBus">
-        <PackageVersion Include="Sundstrom.MyServiceBus" Version="0.1.0-preview.11"/>
-        <PackageVersion Include="Sundstrom.MyServiceBus.RabbitMq" Version="0.1.0-preview.11"/>
+        <PackageVersion Include="Sundstrom.MyServiceBus" Version="0.1.0-preview.12"/>
+        <PackageVersion Include="Sundstrom.MyServiceBus.RabbitMq" Version="0.1.0-preview.12"/>
     </ItemGroup>
 
     <ItemGroup Label="FluentMigrator">

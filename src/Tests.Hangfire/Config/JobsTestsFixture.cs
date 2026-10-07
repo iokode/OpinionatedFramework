@@ -79,11 +79,17 @@ public class JobsTestsFixture : IAsyncLifetime
                 hangfire.ConfigureServer("events", server => server.WorkerCount = EventsServerWorkerCount);
             }).HangfireEvents(events =>
             {
-                events.AddEventHandler<OrderSubmitted, SendConfirmationEmail>();
-                events.AddEventHandler<OrderSubmitted, UpdateStatistics>();
-                events.AddEventHandler<OrderSubmitted, FailOnFirstAttempt>(policy =>
+                events.Publishes<OrderSubmitted>();
+                events.Publishes<OrderCancelled>();
+
+                // Raised here and reacted to nowhere, which only the publish declaration reveals.
+                events.Publishes<AuditRecorded>();
+
+                events.Handles<OrderSubmitted, SendConfirmationEmail>();
+                events.Handles<OrderSubmitted, UpdateStatistics>();
+                events.Handles<OrderSubmitted, FailOnFirstAttempt>(policy =>
                     policy.Retry(1, TimeSpan.FromSeconds(1)));
-                events.AddEventHandler<OrderCancelled, AlwaysFail>(policy =>
+                events.Handles<OrderCancelled, AlwaysFail>(policy =>
                     policy.Retry(2, TimeSpan.FromSeconds(1)));
             }));
 

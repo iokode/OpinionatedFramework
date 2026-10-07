@@ -34,8 +34,8 @@ public class PartnerPayment : ISubscribableEvent
 }
 
 /// <summary>
-/// Reacted to only through the handler registered against the event interface. Nothing reveals it to the
-/// driver, so it is the event that has to be declared with <c>AddEvent</c>.
+/// The only handler it is declared for is the one written against the event interface, so it is the event whose
+/// queue proves a handler of that shape is subscribed to a concrete event like any other.
 /// </summary>
 [EventName("tests.inventory-adjusted")]
 public class InventoryAdjusted : IPublishableEvent, ISubscribableEvent

@@ -30,7 +30,7 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.InMemoryEvents;
 /// This dispatcher offers no durability: work that has not finished is lost if the process stops. Disposal
 /// drains what is queued, which covers an orderly shutdown but not a crash.
 /// </remarks>
-public sealed class InMemoryEventDispatcher : IEventDispatcher, IAsyncDisposable
+public class InMemoryEventDispatcher : IEventDispatcher, IAsyncDisposable
 {
     private readonly InMemoryEventsOptions options;
     private readonly Channel<PendingExecution> queue = Channel.CreateUnbounded<PendingExecution>();
@@ -40,7 +40,7 @@ public sealed class InMemoryEventDispatcher : IEventDispatcher, IAsyncDisposable
     private int disposed;
 
     /// <summary>Creates the dispatcher and starts its workers.</summary>
-    /// <param name="options">The declared handlers and worker count.</param>
+    /// <param name="options">The event declarations and the worker count.</param>
     /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     public InMemoryEventDispatcher(InMemoryEventsOptions options)
     {
@@ -58,8 +58,8 @@ public sealed class InMemoryEventDispatcher : IEventDispatcher, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(@event);
 
         // Fails here rather than in a driver that would only notice when the event has to leave the process,
-        // so a missing name is found with the in-memory driver too.
-        _ = EventName.Of(@event.GetType());
+        // so an event the application never declared it raises is refused with the in-memory driver too.
+        this.options.EnsureDeclaredAsPublished(@event.GetType());
 
         foreach (var registration in this.options.GetRegistrationsFor(@event.GetType()))
         {

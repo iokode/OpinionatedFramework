@@ -15,8 +15,7 @@ public sealed class InMemoryEventDispatcherBootstrapDriver : IBootstrapDriverReg
         context.GetOptionsConfigurator<InMemoryEventsOptions>()?.Invoke(options);
 
         return new BootstrapValidationResult(
-            EventNameUniqueness.Validate(
-                ConcreteEventTypes.RegisteredIn(options), context.DriverConfiguration.Path));
+            EventNameUniqueness.Validate(options.DeclaredEventTypes, context.DriverConfiguration.Path));
     }
 
     public static void Register(BootstrapDriverContext context)

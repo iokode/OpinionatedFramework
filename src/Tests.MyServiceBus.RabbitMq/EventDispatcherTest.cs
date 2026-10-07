@@ -38,7 +38,7 @@ public class EventDispatcherTest
     }
 
     [Fact]
-    public async Task AHandlerSubscribedToTheEventInterfaceReceivesADifferentEvent()
+    public async Task AHandlerWrittenAgainstTheEventInterfaceReceivesEachEventItIsDeclaredFor()
     {
         var dispatcher = Locator.Resolve<IEventDispatcher>();
         var orderId = Guid.NewGuid();
@@ -50,7 +50,8 @@ public class EventDispatcherTest
             timeout: 60_000,
             pollingInterval: 250);
 
-        Assert.True(handled, "The base-type handler did not receive the event within the allowed time.");
+        Assert.True(handled,
+            "The handler written against the event interface did not receive the event within the allowed time.");
     }
 
     [Fact]
@@ -110,13 +111,13 @@ public class EventDispatcherTest
     }
 
     [Fact]
-    public async Task AnEventDeclaredOnlyWithAddEventReachesTheInterfaceHandler()
+    public async Task AnEventWhoseOnlyHandlerIsWrittenAgainstTheEventInterfaceIsDelivered()
     {
         var dispatcher = Locator.Resolve<IEventDispatcher>();
         var orderId = Guid.NewGuid();
 
-        // No handler names this event: it is subscribed only because the interface registration was expanded
-        // over the concrete types the driver was told about.
+        // The handler of this event takes ISubscribableEvent, so its queue exists only because the handler was
+        // declared for the concrete event, which is what the contravariant handler contract allows.
         await dispatcher.DispatchAsync(new InventoryAdjusted {OrderId = orderId}, CancellationToken.None);
 
         bool handled = await PollingUtility.WaitUntilTrueAsync(
@@ -124,6 +125,6 @@ public class EventDispatcherTest
             timeout: 60_000,
             pollingInterval: 250);
 
-        Assert.True(handled, "The event declared with AddEvent did not reach the interface handler.");
+        Assert.True(handled, "The event did not reach the handler written against the event interface.");
     }
 }

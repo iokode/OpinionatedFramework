@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Exceptions;
 using IOKode.OpinionatedFramework.Jobs;
 using IOKode.OpinionatedFramework.ServiceLocation;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,44 +44,4 @@ public class ExecuteEventHandlerJob(string eventName, string eventBody, string h
 
         await registration.Invoke(serviceProvider, @event, context.CancellationToken);
     }
-}
-
-/// <summary>
-/// Creates an <see cref="ExecuteEventHandlerJob"/> from the values stored with the job.
-/// </summary>
-/// <remarks>
-/// Every member is a string, so the creator serializes with any job storage and stays readable in the Hangfire
-/// dashboard.
-/// </remarks>
-/// <param name="EventName">The stable name of the dispatched event.</param>
-/// <param name="EventBody">The event serialized as JSON.</param>
-/// <param name="HandlerTypeName">The full name of the handler type to run.</param>
-public record ExecuteEventHandlerJobCreator(string EventName, string EventBody, string HandlerTypeName)
-    : JobCreator<ExecuteEventHandlerJob>
-{
-    /// <inheritdoc/>
-    public override ExecuteEventHandlerJob CreateJob() => new(EventName, EventBody, HandlerTypeName);
-
-    /// <inheritdoc/>
-    public override string GetJobName() => $"Handle {EventName} with {HandlerTypeName}";
-}
-
-/// <summary>
-/// Thrown when a job names a handler that is no longer registered for the event it carries.
-/// </summary>
-/// <remarks>
-/// A job outlives the process that enqueued it, so a handler removed or renamed while jobs were waiting leaves
-/// them naming something this process does not know. The job fails with both names, which is what identifies
-/// the stale job in the dashboard.
-/// </remarks>
-/// <param name="handlerTypeName">The handler type name stored with the job.</param>
-/// <param name="eventName">The declared name of the event the job carries.</param>
-public sealed class UnknownEventHandlerException(string handlerTypeName, string eventName)
-    : Exception($"No handler named '{handlerTypeName}' is registered for event '{eventName}'.")
-{
-    /// <summary>Gets the handler type name stored with the job.</summary>
-    public string HandlerTypeName { get; } = handlerTypeName;
-
-    /// <summary>Gets the declared name of the event the job carries.</summary>
-    public string EventName { get; } = eventName;
 }

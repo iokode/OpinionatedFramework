@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using IOKode.OpinionatedFramework.ContractImplementations.Hangfire.Exceptions;
 using IOKode.OpinionatedFramework.Events;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
@@ -48,16 +49,4 @@ public sealed class EventTypeMap
 
         return eventType;
     }
-}
-
-/// <summary>
-/// Thrown when a payload names an event type the driver was not told about.
-/// </summary>
-/// <param name="eventName">The name read from the payload.</param>
-public sealed class UnknownEventNameException(string eventName)
-    : Exception($"No registered event type declares the name '{eventName}'. " +
-                "Register a handler for it, or declare it with AddEvent<TEvent>().")
-{
-    /// <summary>Gets the name read from the payload.</summary>
-    public string EventName { get; } = eventName;
 }

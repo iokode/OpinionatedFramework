@@ -43,10 +43,11 @@ public class EventSerializabilityTest : IAsyncLifetime
 
         var exception = await Assert.ThrowsAsync<BootstrapConfigurationException>(() =>
             OpinionatedFrameworkBootstrapping.StartAsync(configuration, options =>
-                options.HangfireEvents(events => events.AddEvent<NotReadableEvent>())));
+                options.HangfireEvents(events => events.Publishes<NotReadableEvent>())));
 
         // The driver rebuilds an event from what it stored, so an event it could not rebuild is a
-        // configuration error and not a job that fails once it is already waiting.
+        // configuration error and not a job that fails once it is already waiting. The event is only declared
+        // as raised, so this is also what shows the check covers an event no handler reacts to.
         Assert.Contains("tests.not-readable", exception.Message, StringComparison.Ordinal);
         Assert.Contains("cannot be carried by this driver", exception.Message, StringComparison.Ordinal);
     }

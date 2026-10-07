@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Bootstrapping;
+using IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.TestHelpers.Containers;
 using Microsoft.Extensions.Configuration;
@@ -86,9 +87,9 @@ public class PublisherOnlyFixture : IAsyncLifetime
             })
             .Build();
 
-        // The MyServiceBusEvents verb is not called at all: this application declares no handler and no event,
-        // which is all a process that only emits has to do.
-        this.host = await OpinionatedFrameworkBootstrapping.StartAsync(configuration);
+        // Not a single handler: a process that only emits declares what it raises and nothing else.
+        this.host = await OpinionatedFrameworkBootstrapping.StartAsync(configuration, options =>
+            options.MyServiceBusEvents(events => events.Publishes<AuditRecorded>()));
     }
 
     public async Task DisposeAsync()
@@ -122,9 +123,17 @@ public class PublisherOnlyFixture : IAsyncLifetime
         services.AddLogging();
         services.AddServiceBus(bus =>
         {
+            // The declared name is the identity the driver writes on the envelope, so an application outside
+            // the framework names it itself rather than taking the one MyServiceBus derives from the type.
+            bus.SetMessageUrn<AuditRecorded>("urn:message:tests.audit-recorded");
+
             bus.AddConsumer<ExternalAuditConsumer, AuditRecorded>(ExternalSubscriber.EndpointName);
             bus.UsingRabbitMq((context, rabbit) =>
             {
+                // The driver carries an event in the exchange named after its declared name, so an application
+                // outside the framework says which exchange its contract is carried by.
+                rabbit.Message<AuditRecorded>(message => message.SetEntityName("tests.audit-recorded"));
+
                 rabbit.Host("localhost", int.Parse(this.rabbitMq.Options.HostPort), host =>
                 {
                     host.Username(this.rabbitMq.Options.Username);
@@ -137,13 +146,6 @@ public class PublisherOnlyFixture : IAsyncLifetime
         });
 
         this.subscribingApplication = services.BuildServiceProvider();
-
-        // Outside a host, the actions that bind the consumers to the topology have to be run by hand: the
-        // MyServiceBus hosted service is what does it in an application, and there is no host here.
-        foreach (var action in this.subscribingApplication.GetServices<IPostBuildAction>())
-        {
-            action.Execute(this.subscribingApplication);
-        }
 
         this.subscribingBus = this.subscribingApplication.GetRequiredService<IMessageBus>();
         await this.subscribingBus.StartAsync(CancellationToken.None);

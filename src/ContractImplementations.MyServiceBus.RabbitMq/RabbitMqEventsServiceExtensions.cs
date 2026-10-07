@@ -19,13 +19,15 @@ public static class RabbitMqEventsServiceExtensions
     /// </summary>
     /// <remarks>
     /// The subscriptions and their retry policy are decided by the transport-neutral package. What belongs here
-    /// is the connection, the receive endpoint each subscription is materialized into, and the concurrency
-    /// limit, which no transport-neutral registration overload can express together with an endpoint name and a
-    /// pipe.
+    /// is the connection, the exchange each event is carried by, the receive endpoint each subscription is
+    /// materialized into, and the concurrency limit, which no transport-neutral registration overload can
+    /// express together with an endpoint name and a pipe.
     /// </remarks>
     /// <param name="services">The framework service collection.</param>
     /// <param name="connection">The broker connection.</param>
-    /// <param name="configuration">Declares the handlers, or <see langword="null"/> to subscribe none.</param>
+    /// <param name="configuration">
+    /// Declares the events and their handlers, or <see langword="null"/> to declare none.
+    /// </param>
     /// <exception cref="ArgumentNullException"><paramref name="services"/> or <paramref name="connection"/> is <see langword="null"/>.</exception>
     /// <exception cref="DuplicateEventNameException">Two declared event types share a name.</exception>
     /// <exception cref="DuplicateEventEndpointException">Two handlers would subscribe to the same queue.</exception>
@@ -38,6 +40,8 @@ public static class RabbitMqEventsServiceExtensions
         services.AddMyServiceBusEventDispatcher(
             (configurator, subscriptions) => configurator.UsingRabbitMq((context, rabbit) =>
             {
+                rabbit.SetEntityNameFormatter(new EventExchangeName());
+
                 rabbit.Host(connection.Host, connection.Port, host =>
                 {
                     host.Username(connection.Username);
