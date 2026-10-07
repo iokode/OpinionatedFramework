@@ -40,7 +40,7 @@ public sealed class InMemoryEventDispatcher : IEventDispatcher, IAsyncDisposable
     private int disposed;
 
     /// <summary>Creates the dispatcher and starts its workers.</summary>
-    /// <param name="options">The declared handlers and worker count.</param>
+    /// <param name="options">The event declarations and the worker count.</param>
     /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     public InMemoryEventDispatcher(InMemoryEventsOptions options)
     {

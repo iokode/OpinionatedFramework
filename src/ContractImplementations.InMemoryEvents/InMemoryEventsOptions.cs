@@ -7,10 +7,11 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.InMemoryEvents;
 /// Configures the in-memory event dispatcher.
 /// </summary>
 /// <remarks>
-/// Handlers are declared here rather than in a registry the dispatcher consults while publishing, so the driver
-/// knows its complete handler set before the first event is dispatched.
+/// The handlers and the events this application raises are declared here rather than in a registry the
+/// dispatcher consults while publishing, so the driver knows the complete set before the first event is
+/// dispatched.
 /// </remarks>
-public sealed class InMemoryEventsOptions : EventHandlerCollection<InMemoryEventHandlerPolicy>
+public sealed class InMemoryEventsOptions : EventDeclarations<InMemoryEventHandlerPolicy>
 {
     /// <summary>Gets how many handler executions the dispatcher runs at once across every handler.</summary>
     public int WorkerCount { get; private set; } = Environment.ProcessorCount;

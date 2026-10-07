@@ -62,14 +62,15 @@ public class UpdateStatistics : IEventHandler<OrderSubmitted>
 }
 
 /// <summary>
-/// Registered against the event interface, which is how an application observes or stores everything it reacts
-/// to.
+/// Written against the event interface, which is how an application stores or audits what it reacts to. It is
+/// declared once per event it covers, and the contravariance of the handler contract is what makes it
+/// acceptable there.
 /// </summary>
 public class StoreEvent : IEventHandler<ISubscribableEvent>
 {
     public Task HandleAsync(ISubscribableEvent @event, CancellationToken cancellationToken)
     {
-        // Registered against the interface, so it reaches the identifier through the concrete event it received.
+        // Written against the interface, so it reaches the identifier through the concrete event it received.
         Guid eventId = @event switch
         {
             OrderSubmitted submitted => submitted.OrderId,

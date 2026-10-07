@@ -5,6 +5,7 @@ using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.InMemoryEvents;
 using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.Events;
+using IOKode.OpinionatedFramework.Events.Exceptions;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ServiceContainer.Drivers;
 using IOKode.OpinionatedFramework.Tests.InMemoryEvents.Config;

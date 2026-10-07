@@ -14,4 +14,4 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
 /// The declared name of every event named here is what goes on the wire, which is why an event the process only
 /// raises is declared too: the driver has to name it on the envelope and on the exchange it is published to.
 /// </remarks>
-public sealed class MyServiceBusEventsOptions : EventHandlerCollection<MyServiceBusEventHandlerPolicy>;
+public sealed class MyServiceBusEventsOptions : EventDeclarations<MyServiceBusEventHandlerPolicy>;

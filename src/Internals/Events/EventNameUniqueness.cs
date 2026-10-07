@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using IOKode.OpinionatedFramework.Drivers.Abstractions;
 using IOKode.OpinionatedFramework.Events;
+using IOKode.OpinionatedFramework.Events.Exceptions;
 
 namespace IOKode.OpinionatedFramework.Internals.Events;
 

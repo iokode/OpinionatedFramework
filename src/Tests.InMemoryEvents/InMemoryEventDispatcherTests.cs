@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.ContractImplementations.InMemoryEvents;
 using IOKode.OpinionatedFramework.Events;
+using IOKode.OpinionatedFramework.Events.Exceptions;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ServiceLocation;
 using IOKode.OpinionatedFramework.Tests.InMemoryEvents.Config;

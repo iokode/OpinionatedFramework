@@ -3,27 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using IOKode.OpinionatedFramework.Events.Exceptions;
 
 namespace IOKode.OpinionatedFramework.Events;
-
-/// <summary>
-/// Associates one handler type with the event type it handles, together with the policy its driver applies.
-/// </summary>
-/// <remarks>
-/// <see cref="Invoke"/> is built where the handler is declared, which is the only place where both types are
-/// known statically. A driver iterating over registrations therefore calls the handler through a typed
-/// delegate instead of reconstructing the call from <see cref="Type"/> values it was handed.
-/// </remarks>
-/// <typeparam name="TPolicy">The execution policy owned by the driver.</typeparam>
-/// <param name="EventType">The concrete event type the handler is declared for.</param>
-/// <param name="HandlerType">The handler type implementing <see cref="IEventHandler{TEvent}"/>.</param>
-/// <param name="Policy">How the driver executes the handler.</param>
-/// <param name="Invoke">Resolves the handler from the supplied provider and calls it with the event.</param>
-public sealed record EventHandlerRegistration<TPolicy>(
-    Type EventType,
-    Type HandlerType,
-    TPolicy Policy,
-    Func<IServiceProvider, IEvent, CancellationToken, Task> Invoke);
 
 /// <summary>
 /// Collects what this application does with events: the ones it reacts to, with what, and the ones it raises.
@@ -46,7 +28,7 @@ public sealed record EventHandlerRegistration<TPolicy>(
 /// from its policy type, so declaring it does not compile instead of being quietly dropped.
 /// </remarks>
 /// <typeparam name="TPolicy">The execution policy owned by the driver.</typeparam>
-public abstract class EventHandlerCollection<TPolicy> where TPolicy : new()
+public abstract class EventDeclarations<TPolicy> where TPolicy : new()
 {
     private readonly List<EventHandlerRegistration<TPolicy>> registrations = [];
     private readonly List<Type> publishedEventTypes = [];
@@ -175,23 +157,4 @@ public abstract class EventHandlerCollection<TPolicy> where TPolicy : new()
             throw new MissingPublishDeclarationException(eventType);
         }
     }
-}
-
-/// <summary>
-/// Thrown when an event is dispatched that the application never declared it raises.
-/// </summary>
-/// <remarks>
-/// Implementing <see cref="IPublishableEvent"/> says the event may be raised; the declaration says this
-/// application raises it. Without the declaration the startup checks never examined the event and a driver
-/// carrying it beyond the process was never told its name, so the dispatch is refused instead of being
-/// performed on an event nothing validated.
-/// </remarks>
-/// <param name="eventType">The event type that was dispatched.</param>
-public sealed class MissingPublishDeclarationException(Type eventType)
-    : Exception($"The event type '{eventType.FullName}' was dispatched without this application declaring " +
-                $"that it raises it. Add 'events.Publishes<{eventType.Name}>()' where the event declarations " +
-                "of the selected driver are made.")
-{
-    /// <summary>Gets the event type that was dispatched.</summary>
-    public Type EventType { get; } = eventType;
 }

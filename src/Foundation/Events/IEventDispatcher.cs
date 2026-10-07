@@ -42,7 +42,7 @@ public interface IEventDispatcher
     /// </returns>
     /// <exception cref="MissingPublishDeclarationException">
     /// The concrete type of <paramref name="event"/> was not declared with
-    /// <see cref="EventHandlerCollection{TPolicy}.Publishes{TEvent}"/>.
+    /// <see cref="EventDeclarations{TPolicy}.Publishes{TEvent}"/>.
     /// </exception>
     public Task DispatchAsync(IPublishableEvent @event, CancellationToken cancellationToken);
 }

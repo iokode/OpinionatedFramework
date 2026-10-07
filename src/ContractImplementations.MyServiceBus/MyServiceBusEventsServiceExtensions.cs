@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus.Exceptions;
 using IOKode.OpinionatedFramework.Events;
+using IOKode.OpinionatedFramework.Events.Exceptions;
 using IOKode.OpinionatedFramework.Internals.Events;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,38 +12,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using MyServiceBus;
 
 namespace IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
-
-/// <summary>
-/// One handler subscribed to one concrete event type.
-/// </summary>
-/// <remarks>
-/// Computed here rather than by each transport, because deciding which queue carries which event to which
-/// handler is the same problem whichever broker is underneath.
-/// </remarks>
-/// <param name="EndpointName">The queue carrying this event to this handler.</param>
-/// <param name="EventType">The concrete event type delivered to the consumer.</param>
-/// <param name="HandlerType">The handler type.</param>
-/// <param name="ConsumerType">The closed consumer type adapting the handler to the transport.</param>
-/// <param name="Policy">How the transport is asked to execute the handler.</param>
-public sealed record EventSubscription(
-    string EndpointName,
-    Type EventType,
-    Type HandlerType,
-    Type ConsumerType,
-    MyServiceBusEventHandlerPolicy Policy);
-
-/// <summary>
-/// Configures the transport that carries the subscribed events.
-/// </summary>
-/// <remarks>
-/// The subscriptions are supplied because a transport materializes them into its own topology, and applies the
-/// part of the policy that its own configuration owns.
-/// </remarks>
-/// <param name="configurator">The bus registration being built.</param>
-/// <param name="subscriptions">The handlers this process subscribes.</param>
-public delegate void MyServiceBusTransportConfigurator(
-    IBusRegistrationConfigurator configurator,
-    IReadOnlyList<EventSubscription> subscriptions);
 
 public static class MyServiceBusEventsServiceExtensions
 {
