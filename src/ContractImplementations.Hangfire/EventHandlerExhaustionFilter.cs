@@ -45,7 +45,7 @@ public sealed class EventHandlerExhaustionFilter : IApplyStateFilter
     /// <summary>The job parameter this filter keeps the retry count of the last exhaustion in.</summary>
     private const string ExhaustedRetryCountParameter = "OpinionatedFramework.ExhaustedRetryCount";
 
-    private static readonly object registrationGate = new();
+    private static readonly Lock registrationGate = new();
     private static bool isRegistered;
 
     /// <summary>
