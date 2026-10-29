@@ -3,21 +3,21 @@
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
         <CentralPackageFloatingVersionsEnabled>true</CentralPackageFloatingVersionsEnabled>
         <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-        <MicrosoftAspNetCorePackagesVersion>10.0.12</MicrosoftAspNetCorePackagesVersion>
-        <MicrosoftExtensionsPackagesVersion>10.0.12</MicrosoftExtensionsPackagesVersion>
+        <MicrosoftAspNetCorePackagesVersion>10.0.14</MicrosoftAspNetCorePackagesVersion>
+        <MicrosoftExtensionsPackagesVersion>10.0.14</MicrosoftExtensionsPackagesVersion>
     </PropertyGroup>
     <ItemGroup Label="General">
-        <PackageVersion Include="BCrypt.Net-Next" Version="4.2.0"/>
+        <PackageVersion Include="BCrypt.Net-Next" Version="4.2.1"/>
         <PackageVersion Include="Cronos" Version="0.13.0"/>
         <PackageVersion Include="Dapper" Version="2.1.89"/>
         <PackageVersion Include="Docker.DotNet" Version="3.125.15"/>
         <PackageVersion Include="Flurl.Http" Version="4.0.2"/>
-        <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.16.0"/>
-        <PackageVersion Include="MailKit" Version="4.18.1"/>
-        <PackageVersion Include="NodaTime" Version="3.3.5"/>
+        <PackageVersion Include="Google.Cloud.Storage.V1" Version="5.0.0"/>
+        <PackageVersion Include="MailKit" Version="4.18.2"/>
+        <PackageVersion Include="NodaTime" Version="3.3.7"/>
         <PackageVersion Include="Npgsql" Version="10.0.3"/>
         <PackageVersion Include="PolySharp" Version="1.16.0"/>
-        <PackageVersion Include="Scriban" Version="7.5.0"/>
+        <PackageVersion Include="Scriban" Version="7.5.3"/>
     </ItemGroup>
 
     <ItemGroup Label="MyServiceBus">
@@ -69,9 +69,9 @@
 
     <ItemGroup Label="Microsoft">
         <PackageVersion Include="Microsoft.CSharp" Version="4.7.0"/>
-        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1"/>
-        <PackageVersion Include="Microsoft.OpenApi" Version="2.12.2"/>
-        <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.401"/>
+        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0"/>
+        <PackageVersion Include="Microsoft.OpenApi" Version="2.13.0"/>
+        <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.403"/>
     </ItemGroup>
 
     <ItemGroup Label="NHibernate">
@@ -85,13 +85,11 @@
 
     <ItemGroup Label="Transitive">
         <PackageVersion Include="Newtonsoft.Json" Version="13.0.4"/>
-        <PackageVersion Include="SharpCompress" Version="0.49.1"/>
-        <PackageVersion Include="Snappier" Version="1.3.1"/>
     </ItemGroup>
 
     <ItemGroup Label="Testing">
         <PackageVersion Include="coverlet.collector" Version="10.1.0"/>
         <PackageVersion Include="xunit" Version="2.9.3"/>
-        <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5"/>
+        <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1"/>
     </ItemGroup>
 </Project>
