@@ -7,6 +7,7 @@ using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.ServiceLocation;
 using IOKode.OpinionatedFramework.Tests.MyServiceBus.RabbitMq.Config;
 using IOKode.OpinionatedFramework.Utilities;
+using Microsoft.Extensions.Logging;
 using MyServiceBus;
 using Xunit;
 
@@ -116,6 +117,7 @@ public class EventHandlerExhaustedTest
         var orderId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
         await cancellation.CancelAsync();
+        int logged = RecordedLogs.Entries.Count;
 
         // What a handler in flight leaves with when the bus stops: the token of its delivery is cancelled.
         var filter = new EventHandlerExhaustionFilter<OrderRejected>(typeof(AlwaysFail), attempts: 3);
@@ -126,6 +128,12 @@ public class EventHandlerExhaustedTest
         await Task.Delay(settle);
 
         Assert.Empty(ExhaustionsOf<AlwaysFail>(orderId));
+
+        // Raising the event with the cancelled token would fail as well and leave no exhaustion either, so what
+        // tells a cancellation apart is that the filter did not try: it logged no failure to raise it.
+        Assert.DoesNotContain(RecordedLogs.Entries.Skip(logged), entry =>
+            entry.Category == typeof(EventHandlerExhaustionFilter<OrderRejected>).FullName
+            && entry.Level == LogLevel.Error);
     }
 
     [Fact]

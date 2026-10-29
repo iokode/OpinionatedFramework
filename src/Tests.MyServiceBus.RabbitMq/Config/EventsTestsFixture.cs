@@ -6,6 +6,7 @@ using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
 using IOKode.OpinionatedFramework.Events;
 using IOKode.OpinionatedFramework.Events.Extensions;
+using IOKode.OpinionatedFramework.Logging;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.TestHelpers.Containers;
 using Microsoft.Extensions.Configuration;
@@ -48,6 +49,7 @@ public class EventsTestsFixture : IAsyncLifetime
     {
         await Container.Advanced.ResetAsync();
         HandledEvents.Reset();
+        Container.Services.AddSingleton<ILogging, RecordedLogs>();
         PartnerApplication.PartnerSubscriber.Reset();
 
         await this.rabbitMq.InitializeAsync();
