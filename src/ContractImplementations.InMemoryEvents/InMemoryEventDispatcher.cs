@@ -20,7 +20,9 @@ namespace IOKode.OpinionatedFramework.ContractImplementations.InMemoryEvents;
 /// <remarks>
 /// Dispatching only queues the work, so raising an event never delays whoever raised it. Handlers run afterwards
 /// on a worker of this dispatcher, which is why a failure cannot be reported back to the code that dispatched:
-/// it has already moved on. Failures are logged instead, and they neither stop nor hide the other handlers.
+/// it has already moved on. Failures are logged instead, and they neither stop nor hide the other handlers. A
+/// handler that fails its last attempt also raises <see cref="EventHandlerExhausted"/>, when the application
+/// declared it.
 /// </remarks>
 /// <remarks>
 /// Each execution gets an independent service scope. It deliberately does not join the scope of whoever raised
@@ -126,10 +128,41 @@ public class InMemoryEventDispatcher : IEventDispatcher, IAsyncDisposable
         catch (Exception exception)
         {
             Log(pending, exception);
+
+            // The retry loop only lets a failure out once the policy has no attempts left. Nothing in flight is
+            // cancelled: disposing waits for the workers to drain before it cancels the stopping token.
+            await RaiseExhaustedAsync(pending, pending.Registration.Policy.RetryCount + 1);
         }
         finally
         {
             gate?.Release();
+        }
+    }
+
+    private async Task RaiseExhaustedAsync(PendingExecution pending, int attempts)
+    {
+        var eventType = pending.Event.GetType();
+        var eventName = EventName.Of(eventType);
+
+        if (!EventHandlerExhaustion.IsRaisedFor(this.options, eventName))
+        {
+            return;
+        }
+
+        try
+        {
+            var exhausted = EventHandlerExhaustion.Describe(
+                eventName,
+                EventSerializer.Serialize(pending.Event, eventType),
+                pending.Registration.HandlerType.FullName!,
+                attempts);
+
+            await DispatchAsync(exhausted, CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            // Nothing can be reported back to whoever dispatched, and a worker that let this escape would stop.
+            LogNotRaised(pending, exception);
         }
     }
 
@@ -176,6 +209,18 @@ public class InMemoryEventDispatcher : IEventDispatcher, IAsyncDisposable
             "The handler {Handler} failed while handling the event {Event}.",
             pending.Registration.HandlerType.Name,
             EventName.Of(pending.Event.GetType()));
+    }
+
+    private static void LogNotRaised(PendingExecution pending, Exception exception)
+    {
+        var logger = Locator.ServiceProvider?.GetService<ILogging>()?.FromCategory<InMemoryEventDispatcher>();
+
+        logger?.LogError(
+            exception,
+            "The handler {Handler} exhausted its attempts on the event {Event}, and raising {Exhausted} failed.",
+            pending.Registration.HandlerType.Name,
+            EventName.Of(pending.Event.GetType()),
+            EventName.Of<EventHandlerExhausted>());
     }
 
     private sealed record PendingExecution(

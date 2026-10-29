@@ -21,8 +21,8 @@ public static class MyServiceBusEventsServiceExtensions
                           && method.GetParameters().Length == 2
                           && method.GetParameters()[0].ParameterType == typeof(string));
 
-    private static readonly MethodInfo retryPipeMethod = typeof(MyServiceBusEventsServiceExtensions)
-        .GetMethod(nameof(RetryPipe), BindingFlags.Static | BindingFlags.NonPublic)!;
+    private static readonly MethodInfo handlerPipeMethod = typeof(MyServiceBusEventsServiceExtensions)
+        .GetMethod(nameof(HandlerPipe), BindingFlags.Static | BindingFlags.NonPublic)!;
 
     /// <summary>
     /// Registers the broker-backed event dispatcher and subscribes the handlers declared for it.
@@ -72,16 +72,17 @@ public static class MyServiceBusEventsServiceExtensions
 
             foreach (var subscription in subscriptions)
             {
-                // The endpoint name and the retry policy are core concepts, so they are declared here and not
-                // left to the transport. Its concurrency limit is not: no registration overload accepts an
-                // endpoint name, a concurrency limit and a pipe together, so the transport applies that one.
-                var retryPipe = retryPipeMethod
+                // The endpoint name, the retry policy and what happens once it is exhausted are core concepts,
+                // so they are declared here and not left to the transport. Its concurrency limit is not: no
+                // registration overload accepts an endpoint name, a concurrency limit and a pipe together, so
+                // the transport applies that one.
+                var handlerPipe = handlerPipeMethod
                     .MakeGenericMethod(subscription.EventType)
-                    .Invoke(null, [subscription.Policy]);
+                    .Invoke(null, [subscription.HandlerType, subscription.Policy]);
 
                 addConsumerMethod
                     .MakeGenericMethod(subscription.ConsumerType, subscription.EventType)
-                    .Invoke(configurator, [subscription.EndpointName, retryPipe]);
+                    .Invoke(configurator, [subscription.EndpointName, handlerPipe]);
             }
 
             configureTransport(configurator, subscriptions);
@@ -97,28 +98,40 @@ public static class MyServiceBusEventsServiceExtensions
     }
 
     /// <summary>
-    /// Builds the consume pipe that applies the declared retry policy, or none when the policy declares no retry.
+    /// Builds the consume pipe of a handler: the exhaustion filter, and inside it the declared retry policy.
     /// </summary>
-    private static Action<PipeConfigurator<ConsumeContext<TMessage>>>? RetryPipe<TMessage>(
-        MyServiceBusEventHandlerPolicy policy)
-        where TMessage : class
+    /// <remarks>
+    /// The pipe runs its filters in the order they are added, so the exhaustion filter, added first, only sees a
+    /// failure the retry filter let out. It is added whether or not a retry is declared, because a handler
+    /// without retries is exhausted by its first failure.
+    /// </remarks>
+    private static Action<PipeConfigurator<ConsumeContext<TMessage>>> HandlerPipe<TMessage>(
+        Type handlerType, MyServiceBusEventHandlerPolicy policy)
+        where TMessage : class, ISubscribableEvent
     {
-        if (!policy.IsRetryConfigured)
-        {
-            return null;
-        }
+        var attempts = policy.IsRetryConfigured ? policy.RetryCount + 1 : 1;
 
-        return pipe => pipe.UseMessageRetry(retry =>
+        return pipe =>
         {
-            if (policy.RetryDelay is { } delay)
+            pipe.UseFilter(new EventHandlerExhaustionFilter<TMessage>(handlerType, attempts));
+
+            if (!policy.IsRetryConfigured)
             {
-                retry.Interval(policy.RetryCount, delay);
+                return;
             }
-            else
+
+            pipe.UseMessageRetry(retry =>
             {
-                retry.Immediate(policy.RetryCount);
-            }
-        });
+                if (policy.RetryDelay is { } delay)
+                {
+                    retry.Interval(policy.RetryCount, delay);
+                }
+                else
+                {
+                    retry.Immediate(policy.RetryCount);
+                }
+            });
+        };
     }
 
     /// <summary>

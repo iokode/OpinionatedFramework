@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace IOKode.OpinionatedFramework.Tests.InMemoryEvents.Config;
 public static class HandledEvents
 {
     private static readonly ConcurrentBag<(string Handler, string EventName, string? Payload)> handled = [];
+    private static readonly ConcurrentBag<EventHandlerExhausted> exhaustions = [];
     private static int attempts;
 
     /// <param name="event">The event the handler received.</param>
@@ -37,6 +39,11 @@ public static class HandledEvents
                              && entry.Payload == payload);
 
     public static int Attempts => attempts;
+
+    /// <summary>Every <see cref="EventHandlerExhausted"/> that was raised.</summary>
+    public static IReadOnlyCollection<EventHandlerExhausted> Exhaustions => exhaustions;
+
+    public static void RecordExhaustion(EventHandlerExhausted @event) => exhaustions.Add(@event);
 
     public static int NextAttempt() => Interlocked.Increment(ref attempts);
 
@@ -67,6 +74,7 @@ public static class HandledEvents
     public static void Reset()
     {
         handled.Clear();
+        exhaustions.Clear();
         Interlocked.Exchange(ref attempts, 0);
         Interlocked.Exchange(ref running, 0);
         Interlocked.Exchange(ref maxRunning, 0);
@@ -143,7 +151,27 @@ public class AlwaysFail : IEventHandler<OrderCancelled>
 {
     public Task HandleAsync(OrderCancelled @event, CancellationToken cancellationToken)
     {
+        HandledEvents.NextAttempt();
         throw new InvalidOperationException("This handler always fails.");
+    }
+}
+
+public class RecordExhaustion : IEventHandler<EventHandlerExhausted>
+{
+    public Task HandleAsync(EventHandlerExhausted @event, CancellationToken cancellationToken)
+    {
+        HandledEvents.RecordExhaustion(@event);
+        return Task.CompletedTask;
+    }
+}
+
+/// <summary>A handler of the exhaustion event that fails, which must not raise the event again.</summary>
+public class FailOnExhaustion : IEventHandler<EventHandlerExhausted>
+{
+    public Task HandleAsync(EventHandlerExhausted @event, CancellationToken cancellationToken)
+    {
+        HandledEvents.Record<FailOnExhaustion>(@event);
+        throw new InvalidOperationException("This handler of the exhaustion event always fails.");
     }
 }
 

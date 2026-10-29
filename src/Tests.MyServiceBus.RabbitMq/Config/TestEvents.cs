@@ -16,6 +16,13 @@ public class OrderCancelled : IPublishableEvent, ISubscribableEvent
     public required Guid OrderId { get; init; }
 }
 
+/// <summary>Reacted to by handlers that always fail, with retries and without.</summary>
+[EventName("tests.order-rejected")]
+public class OrderRejected : IPublishableEvent, ISubscribableEvent
+{
+    public required Guid OrderId { get; init; }
+}
+
 /// <summary>Raised here and nobody here reacts to it. No handler can be registered for it.</summary>
 [EventName("tests.audit-recorded")]
 public class AuditRecorded : IPublishableEvent

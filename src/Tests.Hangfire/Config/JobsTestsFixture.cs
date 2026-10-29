@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Docker.DotNet;
 using Hangfire;
 using Hangfire.PostgreSql;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.Hangfire;
+using IOKode.OpinionatedFramework.Events;
+using IOKode.OpinionatedFramework.Events.Extensions;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.Logging;
 using IOKode.OpinionatedFramework.TestHelpers;
@@ -27,8 +28,6 @@ namespace IOKode.OpinionatedFramework.Tests.Hangfire.Config;
 /// </remarks>
 public class JobsTestsFixture : IAsyncLifetime
 {
-    private DockerClient docker => DockerHelper.DockerClient;
-
     /// <summary>
     /// The worker count of the <c>default</c> server, which configuration alone decides.
     /// </summary>
@@ -81,6 +80,8 @@ public class JobsTestsFixture : IAsyncLifetime
             {
                 events.Publishes<OrderSubmitted>();
                 events.Publishes<OrderCancelled>();
+                events.Publishes<OrderRejected>();
+                events.PublishesBuiltInEvents();
 
                 // Raised here and reacted to nowhere, which only the publish declaration reveals.
                 events.Publishes<AuditRecorded>();
@@ -91,6 +92,11 @@ public class JobsTestsFixture : IAsyncLifetime
                     policy.Retry(1, TimeSpan.FromSeconds(1)));
                 events.Handles<OrderCancelled, AlwaysFail>(policy =>
                     policy.Retry(2, TimeSpan.FromSeconds(1)));
+                events.Handles<OrderRejected, AlwaysFailWithoutRetry>(policy => policy.Retry(0));
+
+                // Without a policy, Hangfire would retry the failing one ten times over several minutes.
+                events.Handles<EventHandlerExhausted, RecordExhaustion>(policy => policy.Retry(0));
+                events.Handles<EventHandlerExhausted, FailOnExhaustion>(policy => policy.Retry(0));
             }));
 
         await Task.Delay(3000);
@@ -103,8 +109,9 @@ public class JobsTestsFixture : IAsyncLifetime
             await hostHandle.DisposeAsync();
         }
 
+        // The Docker client is not disposed: it is shared by the whole process, and a fixture of another
+        // collection still needs it after this one.
         await PostgresContainer.DisposeAsync();
-        docker.Dispose();
     }
 }
 
