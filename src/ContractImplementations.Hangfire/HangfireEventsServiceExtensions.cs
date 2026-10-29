@@ -39,6 +39,9 @@ public static class HangfireEventsServiceExtensions
         // declared retry policy reach the job.
         EventHandlerRetryFilterProvider.EnsureRegistered();
 
+        // The same applies to noticing that a handler has no attempts left.
+        EventHandlerExhaustionFilter.EnsureRegistered();
+
         foreach (var registration in options.EventHandlerRegistrations)
         {
             services.TryAddTransient(registration.HandlerType);

@@ -4,6 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using IOKode.OpinionatedFramework.Bootstrapping;
 using IOKode.OpinionatedFramework.ContractImplementations.MyServiceBus;
+using IOKode.OpinionatedFramework.Events;
+using IOKode.OpinionatedFramework.Events.Extensions;
+using IOKode.OpinionatedFramework.Logging;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.TestHelpers.Containers;
 using Microsoft.Extensions.Configuration;
@@ -46,6 +49,7 @@ public class EventsTestsFixture : IAsyncLifetime
     {
         await Container.Advanced.ResetAsync();
         HandledEvents.Reset();
+        Container.Services.AddSingleton<ILogging, RecordedLogs>();
         PartnerApplication.PartnerSubscriber.Reset();
 
         await this.rabbitMq.InitializeAsync();
@@ -68,6 +72,8 @@ public class EventsTestsFixture : IAsyncLifetime
                 events.Publishes<OrderSubmitted>();
                 events.Publishes<OrderCancelled>();
                 events.Publishes<InventoryAdjusted>();
+                events.Publishes<OrderRejected>();
+                events.PublishesBuiltInEvents();
 
                 // Raised here and reacted to nowhere, which only the publish declaration reveals.
                 events.Publishes<AuditRecorded>();
@@ -75,6 +81,10 @@ public class EventsTestsFixture : IAsyncLifetime
                 events.Handles<OrderSubmitted, SendConfirmationEmail>();
                 events.Handles<OrderSubmitted, UpdateStatistics>();
                 events.Handles<OrderCancelled, FailOnFirstDelivery>(policy => policy.Retry(1));
+                events.Handles<OrderRejected, AlwaysFail>(policy => policy.Retry(2));
+                events.Handles<OrderRejected, AlwaysFailWithoutRetry>();
+                events.Handles<EventHandlerExhausted, RecordExhaustion>();
+                events.Handles<EventHandlerExhausted, FailOnExhaustion>();
 
                 // Reacts to an event this application never raises.
                 events.Handles<PartnerPayment, HandlePartnerPayment>();

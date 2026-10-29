@@ -150,11 +150,25 @@ public abstract class EventDeclarations<TPolicy> where TPolicy : new()
     /// <exception cref="MissingPublishDeclarationException">The event type was not declared.</exception>
     public void EnsureDeclaredAsPublished(Type eventType)
     {
-        ArgumentNullException.ThrowIfNull(eventType);
-
-        if (!this.publishedEventTypes.Contains(eventType))
+        if (!IsDeclaredAsPublished(eventType))
         {
             throw new MissingPublishDeclarationException(eventType);
         }
+    }
+
+    /// <summary>
+    /// Gets whether the event type was declared with <see cref="Publishes{TEvent}"/>.
+    /// </summary>
+    /// <remarks>
+    /// For a driver that raises an event on the application's behalf and has to skip it, rather than fail, when
+    /// the application did not opt into it.
+    /// </remarks>
+    /// <param name="eventType">The concrete event type.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="eventType"/> is <see langword="null"/>.</exception>
+    public bool IsDeclaredAsPublished(Type eventType)
+    {
+        ArgumentNullException.ThrowIfNull(eventType);
+
+        return this.publishedEventTypes.Contains(eventType);
     }
 }
