@@ -4,7 +4,7 @@
 name: Generate OpinionatedFramework packages and push to NuGet Gallery
 permissions:
   contents: read
-  packages: write
+  id-token: write # Required for NuGet trusted publishing (OIDC)
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -37,8 +37,14 @@ jobs:
       - name: Pack
         run: dotnet pack src --no-build -c Release --output ./nupkgs
 
+      - name: NuGet login (trusted publishing)
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Push to NuGet
         run: |
           for file in ./nupkgs/*.nupkg; do
-            dotnet nuget push "$file" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+            dotnet nuget push "$file" --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
           done
