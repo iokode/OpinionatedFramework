@@ -47,6 +47,7 @@ public class ResourceControllersFixture : IAsyncLifetime
         }, options =>
         {
            options.AddMiddleware<ResourceNotFoundQueryMiddleware>();
+           options.AddMiddleware<TenantQueryMiddleware>();
         });
         Container.Services.AddControllers(options =>
         {

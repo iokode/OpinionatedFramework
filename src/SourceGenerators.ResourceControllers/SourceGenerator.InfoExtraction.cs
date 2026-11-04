@@ -58,6 +58,7 @@ public partial class SourceGenerator
                 InvocationParameters = typeSymbol.GetMembers()
                     .OfType<IPropertySymbol>()
                     .Where(property => property is { IsStatic: false, DeclaredAccessibility: Accessibility.Public } && property.SetMethod is not null)
+                    .Where(property => !IsSetByMiddleware(property))
                     .Select(property => new Parameter
                     {
                         Name = property.Name.Camelize(),
@@ -115,6 +116,15 @@ public partial class SourceGenerator
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Whether a property of a query object is marked as set by a query middleware, so it is not bound from the request.
+    /// </summary>
+    private static bool IsSetByMiddleware(IPropertySymbol property)
+    {
+        return property.GetAttributes().Any(attribute =>
+            attribute.AttributeClass?.ToDisplayString() == "IOKode.OpinionatedFramework.Persistence.Queries.SetByMiddlewareAttribute");
     }
 
     private static ISet<string> GetAssembliesWithResources(AnalyzerConfigOptionsProvider provider, CancellationToken _)

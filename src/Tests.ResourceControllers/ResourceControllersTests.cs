@@ -357,6 +357,45 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     }
 
     [Fact]
+    public void QueryParameterSetByMiddleware_IsNotPartOfTheAction()
+    {
+        // Act
+        var parameters = typeof(TenantUserResourceController)
+            .GetMethod(nameof(TenantUserResourceController.ListAsync))!
+            .GetParameters()
+            .Select(parameter => parameter.Name!)
+            .ToArray();
+
+        // Assert
+        Assert.Equal(["prefix", "cancellationToken"], parameters);
+    }
+
+    [Fact]
+    public async Task QueryParameterSetByMiddleware_Success()
+    {
+        // Act
+        var response = await this.client.GetAsync("/tenant-users?prefix=user&tenant=other");
+
+        // Assert
+        var content = await response.Content.ReadFromJsonAsync<ListTenantUsersQueryResult[]>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal([$"{TenantQueryMiddleware.Tenant}-user"], content!.Select(result => result.Name));
+    }
+
+    [Fact]
+    public async Task QueryParameterSetByMiddleware_IsNotInTheApiDescription()
+    {
+        // Act
+        var response = await this.client.GetAsync("/openapi/v1.json");
+
+        // Assert
+        var stream = await response.Content.ReadAsStreamAsync();
+        var document = (await OpenApiDocument.LoadAsync(stream)).Document!;
+        var parameters = document.Paths["/tenant-users"].Operations![HttpMethod.Get].Parameters!;
+        Assert.Equal(["prefix"], parameters.Select(parameter => parameter.Name));
+    }
+
+    [Fact]
     public async Task ResourceNotFound_Command_Returns404()
     {
         // Arrange
