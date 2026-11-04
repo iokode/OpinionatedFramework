@@ -66,6 +66,7 @@ public class ResourceControllersFixture : IAsyncLifetime
                             options.Filters.Add(new ProducesAttribute("application/json"));
                             options.Filters.Add(new ProducesResponseTypeAttribute(typeof(ProblemDetails), StatusCodes.Status500InternalServerError));
                             options.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status404NotFound));
+                            options.Conventions.Add(new PublicGroupRouteConvention());
                         }).AddApplicationPart(typeof(ResourceControllersFixture).Assembly);
                         services.AddProblemDetails();
                         services.AddTransient<ResourceNotFoundControllerMiddleware>();

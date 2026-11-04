@@ -46,7 +46,7 @@ public partial class SourceGenerator
         public required string AssemblyNamespace { get; set; }
         public required ResourceData[] ResourcesData { get; set; }
         public string BaseRoute => ResourcesData[0].MainResource.Pluralize().Kebaberize();
-        public string ClassName => $"{ResourcesData[0].MainResource.Pascalize()}ResourceController";
+        public string ClassName => $"{ResourcesData[0].GroupPrefix}{ResourcesData[0].MainResource.Pascalize()}ResourceController";
         public string Namespace => $"{AssemblyNamespace}.Resources.Controllers";
         public string ClassFileName => $"{ClassName}.g.cs";
         public ResourceData[] ResourcesDataWithBodyClass => ResourcesData.Where(resource => resource.BodyInputClassName != null).ToArray();
@@ -63,6 +63,8 @@ public partial class SourceGenerator
         public string? DocComment { get; set; }
         public string? KeyValue { get; set; }
         public string? Action { get; set; }
+        public string? Group { get; set; }
+        public string GroupPrefix => string.IsNullOrWhiteSpace(Group) ? string.Empty : Group!.Pascalize();
         public Parameter[] InvocationParameters { get; set; } = [];
 
         public Parameter[] InvocationParametersWithToken =>
@@ -78,7 +80,7 @@ public partial class SourceGenerator
 
         public string? BodyInputClassName =>
             NonRouteInvocationParameters.Length > 1 && ResourceType is not (ResourceType.List or ResourceType.Retrieve)
-                ? MainResource.Pascalize() + ControllerMethodName.Replace("Async", "Input")
+                ? GroupPrefix + MainResource.Pascalize() + ControllerMethodName.Replace("Async", "Input")
                 : null;
 
         public Parameter[] ControllerMethodParameters =>

@@ -314,6 +314,49 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     }
 
     [Fact]
+    public void ResourceGroups_AreGeneratedInTheirOwnControllers()
+    {
+        // Act
+        var defaultGroupMethods = typeof(OrderResourceController).GetMethods().Select(method => method.Name).ToArray();
+        var publicGroupMethods = typeof(PublicOrderResourceController).GetMethods().Select(method => method.Name).ToArray();
+
+        // Assert
+        Assert.Contains(nameof(OrderResourceController.ListAsync), defaultGroupMethods);
+        Assert.Contains(nameof(OrderResourceController.RetrieveByIdAsync), defaultGroupMethods);
+        Assert.Contains(nameof(PublicOrderResourceController.ListAsync), publicGroupMethods);
+        Assert.Contains(nameof(PublicOrderResourceController.RetrieveByIdAsync), publicGroupMethods);
+        Assert.Equal("orders", typeof(PublicOrderResourceController).GetCustomAttribute<Microsoft.AspNetCore.Mvc.RouteAttribute>()!.Template);
+    }
+
+    [Theory]
+    [InlineData("/orders", "order")]
+    [InlineData("/public/orders", "public-order")]
+    public async Task ListOrders_EachGroupIsServedWhereItsConventionSays_Success(string path, string expected)
+    {
+        // Act
+        var response = await this.client.GetAsync(path);
+
+        // Assert
+        var content = await response.Content.ReadFromJsonAsync<string[]>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal([expected], content!);
+    }
+
+    [Fact]
+    public async Task RetrieveOrder_FromQueryInAGroup_Success()
+    {
+        // Act
+        var defaultGroupResponse = await this.client.GetAsync("/orders/id-5");
+        var publicGroupResponse = await this.client.GetAsync("/public/orders/id-5");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, defaultGroupResponse.StatusCode);
+        Assert.Equal("order-5", await defaultGroupResponse.Content.ReadFromJsonAsync<string>());
+        Assert.Equal(HttpStatusCode.OK, publicGroupResponse.StatusCode);
+        Assert.Equal("public-order-5", (await publicGroupResponse.Content.ReadFromJsonAsync<RetrievePublicOrderQueryResult>())!.Name);
+    }
+
+    [Fact]
     public async Task ResourceNotFound_Command_Returns404()
     {
         // Arrange
