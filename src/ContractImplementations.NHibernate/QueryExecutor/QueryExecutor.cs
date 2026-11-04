@@ -147,6 +147,8 @@ public class QueryExecutor(
 
     private async Task ExecuteQueryAsync<TResult>(ResultCardinality resultCardinality, NHibernateQueryExecutionExecutorContext context)
     {
+        QueryParameterUtilities.EnsureMiddlewareParametersAreSet(context.Parameters);
+
         using var session = context.Transaction == null
             ? sessionFactory.OpenStatelessSession()
             : sessionFactory.OpenStatelessSession(context.Transaction.Connection as DbConnection);
@@ -180,6 +182,8 @@ public class QueryExecutor(
 
     private async Task ExecuteResultSetsQueryAsync(IReadOnlyList<QueryResultSet> resultSets, NHibernateQueryExecutionExecutorContext context)
     {
+        QueryParameterUtilities.EnsureMiddlewareParametersAreSet(context.Parameters);
+
         using var session = context.Transaction == null
             ? sessionFactory.OpenStatelessSession()
             : sessionFactory.OpenStatelessSession(context.Transaction.Connection as DbConnection);

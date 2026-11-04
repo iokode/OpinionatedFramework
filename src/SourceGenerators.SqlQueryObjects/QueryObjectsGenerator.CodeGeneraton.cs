@@ -90,7 +90,7 @@ public partial class QueryObjectsGenerator
         public string QueryClassAccessor => IsInternal ? "internal" : "public";
         public string QueryParametersClassName => $"{ClassName}Parameters";
 
-        private readonly string _QueryParameterRegex = @"--\s*@parameter[ \t]([^\n]+)[ \t]+(\S+)";
+        private readonly string _QueryParameterRegex = @"--\s*@parameter[ \t]([^\n]+?)[ \t]+(\S+)(?:[ \t]+(from[ \t]+middleware))?[ \t]*\r?$";
         private readonly string _QueryNamespaceParameterRegex = @"--\s*@namespace[ \t]+(\S+)";
         private readonly string _QueryUsingRegex = @"--\s*@using[ \t]+([^\n]+)";
         private readonly string _QueryAttributeRegex = @"--\s*@attribute[ \t]([^\n]+)\s*";
@@ -106,7 +106,7 @@ public partial class QueryObjectsGenerator
             IsInternal = Regex.IsMatch(sqlFile.Content, _QueryInternalRegex);
 
             var queryUsingMatches = Regex.Matches(sqlFile.Content, _QueryUsingRegex);
-            var queryParameterMatches = Regex.Matches(sqlFile.Content, _QueryParameterRegex);
+            var queryParameterMatches = Regex.Matches(sqlFile.Content, _QueryParameterRegex, RegexOptions.Multiline);
             var queryAttributeMatches = Regex.Matches(sqlFile.Content, _QueryAttributeRegex);
             var queryMapMatches = Regex.Matches(sqlFile.Content, _QueryMapRegex, RegexOptions.Multiline);
 
@@ -120,6 +120,7 @@ public partial class QueryObjectsGenerator
                 {
                     Type = SyntaxFactory.ParseTypeName(match.Groups[1].Value).ToString(),
                     Name = SyntaxFactory.ParseName(match.Groups[2].Value).ToString(),
+                    IsSetByMiddleware = match.Groups[3].Success,
                 })
                 .ToArray();
 
@@ -313,7 +314,15 @@ public partial class QueryObjectsGenerator
         public required string Type { get; set; }
         public string PascalCaseName => Name.Pascalize();
         public string CamelCaseName => Name.Camelize();
-        public string RequiredKeyword => Type.EndsWith("?") ? string.Empty : "required ";
+        public bool IsSetByMiddleware { get; set; }
+        public string RequiredKeyword => Type.EndsWith("?") || IsSetByMiddleware ? string.Empty : "required ";
+
+        /// <summary>
+        /// The type of the generated property. A parameter set by a middleware is nullable, so that null means that no
+        /// value has been given to it yet.
+        /// </summary>
+        public string PropertyType => IsSetByMiddleware && !Type.EndsWith("?") ? $"{Type}?" : Type;
+        public string AttributePrefix => IsSetByMiddleware ? "[SetByMiddleware] " : string.Empty;
         public string TypeForTypeOf => Type.EndsWith("?") ? Type[..^1] : Type;
     }
 
@@ -387,7 +396,7 @@ public partial class QueryObjectsGenerator
             public IReadOnlyList<QueryResultSet> ResultSets => resultSets;
 
             {{~ for parameter in InputParameters ~}}
-            public {{ parameter.RequiredKeyword }}{{ parameter.Type }} {{ parameter.PascalCaseName }} { get; init; }
+            {{ parameter.AttributePrefix }}public {{ parameter.RequiredKeyword }}{{ parameter.PropertyType }} {{ parameter.PascalCaseName }} { get; init; }
             {{~ end ~}}
 
             {{~ if RequiresCustomMapParameters ~}}
@@ -467,7 +476,7 @@ public partial class QueryObjectsGenerator
         {{ QueryClassAccessor }} partial record {{ QueryParametersClassName }}
         {
             {{~ for parameter in QueryParameters ~}}
-            public {{ parameter.RequiredKeyword }}{{ parameter.Type }} {{ parameter.PascalCaseName }} { get; init; }
+            {{ parameter.AttributePrefix }}public {{ parameter.RequiredKeyword }}{{ parameter.PropertyType }} {{ parameter.PascalCaseName }} { get; init; }
             {{~ end ~}}
         }
         """";

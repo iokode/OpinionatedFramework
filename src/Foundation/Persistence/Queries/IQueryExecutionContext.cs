@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
+using IOKode.OpinionatedFramework.Utilities;
 
 namespace IOKode.OpinionatedFramework.Persistence.Queries;
 
@@ -34,7 +35,28 @@ public interface IQueryExecutionContext
     /// <summary>
     /// Gets the collection of parameters used in the query.
     /// </summary>
+    /// <remarks>Use <see cref="SetParameter"/> to give a value to a parameter before the query is executed.</remarks>
     public object? Parameters { get; }
+
+    /// <summary>
+    /// Whether the query has a parameter with the given name.
+    /// </summary>
+    /// <param name="name">The name of the parameter, as declared in the SQL file (<c>some_id</c>) or as its property (<c>SomeId</c>).</param>
+    public bool HasParameter(string name) => QueryParameterUtilities.HasParameter(Parameters, name);
+
+    /// <summary>
+    /// Sets the value of a parameter before the query is executed.
+    /// </summary>
+    /// <remarks>
+    /// This is the way to give a value to the parameters declared with <c>-- @parameter &lt;type&gt; &lt;name&gt; from middleware</c>,
+    /// which are marked with <see cref="SetByMiddlewareAttribute"/> and are not bound from the request by the generated
+    /// resource controllers. It can also replace the value of any other parameter.
+    /// </remarks>
+    /// <param name="name">The name of the parameter, as declared in the SQL file (<c>some_id</c>) or as its property (<c>SomeId</c>).</param>
+    /// <param name="value">The value of the parameter.</param>
+    /// <exception cref="ArgumentException">The query has no parameter with that name, or the value is not of its type.</exception>
+    /// <exception cref="InvalidOperationException">The parameter cannot be written, for example because the parameters object is an anonymous object.</exception>
+    public void SetParameter(string name, object? value) => QueryParameterUtilities.SetParameter(Parameters, name, value);
 
     /// <summary>
     /// The cancellation token associated with the query execution.

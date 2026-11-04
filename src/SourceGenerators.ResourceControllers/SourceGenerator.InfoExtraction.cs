@@ -24,7 +24,7 @@ public partial class SourceGenerator
             .Cast<ResourceData>();
 
         var controllersData = resourcesData
-            .GroupBy(command => command.MainResource.Pluralize().Kebaberize())
+            .GroupBy(resource => (resource.GroupPrefix, Route: resource.MainResource.Pluralize().Kebaberize()))
             .Select(group => new ResourceControllerData
             {
                 AssemblyNamespace = generatorData.AssemblyNamespace,
@@ -53,18 +53,20 @@ public partial class SourceGenerator
                 ResourceType = resourceType,
                 ClassName = typeSymbol.Name,
                 Namespace = typeSymbol.ContainingNamespace.ToDisplayString(),
-                ResourceValue = (string) resourceAttribute.ConstructorArguments[0].Value!,
+                ResourceValue = GetAttributeArgument(resourceAttribute, "resource") ?? string.Empty,
                 DocComment = SourceGenerationHelper.GetDocComment(typeSymbol),
                 InvocationParameters = typeSymbol.GetMembers()
                     .OfType<IPropertySymbol>()
                     .Where(property => property is { IsStatic: false, DeclaredAccessibility: Accessibility.Public } && property.SetMethod is not null)
+                    .Where(property => !IsSetByMiddleware(property))
                     .Select(property => new Parameter
                     {
                         Name = property.Name.Camelize(),
                         Type = property.Type.ToDisplayString()
                     }).ToArray(),
                 MethodReturnType = $"Task<{((INamedTypeSymbol)baseQuery!).TypeArguments.First().ToDisplayString()}>",
-                KeyValue = resourceAttribute.ConstructorArguments.Length > 1 ? resourceAttribute.ConstructorArguments[1].Value as string : null,
+                KeyValue = GetAttributeArgument(resourceAttribute, "key"),
+                Group = GetAttributeArgument(resourceAttribute, "group"),
             };
             return queryData;
         }
@@ -78,7 +80,7 @@ public partial class SourceGenerator
                 ResourceType = resourceType,
                 ClassName = typeSymbol.Name,
                 Namespace = typeSymbol.ContainingNamespace.ToDisplayString(),
-                ResourceValue = (string) resourceAttribute.ConstructorArguments[0].Value!,
+                ResourceValue = GetAttributeArgument(resourceAttribute, "resource") ?? string.Empty,
                 DocComment = SourceGenerationHelper.GetDocComment(typeSymbol),
                 GenericArgument = ((INamedTypeSymbol) baseCommand!).TypeArguments.FirstOrDefault()?.ToDisplayString(),
                 InvocationParameters = ((INamedTypeSymbol) typeSymbol).InstanceConstructors
@@ -88,20 +90,41 @@ public partial class SourceGenerator
                         Name = param.Name,
                         Type = param.Type.ToDisplayString()
                     }).ToArray(),
-                KeyValue = resourceAttribute.ConstructorArguments.Length switch
-                {
-                    > 2 => resourceAttribute.ConstructorArguments[2].Value as string,
-                    > 1 => resourceAttribute.ConstructorArguments[1].Value as string,
-                    _ => null,
-                },
-                Action = resourceAttribute.ConstructorArguments.Length > 2
-                    ? resourceAttribute.ConstructorArguments[1].Value as string
-                    : null,
+                KeyValue = GetAttributeArgument(resourceAttribute, "key"),
+                Action = GetAttributeArgument(resourceAttribute, "action"),
+                Group = GetAttributeArgument(resourceAttribute, "group"),
             };
             return commandData;
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Gets the value of a constructor argument of a resource attribute by the name of its parameter, so that adding
+    /// an optional parameter to an attribute does not shift the position of the others.
+    /// </summary>
+    private static string? GetAttributeArgument(AttributeData attribute, string parameterName)
+    {
+        var parameters = attribute.AttributeConstructor?.Parameters ?? ImmutableArray<IParameterSymbol>.Empty;
+        for (var i = 0; i < parameters.Length && i < attribute.ConstructorArguments.Length; i++)
+        {
+            if (parameters[i].Name == parameterName)
+            {
+                return attribute.ConstructorArguments[i].Value as string;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Whether a property of a query object is marked as set by a query middleware, so it is not bound from the request.
+    /// </summary>
+    private static bool IsSetByMiddleware(IPropertySymbol property)
+    {
+        return property.GetAttributes().Any(attribute =>
+            attribute.AttributeClass?.ToDisplayString() == "IOKode.OpinionatedFramework.Persistence.Queries.SetByMiddlewareAttribute");
     }
 
     private static ISet<string> GetAssembliesWithResources(AnalyzerConfigOptionsProvider provider, CancellationToken _)
