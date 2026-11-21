@@ -36,11 +36,15 @@ public static class QueryExecutorExtensions
             ?? throw new QueryDefinitionException($"Query type '{queryType.FullName}' does not declare MapParameters.");
         var mapResultMethod = queryType.GetMethod("MapResult", BindingFlags.Instance | BindingFlags.NonPublic)
             ?? throw new QueryDefinitionException($"Query type '{queryType.FullName}' does not declare MapResult.");
-        var parameters = mapParametersMethod.Invoke(query, Array.Empty<object?>());
+        // An exception thrown by a mapping method reaches the caller as it was thrown, and not wrapped by the
+        // reflection that invokes it, so that it can be handled by its own type.
+        var parameters = mapParametersMethod.Invoke(query, BindingFlags.DoNotWrapExceptions, null,
+            Array.Empty<object?>(), null);
         var rawResultSets = await queryExecutor.QueryResultSetsAsync(query.ResultSets, query.Directives, parameters, null, cancellationToken);
         var mapResultArguments = GetMapResultArguments(mapResultMethod, queryType, query.ResultSets, rawResultSets);
 
-        return (TResult) mapResultMethod.Invoke(query, mapResultArguments)!;
+        return (TResult) mapResultMethod.Invoke(query, BindingFlags.DoNotWrapExceptions, null, mapResultArguments,
+            null)!;
     }
 
     /// <summary>
