@@ -143,6 +143,31 @@ public class QueryObjectTests(NHibernateTestsFixture fixture, ITestOutputHelper 
     }
 
     [Fact]
+    public async Task Map_ExceptionThrownByMapResult_ReachesTheCallerAsThrown()
+    {
+        // Arrange
+        await npgsqlClient.ExecuteAsync("INSERT INTO users (id, name) VALUES ('1', 'Ivan');");
+
+        // Act
+        var exception = await Assert.ThrowsAsync<MappingRefusedException>(async () =>
+            await new RefusedResultQuery { Id = "1" }.InvokeAsync(CancellationToken.None));
+
+        // Assert
+        Assert.Equal("The name 'Ivan' is refused.", exception.Message);
+    }
+
+    [Fact]
+    public async Task Map_ExceptionThrownByMapParameters_ReachesTheCallerAsThrown()
+    {
+        // Act
+        var exception = await Assert.ThrowsAsync<MappingRefusedException>(async () =>
+            await new RefusedParametersQuery { Refused = "Ivan" }.InvokeAsync(CancellationToken.None));
+
+        // Assert
+        Assert.Equal("The parameter 'Ivan' is refused.", exception.Message);
+    }
+
+    [Fact]
     public async Task Map_WithResult()
     {
         // Arrange
