@@ -25,11 +25,14 @@ public class ReturningCommand : Command<int>
     }
 }
 
-public class SumTwoNumbersCommand(int a, int b) : Command<int>
+public class SumTwoNumbersCommand : Command<int>
 {
+    public required int A { get; init; }
+    public required int B { get; init; }
+
     protected override Task<int> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        return Task.FromResult(a + b);
+        return Task.FromResult(A + B);
     }
 }
 
@@ -65,12 +68,15 @@ public class ExceptionThrowingCommand : Command
     }
 }
 
-public class SetGivenAndFamilyNamesInSharedData(string givenName, string familyName) : Command
+public class SetGivenAndFamilyNamesInSharedData : Command
 {
+    public required string GivenName { get; init; }
+    public required string FamilyName { get; init; }
+
     protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        executionContext.SharedData.Set("Given name", givenName);
-        executionContext.SharedData.Set("Family name", familyName);
+        executionContext.SharedData.Set("Given name", GivenName);
+        executionContext.SharedData.Set("Family name", FamilyName);
 
         return Task.CompletedTask;
     }
@@ -118,12 +124,15 @@ public class AssertGivenNameAndFamilyNameDoestExistInSharedData : Command
     }
 }
 
-public class ResultingSetGivenAndFamilyNamesInSharedData(string givenName, string familyName) : Command<int>
+public class ResultingSetGivenAndFamilyNamesInSharedData : Command<int>
 {
+    public required string GivenName { get; init; }
+    public required string FamilyName { get; init; }
+
     protected override Task<int> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        executionContext.SharedData.Set("Given name", givenName);
-        executionContext.SharedData.Set("Family name", familyName);
+        executionContext.SharedData.Set("Given name", GivenName);
+        executionContext.SharedData.Set("Family name", FamilyName);
 
         return Task.FromResult(0);
     }
@@ -188,12 +197,15 @@ public class AssertGivenNameAndFamilyNameDoestExistInPipelineData : Command
     }
 }
 
-public class SetGivenAndFamilyNamesInPipelineData(string givenName, string familyName) : Command
+public class SetGivenAndFamilyNamesInPipelineData : Command
 {
+    public required string GivenName { get; init; }
+    public required string FamilyName { get; init; }
+
     protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        executionContext.PipelineData.Set("Given name", givenName);
-        executionContext.PipelineData.Set("Family name", familyName);
+        executionContext.PipelineData.Set("Given name", GivenName);
+        executionContext.PipelineData.Set("Family name", FamilyName);
 
         return Task.CompletedTask;
     }
