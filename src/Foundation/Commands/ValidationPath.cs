@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -33,9 +34,10 @@ public sealed class ValidationPath : IEquatable<ValidationPath>
             throw new ArgumentException("A validation path needs at least one segment.", nameof(segments));
         }
 
-        if (this.segments.Any(segment => segment is null))
+        var nullIndex = Array.IndexOf(this.segments, null);
+        if (nullIndex >= 0)
         {
-            throw new ArgumentException("A validation path cannot contain a null segment.", nameof(segments));
+            throw new ArgumentException($"The segment at index {nullIndex} of the validation path is null.", nameof(segments));
         }
     }
 
@@ -92,26 +94,21 @@ public sealed class ValidationPath : IEquatable<ValidationPath>
                     builder.Append('[').Append(index.Index.ToString(CultureInfo.InvariantCulture)).Append(']');
                     break;
                 case KeyPathSegment key:
-                    builder.Append('[').Append(FormatKey(key.Key)).Append(']');
+                    builder.Append('[').Append(FormatKey(key)).Append(']');
                     break;
                 default:
-                    throw new InvalidOperationException($"Unknown validation path segment '{segment.GetType()}'.");
+                    throw new UnreachableException($"Unknown validation path segment '{segment.GetType()}'.");
             }
         }
 
         return builder.ToString();
     }
 
-    private static string FormatKey(object key)
+    private static string FormatKey(KeyPathSegment key)
     {
-        if (key is string text)
-        {
-            return "\"" + text.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
-        }
-
-        return key is IFormattable formattable
-            ? formattable.ToString(null, CultureInfo.InvariantCulture)
-            : key.ToString() ?? string.Empty;
+        return key.Key is string
+            ? "\"" + key.KeyText.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\""
+            : key.KeyText;
     }
 }
 
@@ -167,14 +164,22 @@ public sealed record IndexPathSegment : ValidationPathSegment
 public sealed record KeyPathSegment : ValidationPathSegment
 {
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
+    /// <exception cref="KeyToStringReturnedNullException">The <c>ToString</c> of <paramref name="key"/> returns <see langword="null"/>.</exception>
     public KeyPathSegment(object key)
     {
         ArgumentNullException.ThrowIfNull(key);
         Key = key;
+        KeyText = (key is IFormattable formattable ? formattable.ToString(null, CultureInfo.InvariantCulture) : key.ToString())
+                  ?? throw new KeyToStringReturnedNullException(key.GetType());
     }
 
     /// <summary>
     /// The key itself, whatever its type.
     /// </summary>
     public object Key { get; }
+
+    /// <summary>
+    /// The text of the key, formatted with the invariant culture when it is <see cref="IFormattable"/>.
+    /// </summary>
+    public string KeyText { get; }
 }

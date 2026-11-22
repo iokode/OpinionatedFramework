@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -55,7 +56,7 @@ public static class InvalidInputControllerExtensions
             {
                 ObjectValidationError => "$",
                 PathValidationError pathError => GetKey(pathError.Path, requestParametersByProperty, jsonOptions),
-                _ => throw new InvalidOperationException($"Unknown validation error '{error.GetType()}'.")
+                _ => throw new UnreachableException($"Unknown validation error '{error.GetType()}'.")
             };
             modelState.AddModelError(key, error.Message);
         }
@@ -92,10 +93,10 @@ public static class InvalidInputControllerExtensions
                     builder.Append('[').Append(index.Index.ToString(CultureInfo.InvariantCulture)).Append(']');
                     break;
                 case KeyPathSegment key:
-                    builder.Append('[').Append(FormatInvariant(key.Key)).Append(']');
+                    builder.Append('[').Append(key.KeyText).Append(']');
                     break;
                 default:
-                    throw new InvalidOperationException($"Unknown validation path segment '{segment.GetType()}'.");
+                    throw new UnreachableException($"Unknown validation path segment '{segment.GetType()}'.");
             }
         }
 
@@ -123,7 +124,7 @@ public static class InvalidInputControllerExtensions
                     AppendMemberName(builder, GetDictionaryKeyName(key.Key, jsonOptions));
                     break;
                 default:
-                    throw new InvalidOperationException($"Unknown validation path segment '{segment.GetType()}'.");
+                    throw new UnreachableException($"Unknown validation path segment '{segment.GetType()}'.");
             }
         }
 
@@ -208,12 +209,5 @@ public static class InvalidInputControllerExtensions
         }
 
         return !isFirst;
-    }
-
-    private static string FormatInvariant(object value)
-    {
-        return value is IFormattable formattable
-            ? formattable.ToString(null, CultureInfo.InvariantCulture)
-            : value.ToString() ?? string.Empty;
     }
 }

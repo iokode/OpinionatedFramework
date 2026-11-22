@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,9 @@ public sealed class UpdatableSchemaTransformer : IOpenApiSchemaTransformer
     public async Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(context);
+
         var type = context.JsonTypeInfo.Type;
         if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(Updatable<>))
         {

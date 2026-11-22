@@ -25,11 +25,17 @@ public sealed class CommandBodyModelBinder : IModelBinder
 {
     private static readonly ConcurrentDictionary<(JsonSerializerOptions, Type, string), JsonSerializerOptions> bodyOptionsCache = new();
 
+    /// <exception cref="ArgumentNullException"><paramref name="bindingContext"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">
+    /// The parameter of <paramref name="bindingContext"/> is not marked with <see cref="FromCommandBodyAttribute"/>, or
+    /// one of its key properties is not a public instance property of the command.
+    /// </exception>
     public async Task BindModelAsync(ModelBindingContext bindingContext)
     {
         ArgumentNullException.ThrowIfNull(bindingContext);
 
-        var attribute = GetAttribute(bindingContext.ModelMetadata);
+        var attribute = GetAttribute(bindingContext);
+        ThrowIfAnyKeyIsNotAProperty(bindingContext, attribute.KeyProperties);
         var mvcOptions = bindingContext.HttpContext.RequestServices.GetRequiredService<IOptions<MvcJsonOptions>>().Value.JsonSerializerOptions;
         var bodyOptions = GetBodyOptions(mvcOptions, bindingContext.ModelType, attribute.KeyProperties);
 
@@ -61,12 +67,26 @@ public sealed class CommandBodyModelBinder : IModelBinder
         bindingContext.Result = ModelBindingResult.Success(model);
     }
 
-    private static FromCommandBodyAttribute GetAttribute(ModelMetadata metadata)
+    private static FromCommandBodyAttribute GetAttribute(ModelBindingContext bindingContext)
     {
-        var attributes = (metadata as DefaultModelMetadata)?.Attributes.ParameterAttributes;
+        var attributes = (bindingContext.ModelMetadata as DefaultModelMetadata)?.Attributes.ParameterAttributes;
         return attributes?.OfType<FromCommandBodyAttribute>().SingleOrDefault()
-               ?? throw new InvalidOperationException(
-                   $"{nameof(CommandBodyModelBinder)} binds only a parameter marked with {nameof(FromCommandBodyAttribute)}.");
+               ?? throw new ArgumentException(
+                   $"The parameter '{bindingContext.ModelMetadata.ParameterName}' of type '{bindingContext.ModelType}' is not marked with {nameof(FromCommandBodyAttribute)}, which {nameof(CommandBodyModelBinder)} needs to bind it.",
+                   nameof(bindingContext));
+    }
+
+    private static void ThrowIfAnyKeyIsNotAProperty(ModelBindingContext bindingContext, IReadOnlyCollection<string> keyProperties)
+    {
+        var missingKeys = keyProperties
+            .Where(key => bindingContext.ModelType.GetProperty(key, BindingFlags.Public | BindingFlags.Instance) is null)
+            .ToArray();
+        if (missingKeys.Length > 0)
+        {
+            throw new ArgumentException(
+                $"The keys '{string.Join("', '", missingKeys)}' are not public instance properties of the command '{bindingContext.ModelType}'.",
+                nameof(bindingContext));
+        }
     }
 
     /// <summary>
@@ -92,12 +112,6 @@ public sealed class CommandBodyModelBinder : IModelBinder
                     var keys = typeInfo.Properties
                         .Where(property => property.AttributeProvider is PropertyInfo clrProperty && keyProperties.Contains(clrProperty.Name))
                         .ToArray();
-                    if (keys.Length != keyProperties.Count)
-                    {
-                        throw new InvalidOperationException(
-                            $"The keys '{string.Join("', '", keyProperties)}' of the command '{commandType}' are not all properties of its JSON contract.");
-                    }
-
                     foreach (var key in keys)
                     {
                         typeInfo.Properties.Remove(key);

@@ -37,7 +37,9 @@ public class InvalidInputException : Exception
         ArgumentNullException.ThrowIfNull(errors);
         if (errors.Count == 0)
         {
-            throw new ArgumentException("An invalid input needs at least one validation error.", nameof(errors));
+            throw new ArgumentException(
+                $"The errors of the invalid input of the command '{command.GetType()}' are empty; an invalid input has at least one validation error.",
+                nameof(errors));
         }
 
         return $"The input data of the command '{command.GetType()}' is not valid:" + string.Concat(errors.Select(error => $"{Environment.NewLine}- {error}"));

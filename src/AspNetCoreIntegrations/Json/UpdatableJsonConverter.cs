@@ -15,13 +15,25 @@ namespace IOKode.OpinionatedFramework.AspNetCoreIntegrations.Json;
 /// </remarks>
 public sealed class UpdatableJsonConverter : JsonConverterFactory
 {
+    /// <exception cref="ArgumentNullException"><paramref name="typeToConvert"/> is <see langword="null"/>.</exception>
     public override bool CanConvert(Type typeToConvert)
     {
+        ArgumentNullException.ThrowIfNull(typeToConvert);
         return typeToConvert.IsGenericType && typeToConvert.GetGenericTypeDefinition() == typeof(Updatable<>);
     }
 
+    /// <exception cref="ArgumentNullException"><paramref name="typeToConvert"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="typeToConvert"/> is not an <see cref="Updatable{T}"/>.</exception>
     public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
+        ArgumentNullException.ThrowIfNull(typeToConvert);
+        if (!CanConvert(typeToConvert))
+        {
+            throw new ArgumentException(
+                $"The type '{typeToConvert}' is not '{typeof(Updatable<>)}', the only type this converter reads.",
+                nameof(typeToConvert));
+        }
+
         var valueType = typeToConvert.GetGenericArguments()[0];
         return (JsonConverter) Activator.CreateInstance(typeof(UpdatableJsonConverter<>).MakeGenericType(valueType))!;
     }
@@ -39,6 +51,6 @@ internal sealed class UpdatableJsonConverter<T> : JsonConverter<Updatable<T>>
     public override void Write(Utf8JsonWriter writer, Updatable<T> value, JsonSerializerOptions options)
     {
         throw new NotSupportedException(
-            $"Writing an {nameof(Updatable<T>)} is not supported: it expresses a change a command receives, and nothing serializes commands.");
+            $"Writing an '{typeof(Updatable<T>)}' is not supported: it expresses a change a command receives, and nothing serializes commands.");
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace IOKode.OpinionatedFramework.Commands;
 
@@ -57,7 +58,7 @@ public sealed class ValidationErrors : IReadOnlyCollection<ValidationError>
             {
                 PathValidationError pathError => new PathValidationError(pathError.Path.Prepend(segment), pathError.Message),
                 ObjectValidationError objectError => new PathValidationError(new ValidationPath(segment), objectError.Message),
-                _ => throw new InvalidOperationException($"Unknown validation error '{error.GetType()}'.")
+                _ => throw new UnreachableException($"Unknown validation error '{error.GetType()}'.")
             });
         }
     }

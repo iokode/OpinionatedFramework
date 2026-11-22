@@ -14,7 +14,7 @@ public static class CommandValidation
     /// Validates <paramref name="command"/> and throws when its data is not valid.
     /// </summary>
     /// <exception cref="InvalidInputException">The validation of the command found errors; it carries all of them.</exception>
-    /// <exception cref="InvalidOperationException">The validation of the command returned <see langword="null"/>.</exception>
+    /// <exception cref="InvalidValidationResultException">The validation of the command returned <see langword="null"/>.</exception>
     public static async Task ThrowIfInvalidAsync(Command command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -32,7 +32,7 @@ public static class CommandValidation
     {
         if (errors is null)
         {
-            throw new InvalidOperationException($"The validation of the command '{command.GetType()}' returned null instead of its errors.");
+            throw new InvalidValidationResultException(command.GetType());
         }
 
         if (errors.Count > 0)

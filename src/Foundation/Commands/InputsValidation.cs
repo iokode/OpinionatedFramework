@@ -74,14 +74,14 @@ internal static class InputsValidation
             {
                 var input = (Input) value;
                 return await input.ValidateAsync(cancellationToken)
-                       ?? throw new InvalidOperationException($"The validation of the input '{input.GetType()}' returned null instead of its errors.");
+                       ?? throw new InvalidValidationResultException(input.GetType());
             }
             case ValueKind.Dictionary:
             {
                 var errors = new ValidationErrors();
                 foreach (var entry in (IEnumerable) value)
                 {
-                    var (key, element) = ReadKeyValuePair(entry!);
+                    var (key, element) = ReadKeyValuePair(value.GetType(), entry!);
                     var elementErrors = await ValidateValueAsync(element, cancellationToken);
                     if (elementErrors is not null)
                     {
@@ -171,10 +171,11 @@ internal static class InputsValidation
         }
     }
 
-    private static (object Key, object? Value) ReadKeyValuePair(object entry)
+    private static (object Key, object? Value) ReadKeyValuePair(Type dictionaryType, object entry)
     {
         var entryType = entry.GetType();
-        var key = entryType.GetProperty(nameof(KeyValuePair<object, object>.Key))!.GetValue(entry)!;
+        var key = entryType.GetProperty(nameof(KeyValuePair<object, object>.Key))!.GetValue(entry)
+                  ?? throw new NullDictionaryKeyException(dictionaryType);
         var value = entryType.GetProperty(nameof(KeyValuePair<object, object>.Value))!.GetValue(entry);
         return (key, value);
     }

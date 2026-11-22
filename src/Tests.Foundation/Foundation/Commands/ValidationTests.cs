@@ -311,8 +311,41 @@ public class ValidationTests
         var command = new NullValidationCommand();
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(
+        var exception = await Assert.ThrowsAsync<InvalidValidationResultException>(
             () => CommandValidation.ThrowIfInvalidAsync(command, CancellationToken.None));
+        Assert.Equal(typeof(NullValidationCommand), exception.ValidatedType);
+    }
+
+    [Fact]
+    public async Task InputValidationReturnsNull_Throws()
+    {
+        // Arrange
+        var command = new NullInputValidationCommand { Input = new NullValidationInput() };
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<InvalidValidationResultException>(
+            () => command.ValidateAsync(CancellationToken.None));
+        Assert.Equal(typeof(NullValidationInput), exception.ValidatedType);
+    }
+
+    [Fact]
+    public async Task DictionaryOfInputsWithANullKey_Throws()
+    {
+        // Arrange
+        var command = new NullKeySeatsCommand { Seats = new NullKeySeats() };
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<NullDictionaryKeyException>(
+            () => command.ValidateAsync(CancellationToken.None));
+        Assert.Equal(typeof(NullKeySeats), exception.DictionaryType);
+    }
+
+    [Fact]
+    public void KeyWhoseToStringReturnsNull_Throws()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<KeyToStringReturnedNullException>(() => new KeyPathSegment(new NullTextKey()));
+        Assert.Equal(typeof(NullTextKey), exception.KeyType);
     }
 
     [Fact]
@@ -515,6 +548,55 @@ public class ValidationTests
         protected override Task<int> ExecuteAsync(ICommandExecutionContext executionContext)
         {
             return Task.FromResult(1);
+        }
+    }
+
+    private class NullKeySeats : IEnumerable<KeyValuePair<string?, SeatInput>>
+    {
+        public IEnumerator<KeyValuePair<string?, SeatInput>> GetEnumerator()
+        {
+            yield return new KeyValuePair<string?, SeatInput>(null, new SeatInput { Row = 0 });
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
+
+    private class NullKeySeatsCommand : Command
+    {
+        public required NullKeySeats Seats { get; init; }
+
+        protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    private class NullTextKey
+    {
+        public override string ToString()
+        {
+            return null!;
+        }
+    }
+
+    private class NullValidationInput : Input
+    {
+        public override Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult<ValidationErrors>(null!);
+        }
+    }
+
+    private class NullInputValidationCommand : Command
+    {
+        public required NullValidationInput Input { get; init; }
+
+        protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
+        {
+            return Task.CompletedTask;
         }
     }
 

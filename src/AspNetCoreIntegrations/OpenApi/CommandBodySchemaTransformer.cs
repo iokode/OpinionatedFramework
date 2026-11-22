@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -17,6 +18,9 @@ public sealed class CommandBodySchemaTransformer : IOpenApiSchemaTransformer
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(context);
+
         if (context.ParameterDescription?.ParameterDescriptor is not ControllerParameterDescriptor parameter
             || parameter.ParameterType != context.JsonTypeInfo.Type
             || parameter.ParameterInfo.GetCustomAttribute<FromCommandBodyAttribute>() is not { } attribute)
