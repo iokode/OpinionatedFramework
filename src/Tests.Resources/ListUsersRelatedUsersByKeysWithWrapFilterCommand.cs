@@ -6,11 +6,16 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
 [ListResources("users/actives/related users", "id/isActive/key")]
-public class ListUsersRelatedUsersByKeysWithWrapFilterCommand(int id, string key, bool isActive, ListUsersFilter? filter = null) : Command<int[]>
+public class ListUsersRelatedUsersByKeysWithWrapFilterCommand : Command<int[]>
 {
+    public required int Id { get; init; }
+    public required string Key { get; init; }
+    public required bool IsActive { get; init; }
+    public ListUsersFilter? Filter { get; init; }
+
     protected override Task<int[]> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        int[] result = [id, Convert.ToInt32(isActive), Convert.ToInt32(key), Convert.ToInt32(filter?.IsSingle ?? false)];
+        int[] result = [Id, Convert.ToInt32(IsActive), Convert.ToInt32(Key), Convert.ToInt32(Filter?.IsSingle ?? false)];
         return Task.FromResult(result);
     }
 }

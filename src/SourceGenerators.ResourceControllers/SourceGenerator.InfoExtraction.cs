@@ -12,16 +12,18 @@ namespace IOKode.OpinionatedFramework.SourceGenerators.ResourceControllers;
 
 public partial class SourceGenerator
 {
-    private static IEnumerable<ResourceControllerData> GetControllersData((ImmutableArray<IAssemblySymbol>, GeneratorContextData) tuple, CancellationToken cancellationToken)
+    private static GenerationData GetControllersData((ImmutableArray<IAssemblySymbol>, GeneratorContextData) tuple, CancellationToken cancellationToken)
     {
         var (assemblySymbols, generatorData) = tuple;
 
         assemblySymbols = [..assemblySymbols.Prepend(generatorData.CompilationAssemblySymbol)];
+        var diagnostics = new List<Diagnostic>();
         var resourcesData = assemblySymbols
             .SelectMany(assemblySymbol => GetTypeSymbolsFromNamespace(assemblySymbol.GlobalNamespace))
-            .Select(typeSymbol => GetResourceData(generatorData, typeSymbol))
+            .Select(typeSymbol => GetResourceData(generatorData, typeSymbol, diagnostics))
             .Where(resourceData => resourceData != null)
-            .Cast<ResourceData>();
+            .Cast<ResourceData>()
+            .ToArray();
 
         var controllersData = resourcesData
             .GroupBy(resource => (resource.GroupPrefix, Route: resource.MainResource.Pluralize().Kebaberize()))
@@ -29,12 +31,17 @@ public partial class SourceGenerator
             {
                 AssemblyNamespace = generatorData.AssemblyNamespace,
                 ResourcesData = group.ToArray()
-            });
+            })
+            .ToArray();
 
-        return controllersData;
+        return new GenerationData
+        {
+            Controllers = controllersData,
+            Diagnostics = diagnostics.ToArray(),
+        };
     }
 
-    private static ResourceData? GetResourceData(GeneratorContextData generatorData, ITypeSymbol typeSymbol)
+    private static ResourceData? GetResourceData(GeneratorContextData generatorData, ITypeSymbol typeSymbol, List<Diagnostic> diagnostics)
     {
         var resourceAttribute = typeSymbol.GetAttributes()
             .FirstOrDefault(attr => generatorData.ResourceTypes.ContainsKey(attr.AttributeClass!.OriginalDefinition.ToDisplayString()));
@@ -62,6 +69,7 @@ public partial class SourceGenerator
                     .Select(property => new Parameter
                     {
                         Name = property.Name.Camelize(),
+                        PropertyName = property.Name,
                         Type = property.Type.ToDisplayString()
                     }).ToArray(),
                 MethodReturnType = $"Task<{((INamedTypeSymbol)baseQuery!).TypeArguments.First().ToDisplayString()}>",
@@ -75,6 +83,13 @@ public partial class SourceGenerator
         var isBaseCommand = baseCommand is not null;
         if (isBaseCommand)
         {
+            var location = typeSymbol.Locations.FirstOrDefault() ?? Location.None;
+            if (((INamedTypeSymbol) typeSymbol).InstanceConstructors.Any(constructor => constructor.Parameters.Length > 0))
+            {
+                diagnostics.Add(Diagnostic.Create(CommandWithConstructorParameters, location, typeSymbol.ToDisplayString()));
+                return null;
+            }
+
             var commandData = new CommandData
             {
                 ResourceType = resourceType,
@@ -83,21 +98,55 @@ public partial class SourceGenerator
                 ResourceValue = GetAttributeArgument(resourceAttribute, "resource") ?? string.Empty,
                 DocComment = SourceGenerationHelper.GetDocComment(typeSymbol),
                 GenericArgument = ((INamedTypeSymbol) baseCommand!).TypeArguments.FirstOrDefault()?.ToDisplayString(),
-                InvocationParameters = ((INamedTypeSymbol) typeSymbol).InstanceConstructors
-                    .First().Parameters
-                    .Select(param => new Parameter
+                InvocationParameters = GetCommandDataProperties(typeSymbol, generatorData)
+                    .Select(property => new Parameter
                     {
-                        Name = param.Name,
-                        Type = param.Type.ToDisplayString()
+                        Name = property.Name.Camelize(),
+                        PropertyName = property.Name,
+                        Type = property.Type.ToDisplayString()
                     }).ToArray(),
                 KeyValue = GetAttributeArgument(resourceAttribute, "key"),
                 Action = GetAttributeArgument(resourceAttribute, "action"),
                 Group = GetAttributeArgument(resourceAttribute, "group"),
             };
-            return commandData;
+
+            var unknownKeys = commandData.KeysByResource.Values
+                .SelectMany(keys => keys)
+                .Where(key => commandData.InvocationParameters.All(parameter => parameter.Name != key))
+                .ToArray();
+            foreach (var unknownKey in unknownKeys)
+            {
+                diagnostics.Add(Diagnostic.Create(KeyWithoutProperty, location, unknownKey, typeSymbol.ToDisplayString()));
+            }
+
+            return unknownKeys.Length == 0 ? commandData : null;
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// The data of a command: its public instance properties with a setter, its own and those of its base classes.
+    /// </summary>
+    private static IEnumerable<IPropertySymbol> GetCommandDataProperties(ITypeSymbol typeSymbol, GeneratorContextData generatorData)
+    {
+        var types = new List<ITypeSymbol>();
+        for (var current = typeSymbol; current != null; current = current.BaseType)
+        {
+            if (SymbolEqualityComparer.Default.Equals(current, generatorData.CommandBaseSymbol)
+                || SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, generatorData.GenericCommandBaseSymbol))
+            {
+                break;
+            }
+
+            types.Insert(0, current);
+        }
+
+        return types
+            .SelectMany(type => type.GetMembers().OfType<IPropertySymbol>())
+            .Where(property => property is { IsStatic: false, IsIndexer: false, DeclaredAccessibility: Accessibility.Public }
+                               && property.SetMethod is { DeclaredAccessibility: Accessibility.Public }
+                               && !property.IsOverride);
     }
 
     /// <summary>

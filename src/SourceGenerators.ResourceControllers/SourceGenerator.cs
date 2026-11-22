@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -13,6 +12,22 @@ namespace IOKode.OpinionatedFramework.SourceGenerators.ResourceControllers;
 [Generator]
 public partial class SourceGenerator : IIncrementalGenerator
 {
+    private static readonly DiagnosticDescriptor CommandWithConstructorParameters = new(
+        "OF0005",
+        "Resource command receives data through its constructor",
+        "Resource command '{0}' receives data through its constructor; a command receives its data as properties",
+        "Resources",
+        DiagnosticSeverity.Error,
+        true);
+
+    private static readonly DiagnosticDescriptor KeyWithoutProperty = new(
+        "OF0006",
+        "Resource key names no property",
+        "Key '{0}' of resource command '{1}' names no property of the command",
+        "Resources",
+        DiagnosticSeverity.Error,
+        true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var assembliesWithResources = context.AnalyzerConfigOptionsProvider
@@ -41,9 +56,14 @@ public partial class SourceGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(controllersData, GenerateCode);
     }
 
-    private static void GenerateCode(SourceProductionContext context, IEnumerable<ResourceControllerData> controllerData)
+    private static void GenerateCode(SourceProductionContext context, GenerationData generationData)
     {
-        foreach (var controller in controllerData)
+        foreach (var diagnostic in generationData.Diagnostics)
+        {
+            context.ReportDiagnostic(diagnostic);
+        }
+
+        foreach (var controller in generationData.Controllers)
         {
             var controllerTemplate = Template.Parse(ControllerClassTemplate).Render(controller, member => member.Name);
             context.AddSource($"{controller.ClassFileName}", SourceText.From(controllerTemplate, Encoding.UTF8));

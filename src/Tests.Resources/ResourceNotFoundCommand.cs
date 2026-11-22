@@ -6,10 +6,12 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
 [RetrieveResource("not found command", "id")]
-public class ResourceNotFoundCommand(int id) : Command
+public class ResourceNotFoundCommand : Command
 {
+    public required int Id { get; init; }
+
     protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        throw new EntityNotFoundException(id);
+        throw new EntityNotFoundException(Id);
     }
 }
