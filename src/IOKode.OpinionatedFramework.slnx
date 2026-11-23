@@ -48,6 +48,7 @@
         <Project Path="Tests.MyServiceBus.RabbitMq/Tests.MyServiceBus.RabbitMq.csproj" />
         <Project Path="Tests.NHibernate.Postgres/Tests.NHibernate.Postgres.csproj" />
         <Project Path="Tests.ResourceControllers\Tests.ResourceControllers.csproj" />
+        <Project Path="Tests.ResourceControllersGenerator/Tests.ResourceControllersGenerator.csproj" />
         <Project Path="Tests.Resources\Tests.Resources.csproj" />
         <Project Path="Tests.ServiceContainer.Drivers/Tests.ServiceContainer.Drivers.csproj" />
         <Project Path="Tests.TaskRunJobs/Tests.TaskRunJobs.csproj" />

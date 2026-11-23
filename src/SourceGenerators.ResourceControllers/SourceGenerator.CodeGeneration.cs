@@ -41,6 +41,12 @@ public partial class SourceGenerator
         };
     }
 
+    public class GenerationData
+    {
+        public required ResourceControllerData[] Controllers { get; set; }
+        public required Diagnostic[] Diagnostics { get; set; }
+    }
+
     public class ResourceControllerData
     {
         public required string AssemblyNamespace { get; set; }
@@ -49,7 +55,6 @@ public partial class SourceGenerator
         public string ClassName => $"{ResourcesData[0].GroupPrefix}{ResourcesData[0].MainResource.Pascalize()}ResourceController";
         public string Namespace => $"{AssemblyNamespace}.Resources.Controllers";
         public string ClassFileName => $"{ClassName}.g.cs";
-        public ResourceData[] ResourcesDataWithBodyClass => ResourcesData.Where(resource => resource.BodyInputClassName != null).ToArray();
     }
 
     public abstract class ResourceData
@@ -70,7 +75,7 @@ public partial class SourceGenerator
         public Parameter[] InvocationParametersWithToken =>
             InvocationParameters.Any(parameter => parameter.Type == "System.Threading.CancellationToken")
                 ? InvocationParameters
-                : InvocationParameters.Concat([new Parameter {Name = "cancellationToken", Type = "System.Threading.CancellationToken"}]).ToArray();
+                : InvocationParameters.Concat([new Parameter {Name = "cancellationToken", PropertyName = "CancellationToken", Type = "System.Threading.CancellationToken"}]).ToArray();
 
         public Parameter[] NonRouteInvocationParameters => 
             InvocationParameters
@@ -78,35 +83,55 @@ public partial class SourceGenerator
                 .Where(parameter => !KeysByResource.Values.Any(keys => keys.Contains(parameter.Name)))
                 .ToArray();
 
-        public string? BodyInputClassName =>
-            NonRouteInvocationParameters.Length > 1 && ResourceType is not (ResourceType.List or ResourceType.Retrieve)
-                ? GroupPrefix + MainResource.Pascalize() + ControllerMethodName.Replace("Async", "Input")
-                : null;
+        /// <summary>
+        /// The name of the controller parameter that reads the body of a command, which holds the data of the command
+        /// that is not a key. It is declared nullable so that MVC does not report it as required when the body cannot be
+        /// read, on top of the errors of the body; the action never runs with it null, because those errors stop it.
+        /// </summary>
+        public const string CommandBodyParameterName = "commandBody";
+
+        /// <summary>
+        /// Whether the data of the command that is not a key is read from the body of the request.
+        /// </summary>
+        public bool HasCommandBody =>
+            DataType == "Command"
+            && ResourceType is not (ResourceType.List or ResourceType.Retrieve)
+            && NonRouteInvocationParameters.Length > 0;
+
+        public Parameter[] RouteParameters =>
+            InvocationParameters
+                .Where(parameter => KeysByResource.Values.Any(keys => keys.Contains(parameter.Name)))
+                .ToArray();
 
         public Parameter[] ControllerMethodParameters =>
-            BodyInputClassName == null
-                ? InvocationParametersWithToken
-                : InvocationParametersWithToken
-                    .Select(parameter => !NonRouteInvocationParameters.Contains(parameter)
-                        ? parameter
-                        : parameter == NonRouteInvocationParameters.First()
-                            ? new Parameter
-                            {
-                                Type = BodyInputClassName,
-                                Name = "input",
-                            }
-                            : null)
-                    .Where(parameter => parameter != null)
-                    .Cast<Parameter>()
-                    .ToArray();
+            HasCommandBody
+                ? RouteParameters
+                    .Append(new Parameter
+                    {
+                        Name = CommandBodyParameterName,
+                        PropertyName = CommandBodyParameterName,
+                        Type = FullClassName,
+                    })
+                    .Append(new Parameter {Name = "cancellationToken", PropertyName = "CancellationToken", Type = "System.Threading.CancellationToken"})
+                    .ToArray()
+                : InvocationParametersWithToken;
 
-        public string CommandParametersString => string.Join(", ", InvocationParameters
-            .Select(parameter => BodyInputClassName != null && NonRouteInvocationParameters.Contains(parameter)
-                ? $"input.{parameter.PascalizedName}"
-                : parameter.Name));
+        /// <summary>
+        /// The parameters of the controller action that read data of the command from the route or the query string,
+        /// by the name of the property of the command they set.
+        /// </summary>
+        private Parameter[] RequestParameters => HasCommandBody ? RouteParameters : InvocationParameters;
+
+        public string RequestParametersByPropertyString =>
+            $"new Dictionary<string, string> {{ {string.Join(", ", RequestParameters.Select(parameter => $"[\"{parameter.PropertyName}\"] = \"{parameter.Name}\""))} }}";
+
+        public string CommandPropertiesString => string.Join(",\n", InvocationParameters
+            .Select(parameter => HasCommandBody && NonRouteInvocationParameters.Contains(parameter)
+                ? $"{parameter.PropertyName} = {CommandBodyParameterName}!.{parameter.PropertyName}"
+                : $"{parameter.PropertyName} = {parameter.Name}"));
 
         public string QueryPropertiesString => string.Join(",\n", InvocationParameters
-            .Select(parameter => $"{parameter.PascalizedName} = {parameter.Name}"));
+            .Select(parameter => $"{parameter.PropertyName} = {parameter.Name}"));
 
         public string FullClassName => $"{Namespace}.{ClassName}";
         public string[] Resources => ResourceValue.Split('/').Select(resource => resource.Trim()).ToArray();
@@ -141,6 +166,8 @@ public partial class SourceGenerator
             {
                 _ when parameter.Type == "System.Threading.CancellationToken"
                     => $"{parameter.Type} {parameter.Name}",
+                _ when HasCommandBody && parameter.Name == CommandBodyParameterName
+                    => $"[FromCommandBody({string.Join(", ", RouteParameters.Select(key => $"\"{key.PropertyName}\""))})] {parameter.Type}? {parameter.Name}",
                 _ when KeysByResource.Values.Any(keys => keys.Contains(parameter.Name, StringComparer.InvariantCultureIgnoreCase))
                     => $"[FromRoute] {parameter.Type} {parameter.Name}",
                 ResourceType.Retrieve or
@@ -258,9 +285,17 @@ public partial class SourceGenerator
 
     public class Parameter
     {
+        /// <summary>
+        /// The name of the parameter of the controller action.
+        /// </summary>
         public required string Name { get; set; }
+
+        /// <summary>
+        /// The name of the property of the command or query the parameter sets.
+        /// </summary>
+        public required string PropertyName { get; set; }
+
         public required string Type { get; set; }
-        public string PascalizedName => Name.Pascalize();
     }
 
     private static readonly string ControllerClassTemplate =
@@ -269,6 +304,7 @@ public partial class SourceGenerator
         #nullable enable
         
         using System;
+        using System.Collections.Generic;
         using System.Threading;
         using System.Threading.Tasks;
         using IOKode.OpinionatedFramework;
@@ -308,26 +344,27 @@ public partial class SourceGenerator
                 var result = await query.InvokeAsync(cancellationToken);
                 return Ok(result);
                 {{~ else if resource.DataType == 'Command' ~}}
-                var command = new {{ resource.FullClassName }}({{ resource.CommandParametersString }});
-                {{~ if resource.GenericArgument ~}}
-                var result = await command.InvokeAsync(cancellationToken);
-                return Ok(result);
-                {{~ else ~}}
-                await command.InvokeAsync(cancellationToken);
-                return NoContent();
-                {{~ end ~}}
+                var command = new {{ resource.FullClassName }}
+                {
+                    {{ resource.CommandPropertiesString }}
+                };
+                try
+                {
+                    {{~ if resource.GenericArgument ~}}
+                    var result = await command.InvokeAsync(cancellationToken);
+                    return Ok(result);
+                    {{~ else ~}}
+                    await command.InvokeAsync(cancellationToken);
+                    return NoContent();
+                    {{~ end ~}}
+                }
+                catch (InvalidInputException exception) when (ReferenceEquals(exception.Command, command))
+                {
+                    return this.InvalidInput(exception, {{ resource.RequestParametersByPropertyString }});
+                }
                 {{~ end ~}}
             }
             {{~ end ~}}
         }
-
-        {{~ for resource in ResourcesDataWithBodyClass ~}}
-        public record {{ resource.BodyInputClassName }}
-        {
-            {{~ for parameter in resource.NonRouteInvocationParameters ~}}
-            public required {{ parameter.Type }} {{ parameter.PascalizedName }} { get; init; }
-            {{~ end ~}}
-        }
-        {{~ end ~}}
         """;
 }

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../MSBuild/Base.props"/>
+    <Import Project="../MSBuild/Test.props"/>
+
+    <ItemGroup>
+        <ProjectReference Include="../Foundation/Foundation.csproj" />
+        <ProjectReference Include="../SourceGenerators.ResourceControllers/SourceGenerators.ResourceControllers.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+        <PackageReference Include="Humanizer.Core" />
+    </ItemGroup>
+</Project>

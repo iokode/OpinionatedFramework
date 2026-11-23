@@ -9,10 +9,12 @@ namespace IOKode.OpinionatedFramework.Tests.ResourceControllers;
 /// from commands that exists in the same project.
 /// </summary>
 [RetrieveResource("order", "id")]
-public class RetrieveOrderCommand(int id) : Command<string>
+public class RetrieveOrderCommand : Command<string>
 {
+    public required int Id { get; init; }
+
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        return Task.FromResult($"order-{id}");
+        return Task.FromResult($"order-{Id}");
     }
 }

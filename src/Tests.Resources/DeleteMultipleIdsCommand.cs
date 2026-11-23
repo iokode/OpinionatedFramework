@@ -5,11 +5,13 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
 [DeleteResource("user")]
-public class DeleteMultipleIdsCommand(int[] ids) : Command<string>
+public class DeleteMultipleIdsCommand : Command<string>
 {
+    public required int[] Ids { get; init; }
+
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)
     {
-        var stringIds = string.Join(",", ids);
+        var stringIds = string.Join(",", Ids);
         return Task.FromResult($"deleted-{stringIds}");
     }
 }

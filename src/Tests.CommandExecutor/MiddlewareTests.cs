@@ -74,7 +74,7 @@ public class MiddlewareTests
         });
 
         // Act & Assert (assertions are inside middlewares)
-        var cmd = new SumTwoNumbersCommand(5, 3);
+        var cmd = new SumTwoNumbersCommand { A = 5, B = 3 };
         await executor.InvokeAsync<SumTwoNumbersCommand, int>(cmd, CancellationToken.None);
     }
 }

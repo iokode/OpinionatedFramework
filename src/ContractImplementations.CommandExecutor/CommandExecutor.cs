@@ -64,11 +64,13 @@ public class CommandExecutor : ICommandExecutor
     }
 
     /// <summary>
-    /// Prepare and execute command that DO NOT return any result.
+    /// Validate, prepare and execute command that DO NOT return any result.
     /// </summary>
     private async Task PrepareAndExecuteAsync<TCommand>(TCommand command,
-        SettableCommandExecutionContext executionContext)
+        SettableCommandExecutionContext executionContext) where TCommand : Command
     {
+        await CommandValidation.ThrowIfInvalidAsync(command, executionContext.CancellationToken);
+
         var prepare = GetPrepareMethod<TCommand>();
         var execute = GetExecuteMethod<TCommand>();
         var parameters = new object?[] { executionContext };
@@ -88,11 +90,13 @@ public class CommandExecutor : ICommandExecutor
     }
 
     /// <summary>
-    /// Prepare and execute command that DO return a result.
+    /// Validate, prepare and execute command that DO return a result.
     /// </summary>
     private async Task<TResult> PrepareAndExecuteAsync<TCommand, TResult>(TCommand command,
-        SettableCommandExecutionContext executionContext)
+        SettableCommandExecutionContext executionContext) where TCommand : Command<TResult>
     {
+        await CommandValidation.ThrowIfInvalidAsync(command, executionContext.CancellationToken);
+
         var prepare = GetPrepareMethod<TCommand>();
         var execute = GetExecuteMethod<TCommand>();
         var parameters = new object?[] { executionContext };
@@ -116,7 +120,7 @@ public class CommandExecutor : ICommandExecutor
     }
 
     private async Task InvokeMiddlewarePipelineAsync<TCommand>(TCommand command,
-        SettableCommandExecutionContext executionContext, int index)
+        SettableCommandExecutionContext executionContext, int index) where TCommand : Command
     {
         if (index >= this.middlewares.Count)
         {

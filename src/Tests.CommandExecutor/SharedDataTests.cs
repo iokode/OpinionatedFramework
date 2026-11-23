@@ -14,7 +14,7 @@ public class SharedDataTests
         
         // Act & Assert
         await executor.InvokeAsync(new AssertGivenNameAndFamilyNameDoestExistInSharedData(), CancellationToken.None);
-        await executor.InvokeAsync(new SetGivenAndFamilyNamesInSharedData("Ivan", "Montilla"), CancellationToken.None);
+        await executor.InvokeAsync(new SetGivenAndFamilyNamesInSharedData { GivenName = "Ivan", FamilyName = "Montilla" }, CancellationToken.None);
         await executor.InvokeAsync(new AssertIvanMontillaInSharedData(), CancellationToken.None);
         await executor.InvokeAsync(new RemoveGivenAndFamilyNameFromSharedData(), CancellationToken.None);
         await executor.InvokeAsync(new AssertGivenNameAndFamilyNameDoestExistInSharedData(), CancellationToken.None);
@@ -28,7 +28,7 @@ public class SharedDataTests
         
         // Act & Assert
         await executor.InvokeAsync<ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData, int>(new ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData(), CancellationToken.None);
-        await executor.InvokeAsync<ResultingSetGivenAndFamilyNamesInSharedData, int>(new ResultingSetGivenAndFamilyNamesInSharedData("Ivan", "Montilla"), CancellationToken.None);
+        await executor.InvokeAsync<ResultingSetGivenAndFamilyNamesInSharedData, int>(new ResultingSetGivenAndFamilyNamesInSharedData { GivenName = "Ivan", FamilyName = "Montilla" }, CancellationToken.None);
         await executor.InvokeAsync<ResultingAssertIvanMontillaIsInSharedData, int>(new ResultingAssertIvanMontillaIsInSharedData(), CancellationToken.None);
         await executor.InvokeAsync<ResultingRemoveGivenAndFamilyNameFromSharedData, int>(new ResultingRemoveGivenAndFamilyNameFromSharedData(), CancellationToken.None);
         await executor.InvokeAsync<ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData, int>(new ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData(), CancellationToken.None);
@@ -42,7 +42,7 @@ public class SharedDataTests
         
         // Act & Assert
         await executor.InvokeAsync<ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData, int>(new ResultingAssertGivenNameAndFamilyNameDoestExistInSharedData(), CancellationToken.None);
-        await executor.InvokeAsync(new SetGivenAndFamilyNamesInSharedData("Ivan", "Montilla"), CancellationToken.None);
+        await executor.InvokeAsync(new SetGivenAndFamilyNamesInSharedData { GivenName = "Ivan", FamilyName = "Montilla" }, CancellationToken.None);
         await executor.InvokeAsync<ResultingAssertIvanMontillaIsInSharedData, int>(new ResultingAssertIvanMontillaIsInSharedData(), CancellationToken.None);
         await executor.InvokeAsync<ResultingRemoveGivenAndFamilyNameFromSharedData, int>(new ResultingRemoveGivenAndFamilyNameFromSharedData(), CancellationToken.None);
         await executor.InvokeAsync(new AssertGivenNameAndFamilyNameDoestExistInSharedData(), CancellationToken.None);

@@ -14,7 +14,7 @@ public class PipelineDataTests
 
         // Act & Assert
         await executor.InvokeAsync(new AssertGivenNameAndFamilyNameDoestExistInPipelineData(), CancellationToken.None);
-        await executor.InvokeAsync(new SetGivenAndFamilyNamesInPipelineData("Ivan", "Montilla"), CancellationToken.None);
+        await executor.InvokeAsync(new SetGivenAndFamilyNamesInPipelineData { GivenName = "Ivan", FamilyName = "Montilla" }, CancellationToken.None);
         await executor.InvokeAsync(new AssertIvanMontillaIsNotInPipelineData(), CancellationToken.None);
     }
 

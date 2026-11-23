@@ -42,7 +42,7 @@ public class CommandExecutorTests
         var executor = Helpers.CreateExecutor(_ => { });
 
         // Act
-        var cmd = new SumTwoNumbersCommand(3, 5);
+        var cmd = new SumTwoNumbersCommand { A = 3, B = 5 };
         int result = await executor.InvokeAsync<SumTwoNumbersCommand, int>(cmd, CancellationToken.None);
 
         // Assert

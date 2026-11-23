@@ -3,7 +3,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
+using IOKode.OpinionatedFramework.AspNetCoreIntegrations.Json;
 using IOKode.OpinionatedFramework.AspNetCoreIntegrations.Middlewares;
+using IOKode.OpinionatedFramework.AspNetCoreIntegrations.OpenApi;
 using IOKode.OpinionatedFramework.ServiceContainer;
 using IOKode.OpinionatedFramework.ContractImplementations.CommandExecutor;
 using IOKode.OpinionatedFramework.ContractImplementations.NHibernate.Postgres;
@@ -68,11 +70,17 @@ public class ResourceControllersFixture : IAsyncLifetime
                             options.Filters.Add(new ProducesResponseTypeAttribute(typeof(ProblemDetails), StatusCodes.Status500InternalServerError));
                             options.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status404NotFound));
                             options.Conventions.Add(new PublicGroupRouteConvention());
-                        }).AddApplicationPart(typeof(ResourceControllersFixture).Assembly);
+                        })
+                        .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new UpdatableJsonConverter()))
+                        .AddApplicationPart(typeof(ResourceControllersFixture).Assembly);
                         services.AddProblemDetails();
                         services.AddTransient<ResourceNotFoundControllerMiddleware>();
                         services.AddTransient<UnhandledExceptionControllerMiddleware>();
-                        services.AddOpenApi("v1");
+                        services.AddOpenApi("v1", options =>
+                        {
+                            options.AddSchemaTransformer<CommandBodySchemaTransformer>();
+                            options.AddSchemaTransformer<UpdatableSchemaTransformer>();
+                        });
                     })
                     .Configure(app =>
                     {
