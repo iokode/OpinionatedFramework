@@ -19,11 +19,13 @@ namespace IOKode.OpinionatedFramework.Tests.ResourceControllers;
 public class ResourceControllersTests : IClassFixture<ResourceControllersFixture>
 {
     private readonly HttpClient client;
+    private readonly HttpClient clientWithoutModelStateInvalidFilter;
 
     public ResourceControllersTests(ResourceControllersFixture fixture, ITestOutputHelper output)
     {
         fixture.TestOutputHelperFactory = () => output;
         client = fixture.Client;
+        clientWithoutModelStateInvalidFilter = fixture.ClientWithoutModelStateInvalidFilter;
     }
 
     [Fact]
@@ -149,7 +151,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task ListUsers_DeepSubresourceByKeyOnEachLevel_Success()
     {
         // Act
-        var response = await this.client.GetAsync("/users/id-5/actives/is-active-true/related-users/key-3");
+        var response = await this.client.GetAsync("/users/id-5/active/is-active-true/related-users/key-3");
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<int[]>();
@@ -161,7 +163,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     public async Task ListUsers_WithQueryParametersForWrapperObject_Success()
     {
         // Act
-        var response = await this.client.GetAsync("/users/id-5/actives/is-active-true/related-users/key-3?isSingle=true");
+        var response = await this.client.GetAsync("/users/id-5/active/is-active-true/related-users/key-3?filter.isSingle=true");
 
         // Assert
         var content = await response.Content.ReadFromJsonAsync<int[]>();
@@ -177,6 +179,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         {
             Name = "Angel",
             Addresses = new[] { new { City = "Madrid" } },
+            Phones = new { },
         });
 
         // Assert
@@ -209,12 +212,22 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     {
         // Act
         var response = await this.client.PostAsync("/users", new StringContent(
-            """{"name": "Angel", "addresses": [{"city": 5}]}""", Encoding.UTF8, "application/json"));
+            """{"name": "Angel", "addresses": [{"city": 5}], "phones": {}}""", Encoding.UTF8, "application/json"));
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var errors = await ReadErrorsAsync(response);
         Assert.Equal(["$.addresses[0].city"], errors.Keys);
+    }
+
+    [Fact]
+    public async Task CreateUser_EmptyBody_Returns400()
+    {
+        // Act
+        var response = await this.client.PostAsync("/users", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -245,6 +258,166 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var errors = await ReadErrorsAsync(response);
         Assert.Equal(["code"], errors.Keys);
         Assert.Equal(["The code must be positive."], errors["code"]);
+    }
+
+    [Fact]
+    public async Task ListSearchResults_AbsentRequiredQueryStringValues_Returns400ByTheirNames()
+    {
+        // Act
+        var response = await this.client.GetAsync("/search-results");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal(["page", "text"], errors.Keys.Order());
+        Assert.Equal(["A value for 'page' was not provided."], errors["page"]);
+        Assert.Equal(["A value for 'text' was not provided."], errors["text"]);
+    }
+
+    [Fact]
+    public async Task ListSearchResults_UnreadableRequiredQueryStringValue_IsReportedOnlyAsUnreadable()
+    {
+        // Act
+        var response = await this.client.GetAsync("/search-results?text=cats&page=abc");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal(["page"], errors.Keys);
+        Assert.Equal(["The value 'abc' is not valid for page."], errors["page"]);
+    }
+
+    [Fact]
+    public async Task ListSearchResults_UnreadableValueAndAbsentRequiredValue_AreBothReported()
+    {
+        // Act
+        var response = await this.client.GetAsync("/search-results?page=abc");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal(["page", "text"], errors.Keys.Order());
+        Assert.Equal(["The value 'abc' is not valid for page."], errors["page"]);
+        Assert.Equal(["A value for 'text' was not provided."], errors["text"]);
+    }
+
+    [Fact]
+    public async Task ListSearchResults_EmptyRequiredQueryStringValue_IsValidatedByTheCommand()
+    {
+        // Act
+        var response = await this.client.GetAsync("/search-results?text=&page=1");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal(["text"], errors.Keys);
+        Assert.Equal(["A text to search is required."], errors["text"]);
+    }
+
+    [Fact]
+    public async Task ListSearchResults_ComplexQueryStringValue_IsNotValidatedByMvc()
+    {
+        // Act
+        var response = await this.client.GetAsync("/search-results?text=cats&page=1&options.page=2");
+
+        // Assert
+        var content = await response.Content.ReadFromJsonAsync<string>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("cats-1-null-2-[]-[]", content);
+    }
+
+    [Theory]
+    [InlineData("tags=a&tags=b", "[a,b]-[]")]
+    [InlineData("tags[0]=a&tags[1]=b", "[a,b]-[]")]
+    [InlineData("tags[x]=a&tags[y]=b&tags.index=x&tags.index=y", "[a,b]-[]")]
+    [InlineData("weights[x]=1&weights[y]=2", "[]-[x:1,y:2]")]
+    [InlineData("weights[0].key=x&weights[0].value=1&weights[1].key=y&weights[1].value=2", "[]-[x:1,y:2]")]
+    [InlineData("tags[1]=b&tags[0]=a", "[a,b]-[]")]
+    [InlineData("weights[1]=2", "[]-[1:2]")]
+    public async Task ListSearchResults_CollectionInEachFormatMvcAccepts_IsRead(string collectionQuery, string expectedCollections)
+    {
+        // Act
+        var response = await this.client.GetAsync($"/search-results?text=cats&page=1&{collectionQuery}");
+
+        // Assert
+        var content = await response.Content.ReadFromJsonAsync<string>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal($"cats-1-null--{expectedCollections}", content);
+    }
+
+    [Fact]
+    public async Task ListSearchResults_NestedCollectionWithConsecutiveIndexes_IsRead()
+    {
+        // Act
+        var response = await this.client.GetAsync("/search-results?text=cats&page=1&options.labels[0]=a&options.labels[1]=b");
+
+        // Assert
+        var content = await response.Content.ReadFromJsonAsync<string>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("cats-1-null-0-[]-[]", content);
+    }
+
+    [Theory]
+    [InlineData("tags[0]=a&tags[2]=c", "tags")]
+    [InlineData("tags[0]=a&tags[1]=b&tags[3]=d", "tags")]
+    [InlineData("tags[1]=b", "tags")]
+    [InlineData("tags[x]=a", "tags")]
+    [InlineData("weights[0].key=x&weights[0].value=1&weights[2].key=z&weights[2].value=3", "weights")]
+    [InlineData("weights[1].key=y&weights[1].value=2", "weights")]
+    [InlineData("options.labels[1]=b", "options.labels")]
+    public async Task ListSearchResults_IndexesThatAreNotConsecutiveFromZero_Returns400(string collectionQuery, string expectedCollection)
+    {
+        // Act
+        var response = await this.client.GetAsync($"/search-results?text=cats&page=1&{collectionQuery}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal([expectedCollection], errors.Keys);
+        Assert.Equal([$"The indexes of '{expectedCollection}' are not consecutive numbers from 0."], errors[expectedCollection]);
+    }
+
+    [Theory]
+    [InlineData("text=cats&text=dogs&page=1", "text", "text")]
+    [InlineData("text=cats&page=1&options.page=1&options.page=2", "options.Page", "options.page")]
+    [InlineData("text=cats&page=1&tags[0]=a&tags[0]=b", "tags[0]", "tags[0]")]
+    [InlineData("text=cats&page=1&weights[x]=1&weights[x]=2", "weights[x]", "weights[x]")]
+    public async Task ListSearchResults_RepeatedNameOfAValueThatIsNotACollection_Returns400(string query, string expectedKey, string expectedName)
+    {
+        // Act
+        var response = await this.client.GetAsync($"/search-results?{query}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal([expectedKey], errors.Keys);
+        Assert.Equal([$"Multiple values are not accepted for '{expectedName}'."], errors[expectedKey]);
+    }
+
+    [Fact]
+    public async Task ListSearchResults_QueryStringValueNamedAsTheQueryStringParameter_IsReadByItsOwnName()
+    {
+        // Act
+        var response = await this.client.GetAsync("/search-results?text=cats&page=1&queryString=x&options.page=abc");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal(["options.Page"], errors.Keys);
+    }
+
+    [Fact]
+    public async Task WithoutModelStateInvalidFilter_UnreadableValueAndAbsentRequiredValue_AreBothReported()
+    {
+        // Act
+        var response = await this.clientWithoutModelStateInvalidFilter.GetAsync("/search-results?page=abc");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal(["page", "text"], errors.Keys.Order());
+        Assert.Equal(["The value 'abc' is not valid for page."], errors["page"]);
+        Assert.Equal(["A value for 'text' was not provided."], errors["text"]);
     }
 
     [Fact]
@@ -416,7 +589,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Assert
         var stream = await response.Content.ReadAsStreamAsync();
         var document = (await OpenApiDocument.LoadAsync(stream)).Document!;
-        var schema = document.Components!.Schemas!["ActionUserEnableByCodeAndMultipleParametersCommand"];
+        var schema = document.Components!.Schemas!["UserActionEnableByCodeBody"];
         Assert.Equal(["enableName", "enable"], schema.Properties!.Keys);
         Assert.Equal(["enable", "enableName"], schema.Required!.Order());
         var parameters = document.Paths["/users/code-{code}/enable"].Operations![HttpMethod.Patch].Parameters!;
@@ -432,7 +605,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Assert
         var stream = await response.Content.ReadAsStreamAsync();
         var document = (await OpenApiDocument.LoadAsync(stream)).Document!;
-        var schema = document.Components!.Schemas!["UpdateUserByCodeCommand"];
+        var schema = document.Components!.Schemas!["UserUpdateByCodeBody"];
         Assert.Equal(["updated", "nickname"], schema.Properties!.Keys);
         var updated = schema.Properties["updated"];
         var updatedSchema = updated is OpenApiSchemaReference reference ? reference.Target! : updated;
@@ -509,6 +682,19 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     }
 
     [Fact]
+    public async Task OpenApi_CommandQueryStringHasTheDataOfTheCommandThatIsNotAKey()
+    {
+        // Act
+        var response = await this.client.GetAsync("/openapi/v1.json");
+
+        // Assert
+        var stream = await response.Content.ReadAsStreamAsync();
+        var document = (await OpenApiDocument.LoadAsync(stream)).Document!;
+        var parameters = document.Paths["/users/by-key/key1-{key1}/key2-{key2}"].Operations![HttpMethod.Get].Parameters!;
+        Assert.Equal(["key1", "key2", "param1", "param2"], parameters.Select(parameter => parameter.Name));
+    }
+
+    [Fact]
     public async Task QueryParameterSetByMiddleware_IsNotInTheApiDescription()
     {
         // Act
@@ -545,6 +731,83 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task WithoutModelStateInvalidFilter_UnreadableRouteValueOfACommand_Returns400ByTheNameOfTheRouteParameter()
+    {
+        // Act
+        var response = await this.clientWithoutModelStateInvalidFilter.GetAsync("/users/code-abc");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal(["code"], errors.Keys);
+        Assert.Equal(["The value 'abc' is not valid."], errors["code"]);
+    }
+
+    [Fact]
+    public async Task WithoutModelStateInvalidFilter_UnreadableQueryStringValueOfACommand_Returns400ByTheNameOfTheQueryParameter()
+    {
+        // Act
+        var response = await this.clientWithoutModelStateInvalidFilter.GetAsync("/users/by-key/key1-k1/key2-1?param1=abc");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal(["param1"], errors.Keys);
+        Assert.Equal(["The value 'abc' is not valid for param1."], errors["param1"]);
+    }
+
+    [Fact]
+    public async Task WithoutModelStateInvalidFilter_UnreadableRouteValueOfAQuery_Returns400ByTheNameOfTheRouteParameter()
+    {
+        // Act
+        var response = await this.clientWithoutModelStateInvalidFilter.GetAsync("/not-found-queries/id-abc");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal(["id"], errors.Keys);
+        Assert.Equal(["The value 'abc' is not valid."], errors["id"]);
+    }
+
+    [Fact]
+    public async Task WithoutModelStateInvalidFilter_EmptyBody_Returns400()
+    {
+        // Act
+        var response = await this.clientWithoutModelStateInvalidFilter.PostAsync("/users", new StringContent(string.Empty, Encoding.UTF8, "application/json"));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal([""], errors.Keys);
+        Assert.Equal(["A non-empty request body is required."], errors[""]);
+    }
+
+    [Fact]
+    public async Task WithoutModelStateInvalidFilter_UnreadableBodyValue_Returns400WithThePathOfItsField()
+    {
+        // Act
+        var response = await this.clientWithoutModelStateInvalidFilter.PostAsync("/users", new StringContent(
+            """{"name": "Angel", "addresses": [{"city": 5}], "phones": {}}""", Encoding.UTF8, "application/json"));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ReadErrorsAsync(response);
+        Assert.Equal(["$.addresses[0].city"], errors.Keys);
+    }
+
+    [Fact]
+    public async Task WithoutModelStateInvalidFilter_ValidRequest_Success()
+    {
+        // Act
+        var response = await this.clientWithoutModelStateInvalidFilter.GetAsync("/users/code-5");
+
+        // Assert
+        var content = await response.Content.ReadFromJsonAsync<string>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("5", content);
     }
 
     private static async Task<Dictionary<string, string[]>> ReadErrorsAsync(HttpResponseMessage response)

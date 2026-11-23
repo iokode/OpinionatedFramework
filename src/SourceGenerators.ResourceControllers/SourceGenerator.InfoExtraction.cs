@@ -103,7 +103,8 @@ public partial class SourceGenerator
                     {
                         Name = property.Name.Camelize(),
                         PropertyName = property.Name,
-                        Type = property.Type.ToDisplayString()
+                        Type = property.Type.ToDisplayString(),
+                        IsRequired = property.IsRequired
                     }).ToArray(),
                 KeyValue = GetAttributeArgument(resourceAttribute, "key"),
                 Action = GetAttributeArgument(resourceAttribute, "action"),

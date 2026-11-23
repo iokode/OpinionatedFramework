@@ -10,8 +10,8 @@ namespace IOKode.OpinionatedFramework.Tests.Resources;
 public class CreateUserCommand : Command<CreateUserOutput>
 {
     public required string Name { get; init; }
-    public IReadOnlyList<CreateUserAddressInput> Addresses { get; init; } = [];
-    public IReadOnlyDictionary<string, CreateUserPhoneInput> Phones { get; init; } = new Dictionary<string, CreateUserPhoneInput>();
+    public required IReadOnlyList<CreateUserAddressInput> Addresses { get; init; }
+    public required IReadOnlyDictionary<string, CreateUserPhoneInput> Phones { get; init; }
 
     public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
