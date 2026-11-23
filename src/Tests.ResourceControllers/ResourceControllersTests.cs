@@ -179,7 +179,6 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         {
             Name = "Angel",
             Addresses = new[] { new { City = "Madrid" } },
-            Phones = new { },
         });
 
         // Assert
@@ -212,7 +211,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     {
         // Act
         var response = await this.client.PostAsync("/users", new StringContent(
-            """{"name": "Angel", "addresses": [{"city": 5}], "phones": {}}""", Encoding.UTF8, "application/json"));
+            """{"name": "Angel", "addresses": [{"city": 5}]}""", Encoding.UTF8, "application/json"));
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -323,7 +322,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("cats-1-null-2-[]-[]", content);
+        Assert.Equal("cats-1-null-2-[]-[]-10", content);
     }
 
     [Theory]
@@ -342,7 +341,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal($"cats-1-null--{expectedCollections}", content);
+        Assert.Equal($"cats-1-null--{expectedCollections}-10", content);
     }
 
     [Fact]
@@ -354,7 +353,22 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("cats-1-null-0-[]-[]", content);
+        Assert.Equal("cats-1-null-0-[]-[]-10", content);
+    }
+
+    [Theory]
+    [InlineData("", "10")]
+    [InlineData("&limit=5", "5")]
+    [InlineData("&limit=0", "0")]
+    public async Task ListSearchResults_OptionalQueryStringValue_IsSetOnlyWhenPresent(string limitQuery, string expectedLimit)
+    {
+        // Act
+        var response = await this.client.GetAsync($"/search-results?text=cats&page=1{limitQuery}");
+
+        // Assert
+        var content = await response.Content.ReadFromJsonAsync<string>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal($"cats-1-null--[]-[]-{expectedLimit}", content);
     }
 
     [Theory]
@@ -456,7 +470,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("updated-11-True-null", content);
+        Assert.Equal("updated-11-True-null-unspecified", content);
     }
 
     [Fact]
@@ -469,7 +483,21 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         // Assert
         var content = await response.Content.ReadFromJsonAsync<string>();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("updated-12-unchanged-Angie", content);
+        Assert.Equal("updated-12-unchanged-Angie-unspecified", content);
+    }
+
+    [Theory]
+    [InlineData("""{"reason": "moved"}""", "updated-13-unchanged-unchanged-moved")]
+    [InlineData("""{"reason": null}""", "updated-13-unchanged-unchanged-null")]
+    public async Task UpdateUser_OptionalMemberThatIsPresent_ReplacesTheInitialValueOfTheCommand(string body, string expected)
+    {
+        // Act
+        var response = await this.client.PatchAsync("/users/code-13", new StringContent(body, Encoding.UTF8, "application/json"));
+
+        // Assert
+        var content = await response.Content.ReadFromJsonAsync<string>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(expected, content);
     }
 
     [Fact]
@@ -606,7 +634,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
         var stream = await response.Content.ReadAsStreamAsync();
         var document = (await OpenApiDocument.LoadAsync(stream)).Document!;
         var schema = document.Components!.Schemas!["UserUpdateByCodeBody"];
-        Assert.Equal(["updated", "nickname"], schema.Properties!.Keys);
+        Assert.Equal(["updated", "nickname", "reason"], schema.Properties!.Keys);
         var updated = schema.Properties["updated"];
         var updatedSchema = updated is OpenApiSchemaReference reference ? reference.Target! : updated;
         Assert.Equal(JsonSchemaType.Boolean, Assert.Single(updatedSchema.AllOf!).Type);
@@ -790,7 +818,7 @@ public class ResourceControllersTests : IClassFixture<ResourceControllersFixture
     {
         // Act
         var response = await this.clientWithoutModelStateInvalidFilter.PostAsync("/users", new StringContent(
-            """{"name": "Angel", "addresses": [{"city": 5}], "phones": {}}""", Encoding.UTF8, "application/json"));
+            """{"name": "Angel", "addresses": [{"city": 5}]}""", Encoding.UTF8, "application/json"));
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
