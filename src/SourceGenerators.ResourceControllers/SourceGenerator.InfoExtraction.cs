@@ -106,6 +106,8 @@ public partial class SourceGenerator
                         Type = property.Type.ToDisplayString(),
                         IsRequired = property.IsRequired
                     }).ToArray(),
+                DeclaringTypesByProperty = GetCommandDataProperties(typeSymbol, generatorData)
+                    .ToDictionary(property => property.Name, property => property.ContainingType.ToDisplayString()),
                 KeyValue = GetAttributeArgument(resourceAttribute, "key"),
                 Action = GetAttributeArgument(resourceAttribute, "action"),
                 Group = GetAttributeArgument(resourceAttribute, "group"),
