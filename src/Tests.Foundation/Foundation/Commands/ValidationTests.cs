@@ -51,14 +51,14 @@ public class ValidationTests
     }
 
     [Fact]
-    public async Task CollectionOfInputs_ErrorHasTheIndexOfTheElementAndNullElementsAreSkipped()
+    public async Task CollectionOfInputs_ErrorHasTheIndexOfTheElement()
     {
         // Arrange
         var command = new BookCommand
         {
             FlightNumber = "IB3456",
             Passenger = ValidPassenger(),
-            Seats = [new SeatInput { Row = 1 }, null!, new SeatInput { Row = 0 }],
+            Seats = [new SeatInput { Row = 1 }, new SeatInput { Row = 2 }, new SeatInput { Row = 0 }],
         };
 
         // Act
@@ -109,7 +109,7 @@ public class ValidationTests
         // Arrange
         var command = new ArrangeSeatsCommand
         {
-            SeatRows = [[new SeatInput { Row = 1 }], [null!, new SeatInput { Row = 0 }]],
+            SeatRows = [[new SeatInput { Row = 1 }], [new SeatInput { Row = 2 }, new SeatInput { Row = 0 }]],
             SeatsByZone = new Dictionary<string, List<SeatInput>> { ["front"] = [new SeatInput { Row = 0 }] },
         };
 
@@ -130,14 +130,200 @@ public class ValidationTests
     }
 
     [Fact]
-    public async Task NullInput_IsSkipped()
+    public async Task NullInputAtNonNullablePositions_IsAnErrorAtItsPath()
+    {
+        // Arrange
+        var command = new NonNullableSeatsCommand
+        {
+            Seat = null!,
+            Seats = [new SeatInput { Row = 1 }, null!],
+            SeatArray = [null!],
+            SeatsByCode = new Dictionary<string, SeatInput> { ["a"] = null! },
+            UpdatedSeat = new Updatable<SeatInput>(null!),
+            SeatRows = [[null!]],
+            SeatsByZone = new Dictionary<string, List<SeatInput>> { ["front"] = [null!] },
+        };
+
+        // Act
+        var errors = await ValidateAsync(command);
+
+        // Assert
+        Assert.All(errors, error => Assert.IsType<PathValidationError>(error));
+        Assert.Equal(
+            [
+                "Seat: A value is required.",
+                "Seats[1]: A value is required.",
+                "SeatArray[0]: A value is required.",
+                "SeatsByCode[\"a\"]: A value is required.",
+                "UpdatedSeat: A value is required.",
+                "SeatRows[0][0]: A value is required.",
+                "SeatsByZone[\"front\"][0]: A value is required.",
+            ],
+            errors.Select(error => error.ToString()));
+    }
+
+    [Fact]
+    public async Task NullCollectionAtNonNullablePositions_IsAnErrorAtItsPath()
+    {
+        // Arrange
+        var command = new NonNullableSeatsCommand
+        {
+            Seat = new SeatInput { Row = 1 },
+            Seats = null!,
+            SeatArray = null!,
+            SeatsByCode = null!,
+            UpdatedSeat = default,
+            SeatRows = [null!],
+            SeatsByZone = new Dictionary<string, List<SeatInput>> { ["front"] = null! },
+        };
+
+        // Act
+        var errors = await ValidateAsync(command);
+
+        // Assert
+        Assert.Equal(
+            [
+                "Seats: A value is required.",
+                "SeatArray: A value is required.",
+                "SeatsByCode: A value is required.",
+                "SeatRows[0]: A value is required.",
+                "SeatsByZone[\"front\"]: A value is required.",
+            ],
+            errors.Select(error => error.ToString()));
+    }
+
+    [Fact]
+    public async Task NullAtNullablePositions_IsSkipped()
+    {
+        // Arrange
+        var command = new NullableSeatsCommand
+        {
+            Seat = null,
+            Seats = [new SeatInput { Row = 1 }, null],
+            SeatArray = [null],
+            SeatsByCode = new Dictionary<string, SeatInput?> { ["a"] = null },
+            UpdatedSeat = new Updatable<SeatInput?>(null),
+            SeatRows = [[null], null],
+            SeatsByZone = new Dictionary<string, List<SeatInput?>?> { ["front"] = [null], ["back"] = null },
+        };
+
+        // Act
+        var errors = await ValidateAsync(command);
+
+        // Assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public async Task NullCollectionAtNullablePositions_IsSkipped()
+    {
+        // Arrange
+        var command = new NullableSeatsCommand
+        {
+            Seat = null,
+            Seats = null,
+            SeatArray = null,
+            SeatsByCode = null,
+            UpdatedSeat = default,
+            SeatRows = null,
+            SeatsByZone = null,
+        };
+
+        // Act
+        var errors = await ValidateAsync(command);
+
+        // Assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public async Task NullAtUnannotatedPositions_IsSkipped()
+    {
+        // Arrange
+        var command = new UnannotatedSeatsCommand
+        {
+            Seat = null!,
+            Seats = [new SeatInput { Row = 1 }, null!],
+            SeatArray = [null!],
+            SeatsByCode = new Dictionary<string, SeatInput> { ["a"] = null! },
+            UpdatedSeat = new Updatable<SeatInput>(null!),
+            SeatRows = [[null!], null!],
+            SeatsByZone = new Dictionary<string, List<SeatInput>> { ["front"] = [null!], ["back"] = null! },
+        };
+
+        // Act
+        var errors = await ValidateAsync(command);
+
+        // Assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public async Task NullCollectionAtUnannotatedPositions_IsSkipped()
+    {
+        // Arrange
+        var command = new UnannotatedSeatsCommand
+        {
+            Seat = null,
+            Seats = null,
+            SeatArray = null,
+            SeatsByCode = null,
+            UpdatedSeat = default,
+            SeatRows = null,
+            SeatsByZone = null,
+        };
+
+        // Act
+        var errors = await ValidateAsync(command);
+
+        // Assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public async Task NullInputAtANonNullablePropertyOfAnInput_IsAnErrorAtItsPath()
     {
         // Arrange
         var command = new BookCommand
         {
             FlightNumber = "IB3456",
-            Passenger = null!,
-            Seats = null!,
+            Passenger = new PassengerInput { Name = "Ana", Document = null! },
+            Seats = [],
+        };
+
+        // Act
+        var errors = await ValidateAsync(command);
+
+        // Assert
+        var error = Assert.IsType<PathValidationError>(Assert.Single(errors));
+        Assert.Equal("Passenger.Document", error.Path.ToString());
+        Assert.Equal("A value is required.", error.Message);
+    }
+
+    [Fact]
+    public async Task NullInputAtANonNullablePropertyOfACommandWithResult_IsAnErrorAtItsPath()
+    {
+        // Arrange
+        var command = new RegisterPassengerCommand { Passenger = null! };
+
+        // Act
+        var errors = await ValidateAsync(command);
+
+        // Assert
+        var error = Assert.IsType<PathValidationError>(Assert.Single(errors));
+        Assert.Equal("Passenger", error.Path.ToString());
+        Assert.Equal("A value is required.", error.Message);
+    }
+
+    [Fact]
+    public async Task NullNotInAnInputPosition_IsNotLookedAt()
+    {
+        // Arrange
+        var command = new BookCommand
+        {
+            FlightNumber = null!,
+            Passenger = ValidPassenger(),
+            Seats = [],
         };
 
         // Act
@@ -182,12 +368,12 @@ public class ValidationTests
     }
 
     [Fact]
-    public async Task UpdatableToBeUpdatedToNull_IsSkipped()
+    public async Task UpdatableNotToBeUpdatedHoldingNull_IsNotAnError()
     {
         // Arrange
         var command = new UpdateBookingCommand
         {
-            Passenger = new Updatable<PassengerInput>(null!),
+            Passenger = default,
             Seats = default,
         };
 
@@ -519,6 +705,56 @@ public class ValidationTests
             return Task.CompletedTask;
         }
     }
+
+    private class NonNullableSeatsCommand : Command
+    {
+        public required SeatInput Seat { get; init; }
+        public required IReadOnlyList<SeatInput> Seats { get; init; }
+        public required SeatInput[] SeatArray { get; init; }
+        public required IReadOnlyDictionary<string, SeatInput> SeatsByCode { get; init; }
+        public required Updatable<SeatInput> UpdatedSeat { get; init; }
+        public required IReadOnlyList<IReadOnlyList<SeatInput>> SeatRows { get; init; }
+        public required Dictionary<string, List<SeatInput>> SeatsByZone { get; init; }
+
+        protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    private class NullableSeatsCommand : Command
+    {
+        public required SeatInput? Seat { get; init; }
+        public required IReadOnlyList<SeatInput?>? Seats { get; init; }
+        public required SeatInput?[]? SeatArray { get; init; }
+        public required IReadOnlyDictionary<string, SeatInput?>? SeatsByCode { get; init; }
+        public required Updatable<SeatInput?> UpdatedSeat { get; init; }
+        public required IReadOnlyList<IReadOnlyList<SeatInput?>?>? SeatRows { get; init; }
+        public required Dictionary<string, List<SeatInput?>?>? SeatsByZone { get; init; }
+
+        protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+#nullable disable
+    private class UnannotatedSeatsCommand : Command
+    {
+        public required SeatInput Seat { get; init; }
+        public required IReadOnlyList<SeatInput> Seats { get; init; }
+        public required SeatInput[] SeatArray { get; init; }
+        public required IReadOnlyDictionary<string, SeatInput> SeatsByCode { get; init; }
+        public required Updatable<SeatInput> UpdatedSeat { get; init; }
+        public required IReadOnlyList<IReadOnlyList<SeatInput>> SeatRows { get; init; }
+        public required Dictionary<string, List<SeatInput>> SeatsByZone { get; init; }
+
+        protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
+        {
+            return Task.CompletedTask;
+        }
+    }
+#nullable restore
 
     private class OwnRulesOnlyCommand : Command
     {
