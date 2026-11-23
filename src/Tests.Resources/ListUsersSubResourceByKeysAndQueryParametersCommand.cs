@@ -14,15 +14,13 @@ public class ListUsersSubResourceByKeysAndQueryParametersCommand : Command<strin
     public int? Param1 { get; init; }
     public bool? Param2 { get; init; }
 
-    public override async Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+    public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
-        var errors = await ValidateInputsAsync(cancellationToken);
+        await ValidateNestedInputsAsync(errors, cancellationToken);
         if (Param1 > 100)
         {
             errors.Add(nameof(Param1), "The first parameter cannot be greater than 100.");
         }
-
-        return errors;
     }
 
     protected override Task<string[]> ExecuteAsync(ICommandExecutionContext executionContext)

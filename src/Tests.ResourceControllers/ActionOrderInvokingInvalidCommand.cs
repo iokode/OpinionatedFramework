@@ -22,11 +22,10 @@ public class ActionOrderInvokingInvalidCommand : Command
     {
         public required string Name { get; init; }
 
-        public override Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        public override Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
         {
-            var errors = new ValidationErrors();
             errors.Add(nameof(Name), "A name is required.");
-            return Task.FromResult(errors);
+            return Task.CompletedTask;
         }
 
         protected override Task ExecuteAsync(ICommandExecutionContext executionContext)

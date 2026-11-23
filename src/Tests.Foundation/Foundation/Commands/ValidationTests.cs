@@ -21,7 +21,7 @@ public class ValidationTests
         };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         Assert.Empty(errors);
@@ -39,7 +39,7 @@ public class ValidationTests
         };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         var error = Assert.IsType<PathValidationError>(Assert.Single(errors));
@@ -62,7 +62,7 @@ public class ValidationTests
         };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         var error = Assert.IsType<PathValidationError>(Assert.Single(errors));
@@ -88,7 +88,7 @@ public class ValidationTests
         };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         var paths = errors.Cast<PathValidationError>().Select(error => error.Path).ToArray();
@@ -114,7 +114,7 @@ public class ValidationTests
         };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         var paths = errors.Cast<PathValidationError>().Select(error => error.Path).ToArray();
@@ -141,7 +141,7 @@ public class ValidationTests
         };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         Assert.Empty(errors);
@@ -158,7 +158,7 @@ public class ValidationTests
         };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         Assert.Empty(errors);
@@ -175,7 +175,7 @@ public class ValidationTests
         };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         Assert.Equal(["Passenger.Name", "Seats[0].Row"], errors.Cast<PathValidationError>().Select(error => error.Path.ToString()));
@@ -192,20 +192,20 @@ public class ValidationTests
         };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         Assert.Empty(errors);
     }
 
     [Fact]
-    public async Task OverrideThatDoesNotCallValidateInputs_ValidatesNoInput()
+    public async Task OverrideThatDoesNotCallValidateNestedInputs_ValidatesNoInput()
     {
         // Arrange
         var command = new OwnRulesOnlyCommand { Passenger = InvalidPassenger() };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         Assert.Empty(errors);
@@ -218,7 +218,7 @@ public class ValidationTests
         var command = new ContactCommand { Contact = new ContactInput() };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         var error = Assert.IsType<PathValidationError>(Assert.Single(errors));
@@ -233,7 +233,7 @@ public class ValidationTests
         var command = new DateRangeCommand { Start = new DateOnly(2026, 5, 2), End = new DateOnly(2026, 5, 1) };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         var error = Assert.IsType<ObjectValidationError>(Assert.Single(errors));
@@ -252,7 +252,7 @@ public class ValidationTests
         };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         Assert.Equal(
@@ -267,7 +267,7 @@ public class ValidationTests
         var command = new RegisterPassengerCommand { Passenger = InvalidPassenger() };
 
         // Act
-        var errors = await command.ValidateAsync(CancellationToken.None);
+        var errors = await ValidateAsync(command);
 
         // Assert
         var error = Assert.IsType<PathValidationError>(Assert.Single(errors));
@@ -305,27 +305,40 @@ public class ValidationTests
     }
 
     [Fact]
-    public async Task ThrowIfInvalid_ValidationReturnsNull_Throws()
+    public async Task EachObject_ReceivesItsOwnEmptyErrorsAndEndsWithThoseOfItsChildrenUnderTheirPath()
     {
         // Arrange
-        var command = new NullValidationCommand();
+        var document = new RecordingDocumentInput { Number = "" };
+        var passenger = new RecordingPassengerInput { Name = "", Document = document };
+        var command = new RecordingBookCommand { FlightNumber = "", Passenger = passenger };
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidValidationResultException>(
+        // Act
+        var exception = await Assert.ThrowsAsync<InvalidInputException>(
             () => CommandValidation.ThrowIfInvalidAsync(command, CancellationToken.None));
-        Assert.Equal(typeof(NullValidationCommand), exception.ValidatedType);
+
+        // Assert
+        Assert.NotSame(command.Received, passenger.Received);
+        Assert.NotSame(command.Received, document.Received);
+        Assert.NotSame(passenger.Received, document.Received);
+
+        Assert.Equal(0, command.CountWhenReceived);
+        Assert.Equal(0, passenger.CountWhenReceived);
+        Assert.Equal(0, document.CountWhenReceived);
+
+        Assert.Equal(["Number"], Paths(document.Received!));
+        Assert.Equal(["Document.Number", "Name"], Paths(passenger.Received!));
+        Assert.Equal(["Passenger.Document.Number", "Passenger.Name", "FlightNumber"], Paths(command.Received!));
+        Assert.Same(command.Received, exception.Errors);
     }
 
     [Fact]
-    public async Task InputValidationReturnsNull_Throws()
+    public async Task ValidateNestedInputs_NullErrors_Throws()
     {
         // Arrange
-        var command = new NullInputValidationCommand { Input = new NullValidationInput() };
+        var command = new NullErrorsCommand();
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidValidationResultException>(
-            () => command.ValidateAsync(CancellationToken.None));
-        Assert.Equal(typeof(NullValidationInput), exception.ValidatedType);
+        await Assert.ThrowsAsync<ArgumentNullException>(() => command.ValidateAsync(new ValidationErrors(), CancellationToken.None));
     }
 
     [Fact]
@@ -336,7 +349,7 @@ public class ValidationTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<NullDictionaryKeyException>(
-            () => command.ValidateAsync(CancellationToken.None));
+            () => ValidateAsync(command));
         Assert.Equal(typeof(NullKeySeats), exception.DictionaryType);
     }
 
@@ -368,6 +381,25 @@ public class ValidationTests
         Assert.Throws<ArgumentException>(() => new ValidationPath());
     }
 
+    private static async Task<ValidationErrors> ValidateAsync(Command command)
+    {
+        var errors = new ValidationErrors();
+        await command.ValidateAsync(errors, CancellationToken.None);
+        return errors;
+    }
+
+    private static async Task<ValidationErrors> ValidateAsync<TResult>(Command<TResult> command)
+    {
+        var errors = new ValidationErrors();
+        await command.ValidateAsync(errors, CancellationToken.None);
+        return errors;
+    }
+
+    private static string[] Paths(ValidationErrors errors)
+    {
+        return errors.Cast<PathValidationError>().Select(error => error.Path.ToString()).ToArray();
+    }
+
     private static PassengerInput ValidPassenger()
     {
         return new PassengerInput { Name = "Ana", Document = new DocumentInput { Number = "12345678Z" } };
@@ -382,15 +414,13 @@ public class ValidationTests
     {
         public required string Number { get; init; }
 
-        public override async Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
         {
-            var errors = await ValidateInputsAsync(cancellationToken);
+            await ValidateNestedInputsAsync(errors, cancellationToken);
             if (string.IsNullOrWhiteSpace(Number))
             {
                 errors.Add(nameof(Number), "A document number is required.");
             }
-
-            return errors;
         }
     }
 
@@ -399,15 +429,13 @@ public class ValidationTests
         public required string Name { get; init; }
         public required DocumentInput Document { get; init; }
 
-        public override async Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
         {
-            var errors = await ValidateInputsAsync(cancellationToken);
+            await ValidateNestedInputsAsync(errors, cancellationToken);
             if (string.IsNullOrWhiteSpace(Name))
             {
                 errors.Add(nameof(Name), "A name is required.");
             }
-
-            return errors;
         }
     }
 
@@ -415,9 +443,8 @@ public class ValidationTests
     {
         public required int Row { get; init; }
 
-        public override Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        public override Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
         {
-            var errors = new ValidationErrors();
             if (Row is < 1 or > 60)
             {
                 errors.Add(nameof(Row), "The row does not exist.");
@@ -428,7 +455,7 @@ public class ValidationTests
                 errors.Add(nameof(Row), "The row is not for sale.");
             }
 
-            return Task.FromResult(errors);
+            return Task.CompletedTask;
         }
     }
 
@@ -437,15 +464,14 @@ public class ValidationTests
         public string? Email { get; init; }
         public string? Phone { get; init; }
 
-        public override Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        public override Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
         {
-            var errors = new ValidationErrors();
             if (Email is null && Phone is null)
             {
                 errors.AddForObject("An email or a phone is required.");
             }
 
-            return Task.FromResult(errors);
+            return Task.CompletedTask;
         }
     }
 
@@ -498,9 +524,9 @@ public class ValidationTests
     {
         public required PassengerInput Passenger { get; init; }
 
-        public override Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        public override Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new ValidationErrors());
+            return Task.CompletedTask;
         }
 
         protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
@@ -524,15 +550,13 @@ public class ValidationTests
         public required DateOnly Start { get; init; }
         public required DateOnly End { get; init; }
 
-        public override async Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
         {
-            var errors = await ValidateInputsAsync(cancellationToken);
+            await ValidateNestedInputsAsync(errors, cancellationToken);
             if (End < Start)
             {
                 errors.AddForObject("The end cannot be before the start.");
             }
-
-            return errors;
         }
 
         protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
@@ -582,17 +606,60 @@ public class ValidationTests
         }
     }
 
-    private class NullValidationInput : Input
+    private class RecordingDocumentInput : Input
     {
-        public override Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        public required string Number { get; init; }
+        public ValidationErrors? Received { get; private set; }
+        public int CountWhenReceived { get; private set; } = -1;
+
+        public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
         {
-            return Task.FromResult<ValidationErrors>(null!);
+            Received = errors;
+            CountWhenReceived = errors.Count;
+            await ValidateNestedInputsAsync(errors, cancellationToken);
+            if (string.IsNullOrWhiteSpace(Number))
+            {
+                errors.Add(nameof(Number), "A document number is required.");
+            }
         }
     }
 
-    private class NullInputValidationCommand : Command
+    private class RecordingPassengerInput : Input
     {
-        public required NullValidationInput Input { get; init; }
+        public required string Name { get; init; }
+        public required RecordingDocumentInput Document { get; init; }
+        public ValidationErrors? Received { get; private set; }
+        public int CountWhenReceived { get; private set; } = -1;
+
+        public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
+        {
+            Received = errors;
+            CountWhenReceived = errors.Count;
+            await ValidateNestedInputsAsync(errors, cancellationToken);
+            if (string.IsNullOrWhiteSpace(Name))
+            {
+                errors.Add(nameof(Name), "A name is required.");
+            }
+        }
+    }
+
+    private class RecordingBookCommand : Command
+    {
+        public required string FlightNumber { get; init; }
+        public required RecordingPassengerInput Passenger { get; init; }
+        public ValidationErrors? Received { get; private set; }
+        public int CountWhenReceived { get; private set; } = -1;
+
+        public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
+        {
+            Received = errors;
+            CountWhenReceived = errors.Count;
+            await ValidateNestedInputsAsync(errors, cancellationToken);
+            if (string.IsNullOrWhiteSpace(FlightNumber))
+            {
+                errors.Add(nameof(FlightNumber), "A flight number is required.");
+            }
+        }
 
         protected override Task ExecuteAsync(ICommandExecutionContext executionContext)
         {
@@ -600,11 +667,11 @@ public class ValidationTests
         }
     }
 
-    private class NullValidationCommand : Command
+    private class NullErrorsCommand : Command
     {
-        public override Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        public override Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
         {
-            return Task.FromResult<ValidationErrors>(null!);
+            return ValidateNestedInputsAsync(null!, cancellationToken);
         }
 
         protected override Task ExecuteAsync(ICommandExecutionContext executionContext)

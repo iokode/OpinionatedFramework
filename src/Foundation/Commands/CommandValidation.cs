@@ -11,30 +11,32 @@ namespace IOKode.OpinionatedFramework.Commands;
 public static class CommandValidation
 {
     /// <summary>
-    /// Validates <paramref name="command"/> and throws when its data is not valid.
+    /// Validates <paramref name="command"/> with an empty <see cref="ValidationErrors"/> and throws when its data is not
+    /// valid.
     /// </summary>
+    /// <exception cref="ArgumentNullException"><paramref name="command"/> is <see langword="null"/>.</exception>
     /// <exception cref="InvalidInputException">The validation of the command found errors; it carries all of them.</exception>
-    /// <exception cref="InvalidValidationResultException">The validation of the command returned <see langword="null"/>.</exception>
     public static async Task ThrowIfInvalidAsync(Command command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
-        ThrowIfInvalid(command, await command.ValidateAsync(cancellationToken));
+
+        var errors = new ValidationErrors();
+        await command.ValidateAsync(errors, cancellationToken);
+        ThrowIfAny(command, errors);
     }
 
     /// <inheritdoc cref="ThrowIfInvalidAsync(Command, CancellationToken)"/>
     public static async Task ThrowIfInvalidAsync<TResult>(Command<TResult> command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
-        ThrowIfInvalid(command, await command.ValidateAsync(cancellationToken));
+
+        var errors = new ValidationErrors();
+        await command.ValidateAsync(errors, cancellationToken);
+        ThrowIfAny(command, errors);
     }
 
-    private static void ThrowIfInvalid(object command, ValidationErrors? errors)
+    private static void ThrowIfAny(object command, ValidationErrors errors)
     {
-        if (errors is null)
-        {
-            throw new InvalidValidationResultException(command.GetType());
-        }
-
         if (errors.Count > 0)
         {
             throw new InvalidInputException(command, errors);

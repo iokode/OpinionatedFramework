@@ -13,15 +13,13 @@ public class CreateUserCommand : Command<CreateUserOutput>
     public IReadOnlyList<CreateUserAddressInput> Addresses { get; init; } = [];
     public IReadOnlyDictionary<string, CreateUserPhoneInput> Phones { get; init; } = new Dictionary<string, CreateUserPhoneInput>();
 
-    public override async Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+    public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
-        var errors = await ValidateInputsAsync(cancellationToken);
+        await ValidateNestedInputsAsync(errors, cancellationToken);
         if (string.IsNullOrWhiteSpace(Name))
         {
             errors.Add(nameof(Name), "A name is required.");
         }
-
-        return errors;
     }
 
     protected override Task<CreateUserOutput> ExecuteAsync(ICommandExecutionContext executionContext)
@@ -37,15 +35,13 @@ public class CreateUserAddressInput : Input
 {
     public required string City { get; init; }
 
-    public override async Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+    public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
-        var errors = await ValidateInputsAsync(cancellationToken);
+        await ValidateNestedInputsAsync(errors, cancellationToken);
         if (string.IsNullOrWhiteSpace(City))
         {
             errors.Add(nameof(City), "A city is required.");
         }
-
-        return errors;
     }
 }
 
@@ -53,15 +49,13 @@ public class CreateUserPhoneInput : Input
 {
     public required string Number { get; init; }
 
-    public override async Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+    public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
-        var errors = await ValidateInputsAsync(cancellationToken);
+        await ValidateNestedInputsAsync(errors, cancellationToken);
         if (string.IsNullOrWhiteSpace(Number))
         {
             errors.Add(nameof(Number), "A phone number is required.");
         }
-
-        return errors;
     }
 }
 

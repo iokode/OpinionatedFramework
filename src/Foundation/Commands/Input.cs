@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,27 +16,35 @@ namespace IOKode.OpinionatedFramework.Commands;
 public abstract class Input
 {
     /// <summary>
-    /// Validates whether the data of this input is acceptable. An empty result means it is.
+    /// Validates whether the data of this input is acceptable, adding to <paramref name="errors"/> what is wrong with it.
+    /// Nothing added means it is.
     /// </summary>
+    /// <param name="errors">
+    /// The errors of this input, empty when it is received, with paths relative to this input.
+    /// </param>
+    /// <param name="cancellationToken">A token to cancel the validation.</param>
     /// <remarks>
-    /// By default it calls <see cref="ValidateInputsAsync"/>. An override replaces that behavior: one that adds rules
-    /// calls <see cref="ValidateInputsAsync"/> to keep validating the inputs of this input, and one that does not call
-    /// it validates none of them.
+    /// By default it calls <see cref="ValidateNestedInputsAsync"/>. An override replaces that behavior: one that adds
+    /// rules calls <see cref="ValidateNestedInputsAsync"/> to keep validating the inputs of this input, and one that
+    /// does not call it validates none of them.
     /// </remarks>
-    public virtual Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+    public virtual Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
-        return ValidateInputsAsync(cancellationToken);
+        return ValidateNestedInputsAsync(errors, cancellationToken);
     }
 
     /// <summary>
-    /// Goes through the public properties of this input and validates every <see cref="Input"/>, prefixing the name of
-    /// the property to the path of its errors; every element of a collection of inputs, with its index in the path;
+    /// Goes through the public properties of this input and validates every <see cref="Input"/> they hold, each with a
+    /// <see cref="ValidationErrors"/> of its own whose errors are added to <paramref name="errors"/> prefixing the name of
+    /// the property to their path; every element of a collection of inputs, with its index in the path;
     /// every value of a dictionary of inputs, with its key in the path; going into nested collections and dictionaries;
     /// and whatever of them is inside an <see cref="Updatable{T}"/>, only when it is to be updated. A
     /// <see langword="null"/> one has nothing to validate and is skipped.
     /// </summary>
-    protected Task<ValidationErrors> ValidateInputsAsync(CancellationToken cancellationToken)
+    /// <exception cref="ArgumentNullException"><paramref name="errors"/> is <see langword="null"/>.</exception>
+    protected Task ValidateNestedInputsAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
-        return InputsValidation.ValidateInputsAsync(this, cancellationToken);
+        ArgumentNullException.ThrowIfNull(errors);
+        return InputsValidation.ValidateNestedInputsAsync(this, errors, cancellationToken);
     }
 }

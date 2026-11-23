@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,29 +10,35 @@ namespace IOKode.OpinionatedFramework.Commands;
 public abstract class Command
 {
     /// <summary>
-    /// Validates whether the data of this command is acceptable for its use case. An empty result means it is.
+    /// Validates whether the data of this command is acceptable for its use case, adding to <paramref name="errors"/>
+    /// what is wrong with it. Nothing added means it is.
     /// </summary>
+    /// <param name="errors">The errors of this command, empty when it is received.</param>
+    /// <param name="cancellationToken">A token to cancel the validation.</param>
     /// <remarks>
     /// The executor calls it once the middleware pipeline has run and before <see cref="PrepareAsync"/>. By default it
-    /// calls <see cref="ValidateInputsAsync"/>. An override replaces that behavior: one that adds rules calls
-    /// <see cref="ValidateInputsAsync"/> to keep validating the inputs of this command, and one that does not call it
-    /// validates none of them.
+    /// calls <see cref="ValidateNestedInputsAsync"/>. An override replaces that behavior: one that adds rules calls
+    /// <see cref="ValidateNestedInputsAsync"/> to keep validating the inputs of this command, and one that does not call
+    /// it validates none of them.
     /// </remarks>
-    public virtual Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+    public virtual Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
-        return ValidateInputsAsync(cancellationToken);
+        return ValidateNestedInputsAsync(errors, cancellationToken);
     }
 
     /// <summary>
-    /// Goes through the public properties of this command and validates every <see cref="Input"/>, prefixing the name
-    /// of the property to the path of its errors; every element of a collection of inputs, with its index in the path;
+    /// Goes through the public properties of this command and validates every <see cref="Input"/> they hold, each with
+    /// a <see cref="ValidationErrors"/> of its own whose errors are added to <paramref name="errors"/> prefixing the name
+    /// of the property to their path; every element of a collection of inputs, with its index in the path;
     /// every value of a dictionary of inputs, with its key in the path; going into nested collections and dictionaries;
     /// and whatever of them is inside an <see cref="Updatable{T}"/>, only when it is to be updated. A
     /// <see langword="null"/> one has nothing to validate and is skipped.
     /// </summary>
-    protected Task<ValidationErrors> ValidateInputsAsync(CancellationToken cancellationToken)
+    /// <exception cref="ArgumentNullException"><paramref name="errors"/> is <see langword="null"/>.</exception>
+    protected Task ValidateNestedInputsAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
-        return InputsValidation.ValidateInputsAsync(this, cancellationToken);
+        ArgumentNullException.ThrowIfNull(errors);
+        return InputsValidation.ValidateNestedInputsAsync(this, errors, cancellationToken);
     }
 
     protected virtual Task PrepareAsync(ICommandExecutionContext executionContext)
@@ -48,15 +55,16 @@ public abstract class Command
 public abstract class Command<TResult>
 {
     /// <inheritdoc cref="Command.ValidateAsync"/>
-    public virtual Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+    public virtual Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
-        return ValidateInputsAsync(cancellationToken);
+        return ValidateNestedInputsAsync(errors, cancellationToken);
     }
 
-    /// <inheritdoc cref="Command.ValidateInputsAsync"/>
-    protected Task<ValidationErrors> ValidateInputsAsync(CancellationToken cancellationToken)
+    /// <inheritdoc cref="Command.ValidateNestedInputsAsync"/>
+    protected Task ValidateNestedInputsAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
-        return InputsValidation.ValidateInputsAsync(this, cancellationToken);
+        ArgumentNullException.ThrowIfNull(errors);
+        return InputsValidation.ValidateNestedInputsAsync(this, errors, cancellationToken);
     }
 
     protected virtual Task PrepareAsync(ICommandExecutionContext executionContext)

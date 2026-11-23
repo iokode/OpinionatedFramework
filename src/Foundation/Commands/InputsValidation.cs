@@ -29,11 +29,12 @@ internal static class InputsValidation
     /// Goes through the public properties of <paramref name="owner"/> and validates every <see cref="Input"/>, every
     /// element of a collection of inputs, every value of a dictionary of inputs, going into nested collections and
     /// dictionaries, and whatever of them is inside an <see cref="Updatable{T}"/> that is to be updated. A
-    /// <see langword="null"/> one has nothing to validate and is skipped.
+    /// <see langword="null"/> one has nothing to validate and is skipped. Each input is validated with a
+    /// <see cref="ValidationErrors"/> of its own, and its errors are added to <paramref name="errors"/> under the path of
+    /// the input.
     /// </summary>
-    public static async Task<ValidationErrors> ValidateInputsAsync(object owner, CancellationToken cancellationToken)
+    public static async Task ValidateNestedInputsAsync(object owner, ValidationErrors errors, CancellationToken cancellationToken)
     {
-        var errors = new ValidationErrors();
         foreach (var property in GetProperties(owner.GetType()))
         {
             var value = property.GetValue(owner, BindingFlags.DoNotWrapExceptions, null, null, null);
@@ -53,13 +54,12 @@ internal static class InputsValidation
                 errors.AddNested(new PropertyPathSegment(property.Name), propertyErrors);
             }
         }
-
-        return errors;
     }
 
     /// <summary>
     /// Validates a value when it is an input, or a collection or dictionary whose elements are inputs or, in turn,
-    /// collections or dictionaries of them. Returns <see langword="null"/> when it is none of them.
+    /// collections or dictionaries of them, into a new <see cref="ValidationErrors"/> with paths relative to the value.
+    /// Returns <see langword="null"/> when it is none of them.
     /// </summary>
     private static async Task<ValidationErrors?> ValidateValueAsync(object? value, CancellationToken cancellationToken)
     {
@@ -72,9 +72,9 @@ internal static class InputsValidation
         {
             case ValueKind.Input:
             {
-                var input = (Input) value;
-                return await input.ValidateAsync(cancellationToken)
-                       ?? throw new InvalidValidationResultException(input.GetType());
+                var inputErrors = new ValidationErrors();
+                await ((Input) value).ValidateAsync(inputErrors, cancellationToken);
+                return inputErrors;
             }
             case ValueKind.Dictionary:
             {

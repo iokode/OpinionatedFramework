@@ -12,15 +12,13 @@ public class ActionUserEnableByCodeAndMultipleParametersCommand : Command<string
     public required string EnableName { get; init; }
     public required bool Enable { get; init; }
 
-    public override async Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+    public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
-        var errors = await ValidateInputsAsync(cancellationToken);
+        await ValidateNestedInputsAsync(errors, cancellationToken);
         if (Enable && string.IsNullOrWhiteSpace(EnableName))
         {
             errors.AddForObject("A name is required to enable a user.");
         }
-
-        return errors;
     }
 
     protected override Task<string> ExecuteAsync(ICommandExecutionContext executionContext)

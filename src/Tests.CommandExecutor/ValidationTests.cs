@@ -114,16 +114,14 @@ public class ValidationTests
     {
         public required string Name { get; init; }
 
-        public override async Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
         {
             steps.Value!.Add("validate");
-            var errors = await ValidateInputsAsync(cancellationToken);
+            await ValidateNestedInputsAsync(errors, cancellationToken);
             if (string.IsNullOrEmpty(Name))
             {
                 errors.Add(nameof(Name), "A name is required.");
             }
-
-            return errors;
         }
 
         protected override Task PrepareAsync(ICommandExecutionContext executionContext)
@@ -143,16 +141,14 @@ public class ValidationTests
     {
         public required string Name { get; init; }
 
-        public override async Task<ValidationErrors> ValidateAsync(CancellationToken cancellationToken)
+        public override async Task ValidateAsync(ValidationErrors errors, CancellationToken cancellationToken)
         {
             steps.Value!.Add("validate");
-            var errors = await ValidateInputsAsync(cancellationToken);
+            await ValidateNestedInputsAsync(errors, cancellationToken);
             if (string.IsNullOrEmpty(Name))
             {
                 errors.Add(nameof(Name), "A name is required.");
             }
-
-            return errors;
         }
 
         protected override Task PrepareAsync(ICommandExecutionContext executionContext)
