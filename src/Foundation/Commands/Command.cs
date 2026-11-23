@@ -31,9 +31,15 @@ public abstract class Command
     /// a <see cref="ValidationErrors"/> of its own whose errors are added to <paramref name="errors"/> prefixing the name
     /// of the property to their path; every element of a collection of inputs, with its index in the path;
     /// every value of a dictionary of inputs, with its key in the path; going into nested collections and dictionaries;
-    /// and whatever of them is inside an <see cref="Updatable{T}"/>, only when it is to be updated. A
-    /// <see langword="null"/> one has nothing to validate and is skipped.
+    /// and whatever of them is inside an <see cref="Updatable{T}"/>, only when it is to be updated.
     /// </summary>
+    /// <remarks>
+    /// A <see langword="null"/> one is an error at its path, with the message "A value is required.", when its declared
+    /// nullability does not allow <see langword="null"/>: a property, an element type, a value type of a dictionary or
+    /// the type argument of an <see cref="Updatable{T}"/> declared without <c>?</c> in code with nullable annotations. It
+    /// is skipped when its declared nullability allows <see langword="null"/>, and when the code that declares it has no
+    /// nullable annotations, since nothing can be told then.
+    /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="errors"/> is <see langword="null"/>.</exception>
     protected Task ValidateNestedInputsAsync(ValidationErrors errors, CancellationToken cancellationToken)
     {
