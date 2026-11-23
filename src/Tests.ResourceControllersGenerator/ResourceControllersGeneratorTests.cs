@@ -32,7 +32,9 @@ public class ResourceControllersGeneratorTests
         // Assert
         Assert.Empty(runResult.Diagnostics);
         var generatedSource = Assert.Single(Assert.Single(runResult.Results).GeneratedSources).SourceText.ToString();
-        Assert.Contains("[FromRoute] int code, [FromCommandBody(\"Code\")] Consumer.UpdateUserCommand? commandBody", generatedSource);
+        Assert.Contains("[FromRoute] int code, [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] UserUpdateByCodeBody? body", generatedSource);
+        Assert.Contains("public class UserUpdateByCodeBody", generatedSource);
+        Assert.Contains("public required string Name { get; init; }", generatedSource);
     }
 
     [Fact]
@@ -75,6 +77,54 @@ public class ResourceControllersGeneratorTests
         Assert.Equal("OF0006", diagnostic.Id);
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.Equal("Key 'code' of resource command 'Consumer.UpdateUserCommand' names no property of the command", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public void BodyPropertyThatIsNotRequired_IsNotRequiredInTheBody()
+    {
+        // Act
+        var runResult = RunGenerator("""
+            [UpdateResource("user", "code")]
+            public class UpdateUserCommand : Command
+            {
+                public required int Code { get; init; }
+                public string? Name { get; init; }
+
+                protected override Task ExecuteAsync(ICommandExecutionContext executionContext) => Task.CompletedTask;
+            }
+            """);
+
+        // Assert
+        Assert.Empty(runResult.Diagnostics);
+        var generatedSource = Assert.Single(Assert.Single(runResult.Results).GeneratedSources).SourceText.ToString();
+        Assert.Contains("public string? Name { get; init; }", generatedSource);
+    }
+
+    [Fact]
+    public void ListCommand_ReadsItsDataThatIsNotAKeyFromAQueryStringClass()
+    {
+        // Act
+        var runResult = RunGenerator("""
+            [ListResources("user", "code")]
+            public class ListUsersCommand : Command
+            {
+                public required int Code { get; init; }
+                public required string Name { get; init; }
+                public int? Page { get; init; }
+
+                protected override Task ExecuteAsync(ICommandExecutionContext executionContext) => Task.CompletedTask;
+            }
+            """);
+
+        // Assert
+        Assert.Empty(runResult.Diagnostics);
+        var generatedSource = Assert.Single(Assert.Single(runResult.Results).GeneratedSources).SourceText.ToString();
+        Assert.Contains("[FromRoute] int code, [FromQuery(Name = \"\")] UserListByCodeQueryString queryString", generatedSource);
+        Assert.Contains("public class UserListByCodeQueryString", generatedSource);
+        Assert.Contains("[FromQuery(Name = \"name\"), Display(Name = \"name\")]\n    public required string Name { get; init; }", generatedSource);
+        Assert.Contains("[FromQuery(Name = \"page\"), Display(Name = \"page\")]\n    public int? Page { get; init; }", generatedSource);
+        Assert.Contains("Name = queryString.Name", generatedSource);
+        Assert.Contains("[CommandQueryString(typeof(UserListByCodeQueryString), \"name\")]", generatedSource);
     }
 
     private static GeneratorDriverRunResult RunGenerator(string commandSource)

@@ -6,7 +6,7 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[ListResources("users/by key", "/key1,Key2")]
+[ListResources("user/by key", "/key1,Key2")]
 public class ListUsersSubResourceByKeysAndQueryParametersCommand : Command<string[]>
 {
     public required string Key1 { get; init; }

@@ -4,7 +4,7 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[ActionOnResource("orders", "do action")]
+[ActionOnResource("order", "do action")]
 public class ActionOrderParameterlessCommand : Command
 {
     protected override Task ExecuteAsync(ICommandExecutionContext executionContext)

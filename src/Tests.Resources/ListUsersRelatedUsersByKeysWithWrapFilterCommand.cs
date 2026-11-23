@@ -5,7 +5,7 @@ using IOKode.OpinionatedFramework.Resources.Attributes;
 
 namespace IOKode.OpinionatedFramework.Tests.Resources;
 
-[ListResources("users/actives/related users", "id/isActive/key")]
+[ListResources("user/active/related users", "id/isActive/key")]
 public class ListUsersRelatedUsersByKeysWithWrapFilterCommand : Command<int[]>
 {
     public required int Id { get; init; }

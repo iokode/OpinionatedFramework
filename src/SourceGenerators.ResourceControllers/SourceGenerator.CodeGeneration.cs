@@ -55,6 +55,10 @@ public partial class SourceGenerator
         public string ClassName => $"{ResourcesData[0].GroupPrefix}{ResourcesData[0].MainResource.Pascalize()}ResourceController";
         public string Namespace => $"{AssemblyNamespace}.Resources.Controllers";
         public string ClassFileName => $"{ClassName}.g.cs";
+        public ResourceData[] ResourcesDataWithBody => ResourcesData.Where(resource => resource.HasBody).ToArray();
+        public bool HasResourcesWithBody => ResourcesData.Any(resource => resource.HasBody);
+        public ResourceData[] ResourcesDataWithQueryString => ResourcesData.Where(resource => resource.HasQueryString).ToArray();
+        public bool HasResourcesWithQueryString => ResourcesData.Any(resource => resource.HasQueryString);
     }
 
     public abstract class ResourceData
@@ -84,19 +88,80 @@ public partial class SourceGenerator
                 .ToArray();
 
         /// <summary>
-        /// The name of the controller parameter that reads the body of a command, which holds the data of the command
-        /// that is not a key. It is declared nullable so that MVC does not report it as required when the body cannot be
-        /// read, on top of the errors of the body; the action never runs with it null, because those errors stop it.
+        /// The name of the controller parameter that reads the body of the request into <see cref="BodyClassName"/>.
         /// </summary>
-        public const string CommandBodyParameterName = "commandBody";
+        /// <remarks>
+        /// The parameter is nullable only so that MVC does not add "The body field is required." next to the error of a
+        /// body that cannot be read (https://github.com/dotnet/aspnetcore/issues/53058). Whenever it is null the model
+        /// state has an error, an empty body included, so the check of the model state at the start of the action
+        /// returns before it is used.
+        /// </remarks>
+        public const string BodyParameterName = "body";
 
         /// <summary>
         /// Whether the data of the command that is not a key is read from the body of the request.
         /// </summary>
-        public bool HasCommandBody =>
+        public bool HasBody =>
             DataType == "Command"
             && ResourceType is not (ResourceType.List or ResourceType.Retrieve)
             && NonRouteInvocationParameters.Length > 0;
+
+        /// <summary>
+        /// The parameters of the command whose data is read from the body of the request.
+        /// </summary>
+        public Parameter[] BodyParameters => HasBody ? NonRouteInvocationParameters : [];
+
+        /// <summary>
+        /// The name of the generated type the body of the request is read into, with one property per
+        /// <see cref="BodyParameters"/>.
+        /// </summary>
+        public string? BodyClassName =>
+            HasBody
+                ? $"{GroupPrefix}{MainResource.Pascalize()}{ControllerMethodName.Substring(0, ControllerMethodName.Length - "Async".Length)}Body"
+                : null;
+
+        /// <summary>
+        /// The name of the controller parameter that reads the query string of the request into
+        /// <see cref="QueryStringClassName"/>.
+        /// </summary>
+        /// <remarks>
+        /// The parameter is bound with an empty prefix, so that each value is read by its own name. With the name of the
+        /// parameter as its prefix, MVC would read every value under it whenever the query string had a value with that
+        /// name, and leave all of them unset.
+        /// </remarks>
+        public const string QueryStringParameterName = "queryString";
+
+        /// <summary>
+        /// Whether the data of the command that is not a key is read from the query string of the request.
+        /// </summary>
+        public bool HasQueryString =>
+            DataType == "Command"
+            && ResourceType is ResourceType.List or ResourceType.Retrieve
+            && NonRouteInvocationParameters.Length > 0;
+
+        /// <summary>
+        /// The parameters of the command whose data is read from the query string of the request.
+        /// </summary>
+        public Parameter[] QueryStringParameters => HasQueryString ? NonRouteInvocationParameters : [];
+
+        /// <summary>
+        /// The name of the generated type the query string of the request is read into, with one property per
+        /// <see cref="QueryStringParameters"/>.
+        /// </summary>
+        /// <summary>
+        /// The <c>CommandQueryString</c> attribute that reports what MVC accepts without reporting in the query string of
+        /// the command: the required values it does not have and the names it repeats for a value that is not a
+        /// collection. <see langword="null"/> when the command reads nothing from the query string.
+        /// </summary>
+        public string? CommandQueryStringAttributeString =>
+            HasQueryString
+                ? $"[CommandQueryString({string.Join(", ", QueryStringParameters.Where(parameter => parameter.IsRequired).Select(parameter => $"\"{parameter.Name}\"").Prepend($"typeof({QueryStringClassName})"))})]"
+                : null;
+
+        public string? QueryStringClassName =>
+            HasQueryString
+                ? $"{GroupPrefix}{MainResource.Pascalize()}{ControllerMethodName.Substring(0, ControllerMethodName.Length - "Async".Length)}QueryString"
+                : null;
 
         public Parameter[] RouteParameters =>
             InvocationParameters
@@ -104,31 +169,43 @@ public partial class SourceGenerator
                 .ToArray();
 
         public Parameter[] ControllerMethodParameters =>
-            HasCommandBody
+            HasBody
                 ? RouteParameters
                     .Append(new Parameter
                     {
-                        Name = CommandBodyParameterName,
-                        PropertyName = CommandBodyParameterName,
-                        Type = FullClassName,
+                        Name = BodyParameterName,
+                        PropertyName = BodyParameterName,
+                        Type = BodyClassName!,
                     })
                     .Append(new Parameter {Name = "cancellationToken", PropertyName = "CancellationToken", Type = "System.Threading.CancellationToken"})
                     .ToArray()
-                : InvocationParametersWithToken;
+                : HasQueryString
+                    ? RouteParameters
+                        .Append(new Parameter
+                        {
+                            Name = QueryStringParameterName,
+                            PropertyName = QueryStringParameterName,
+                            Type = QueryStringClassName!,
+                        })
+                        .Append(new Parameter {Name = "cancellationToken", PropertyName = "CancellationToken", Type = "System.Threading.CancellationToken"})
+                        .ToArray()
+                    : InvocationParametersWithToken;
 
         /// <summary>
         /// The parameters of the controller action that read data of the command from the route or the query string,
         /// by the name of the property of the command they set.
         /// </summary>
-        private Parameter[] RequestParameters => HasCommandBody ? RouteParameters : InvocationParameters;
+        private Parameter[] RequestParameters => HasBody ? RouteParameters : InvocationParameters;
 
         public string RequestParametersByPropertyString =>
             $"new Dictionary<string, string> {{ {string.Join(", ", RequestParameters.Select(parameter => $"[\"{parameter.PropertyName}\"] = \"{parameter.Name}\""))} }}";
 
         public string CommandPropertiesString => string.Join(",\n", InvocationParameters
-            .Select(parameter => HasCommandBody && NonRouteInvocationParameters.Contains(parameter)
-                ? $"{parameter.PropertyName} = {CommandBodyParameterName}!.{parameter.PropertyName}"
-                : $"{parameter.PropertyName} = {parameter.Name}"));
+            .Select(parameter => BodyParameters.Contains(parameter)
+                ? $"{parameter.PropertyName} = {BodyParameterName}!.{parameter.PropertyName}"
+                : QueryStringParameters.Contains(parameter)
+                    ? $"{parameter.PropertyName} = {QueryStringParameterName}.{parameter.PropertyName}"
+                    : $"{parameter.PropertyName} = {parameter.Name}"));
 
         public string QueryPropertiesString => string.Join(",\n", InvocationParameters
             .Select(parameter => $"{parameter.PropertyName} = {parameter.Name}"));
@@ -166,8 +243,10 @@ public partial class SourceGenerator
             {
                 _ when parameter.Type == "System.Threading.CancellationToken"
                     => $"{parameter.Type} {parameter.Name}",
-                _ when HasCommandBody && parameter.Name == CommandBodyParameterName
-                    => $"[FromCommandBody({string.Join(", ", RouteParameters.Select(key => $"\"{key.PropertyName}\""))})] {parameter.Type}? {parameter.Name}",
+                _ when parameter.Name == BodyParameterName && HasBody
+                    => $"[FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] {parameter.Type}? {parameter.Name}",
+                _ when parameter.Name == QueryStringParameterName && HasQueryString
+                    => $"[FromQuery(Name = \"\")] {parameter.Type} {parameter.Name}",
                 _ when KeysByResource.Values.Any(keys => keys.Contains(parameter.Name, StringComparer.InvariantCultureIgnoreCase))
                     => $"[FromRoute] {parameter.Type} {parameter.Name}",
                 ResourceType.Retrieve or
@@ -296,15 +375,34 @@ public partial class SourceGenerator
         public required string PropertyName { get; set; }
 
         public required string Type { get; set; }
+
+        /// <summary>
+        /// Whether the property of the command the parameter sets is <c>required</c>.
+        /// </summary>
+        public bool IsRequired { get; set; }
     }
 
     private static readonly string ControllerClassTemplate =
         """
         // This file was auto-generated by a source generator
+        {{~ if HasResourcesWithBody ~}}
+        //
+        // The parameter that reads the body of a request (body) is nullable only so that MVC does not add "The body field
+        // is required." next to the error of a body that cannot be read (https://github.com/dotnet/aspnetcore/issues/53058).
+        // Whenever it is null the model state has an error, an empty body included, so the check of the model state at
+        // the start of the action returns before it is used.
+        {{~ end ~}}
+        {{~ if HasResourcesWithQueryString ~}}
+        //
+        // The parameter that reads the query string of a request (queryString) is bound with an empty prefix, so that each
+        // value is read by its own name. With the name of the parameter as its prefix, MVC would read every value under
+        // "queryString." whenever the query string had a value named "queryString", and leave all of them unset.
+        {{~ end ~}}
         #nullable enable
         
         using System;
         using System.Collections.Generic;
+        using System.ComponentModel.DataAnnotations;
         using System.Threading;
         using System.Threading.Tasks;
         using IOKode.OpinionatedFramework;
@@ -316,6 +414,8 @@ public partial class SourceGenerator
         using IOKode.OpinionatedFramework.Persistence.Queries;
         using Microsoft.AspNetCore.Http;
         using Microsoft.AspNetCore.Mvc;
+        using Microsoft.AspNetCore.Mvc.ModelBinding;
+        using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
         namespace {{ Namespace }};
 
@@ -329,6 +429,9 @@ public partial class SourceGenerator
             {{~ end ~}}
             {{ resource.HttpAttribute }}
             {{ resource.SourceResourceAttributeString }}
+            {{~ if resource.CommandQueryStringAttributeString ~}}
+            {{ resource.CommandQueryStringAttributeString }}
+            {{~ end ~}}
             {{~ if resource.ReturnResponseType == 'Task' ~}}
             [ProducesResponseType(StatusCodes.Status204NoContent)]
             {{~ else ~}}
@@ -336,6 +439,11 @@ public partial class SourceGenerator
             {{~ end ~}}
             public async Task<IActionResult> {{ resource.ControllerMethodName }}({{ resource.ControllerMethodParametersString }})
             {
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
+
                 {{~ if resource.DataType == 'Query' ~}}
                 var query = new {{ resource.FullClassName }}
                 {
@@ -366,5 +474,36 @@ public partial class SourceGenerator
             }
             {{~ end ~}}
         }
+        {{~ for resource in ResourcesDataWithBody ~}}
+
+        /// <summary>
+        /// The body of the request of <see cref="{{ ClassName }}.{{ resource.ControllerMethodName }}"/>: the data of
+        /// <see cref="{{ resource.FullClassName }}"/> that is not a key. MVC does not validate it: the command validates
+        /// its own data when it is invoked.
+        /// </summary>
+        [ValidateNever]
+        public class {{ resource.BodyClassName }}
+        {
+            {{~ for parameter in resource.BodyParameters ~}}
+            public {{ if parameter.IsRequired }}required {{ end }}{{ parameter.Type }} {{ parameter.PropertyName }} { get; init; }
+            {{~ end ~}}
+        }
+        {{~ end ~}}
+        {{~ for resource in ResourcesDataWithQueryString ~}}
+
+        /// <summary>
+        /// The query string of the request of <see cref="{{ ClassName }}.{{ resource.ControllerMethodName }}"/>: the data
+        /// of <see cref="{{ resource.FullClassName }}"/> that is not a key. MVC does not validate it: the command validates
+        /// its own data when it is invoked.
+        /// </summary>
+        [ValidateNever]
+        public class {{ resource.QueryStringClassName }}
+        {
+            {{~ for parameter in resource.QueryStringParameters ~}}
+            [FromQuery(Name = "{{ parameter.Name }}"), Display(Name = "{{ parameter.Name }}")]
+            public {{ if parameter.IsRequired }}required {{ end }}{{ parameter.Type }} {{ parameter.PropertyName }} { get; init; }
+            {{~ end ~}}
+        }
+        {{~ end ~}}
         """;
 }

@@ -28,6 +28,13 @@ namespace IOKode.OpinionatedFramework.Tests.ResourceControllers.Config;
 public class ResourceControllersFixture : IAsyncLifetime
 {
     public required HttpClient Client { get; set; }
+
+    /// <summary>
+    /// A client of a host that does not answer 400 by itself when the model state is invalid
+    /// (<see cref="ApiBehaviorOptions.SuppressModelStateInvalidFilter"/>), so the actions run with it invalid.
+    /// </summary>
+    public required HttpClient ClientWithoutModelStateInvalidFilter { get; set; }
+
     public Func<ITestOutputHelper> TestOutputHelperFactory { get; set; } = null!;
     public readonly PostgresContainer PostgresContainer = new();
 
@@ -57,6 +64,14 @@ public class ResourceControllersFixture : IAsyncLifetime
         }).AddApplicationPart(typeof(ResourceControllersFixture).Assembly);
 
         Container.Services.AddOpenApi("v1");
+        Client = await StartHostAsync(suppressModelStateInvalidFilter: false);
+        ClientWithoutModelStateInvalidFilter = await StartHostAsync(suppressModelStateInvalidFilter: true);
+
+        Container.Initialize();
+    }
+
+    private static async Task<HttpClient> StartHostAsync(bool suppressModelStateInvalidFilter)
+    {
         var host = await new HostBuilder()
             .ConfigureWebHost(webBuilder =>
             {
@@ -73,12 +88,12 @@ public class ResourceControllersFixture : IAsyncLifetime
                         })
                         .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new UpdatableJsonConverter()))
                         .AddApplicationPart(typeof(ResourceControllersFixture).Assembly);
+                        services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = suppressModelStateInvalidFilter);
                         services.AddProblemDetails();
                         services.AddTransient<ResourceNotFoundControllerMiddleware>();
                         services.AddTransient<UnhandledExceptionControllerMiddleware>();
                         services.AddOpenApi("v1", options =>
                         {
-                            options.AddSchemaTransformer<CommandBodySchemaTransformer>();
                             options.AddSchemaTransformer<UpdatableSchemaTransformer>();
                         });
                     })
@@ -96,14 +111,13 @@ public class ResourceControllersFixture : IAsyncLifetime
             })
             .StartAsync();
 
-        Client = host.GetTestClient();
-
-        Container.Initialize();
+        return host.GetTestClient();
     }
 
     public async Task DisposeAsync()
     {
         Client.Dispose();
+        ClientWithoutModelStateInvalidFilter.Dispose();
         await PostgresContainer.DisposeAsync();
     }
 }
